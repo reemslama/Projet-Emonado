@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Type Rendez-Vous</h1>
+
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button>Save</button>
+{{ form_end(form) }}
+
+<a href="{{ path('app_type_rendez_vous_index') }}">back to list</a>
+{% endblock %}

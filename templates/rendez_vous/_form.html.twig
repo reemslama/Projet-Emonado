@@ -1,0 +1,17 @@
+{{ form_start(form) }}
+    <div class="row">
+        <div class="col-md-6">{{ form_row(form.nom_patient) }}</div>
+        <div class="col-md-6">{{ form_row(form.cin) }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">{{ form_row(form.nom_psychologue) }}</div>
+        <div class="col-md-6">{{ form_row(form.date) }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">{{ form_row(form.status) }}</div>
+        <div class="col-md-6">{{ form_row(form.type) }}</div>
+    </div>
+    <button class="btn btn-success mt-3">
+        <i class="fas fa-save"></i> {{ button_label|default('Enregistrer') }}
+    </button>
+{{ form_end(form) }}

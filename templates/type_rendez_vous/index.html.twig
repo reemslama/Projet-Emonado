@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Types de Rendez-Vous{% endblock %}
+
+{% block body %}
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h3 class="card-title">Liste des Types de Rendez-Vous</h3>
+                <div class="card-tools">
+                    <a href="{{ path('app_type_rendez_vous_new') }}" class="btn btn-success btn-sm">
+                        + Ajouter
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for type in type_rendez_vouses %}
+                        <tr>
+                            <td>{{ type.id }}</td>
+                            <td>{{ type.description }}</td>
+                            <td>
+                                <a href="{{ path('app_type_rendez_vous_show', {'id': type.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                <a href="{{ path('app_type_rendez_vous_edit', {'id': type.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3">Aucun type trouvé</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

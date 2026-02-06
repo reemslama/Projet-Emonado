@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Rendez-vous{% endblock %}
+
+{% block body %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title">Créer un nouveau Rendez-vous</h3>
+            </div>
+            <div class="card-body">
+                {# Le formulaire contient déjà son propre bouton de retour #}
+                {{ include('rendez_vous/_form.html.twig') }}
+                
+                {# Le bloc mt-3 avec le lien a été supprimé ici pour éviter le doublon #}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
