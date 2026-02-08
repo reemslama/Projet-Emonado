@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block body %}
+<main class="login-container">
+  <section class="login-wrapper">
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    <form method="post" class="login-form">
+      <div class="options">
+        <button type="submit" name="role" value="patient" class="option">Patient</button>
+        <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
+        <button type="submit" name="role" value="admin" class="option">Admin</button>
+      </div>
+
+      <div class="mb-3 mt-3">
+        <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ last_username }}">
+      </div>
+      <div class="mb-3">
+        <input type="password" name="password" class="form-control" placeholder="Mot de passe" required>
+      </div>
+
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+    
+    </form>
+  </section>
+</main>
+
+<style>
+body {
+    background-color: #f8f8f8;
+}
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+.login-wrapper {
+    background-color: rgba(221, 245, 131, 0.27);
+    border-radius: 25px;
+    padding: 30px 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.option {
+    background: white;
+    border: 2px solid #c5df43;
+    padding: 14px;
+    border-radius: 22px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #333;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.option:hover {
+    background-color: #f4fbe4;
+}
+.option.selected {
+    background-color: #c5df43;
+    color: white;
+}
+</style>
+{% endblock %}

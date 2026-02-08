@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier un utilisateur{% endblock %}
+
+{% block body %}
+<h2>Modifier {{ user.nom }} {{ user.prenom }}</h2>
+
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endfor %}
+
+<form method="post" class="user-form">
+    <div>
+        <label>Nom</label>
+        <input type="text" name="nom" value="{{ user.nom }}" required>
+    </div>
+    <div>
+        <label>Prénom</label>
+        <input type="text" name="prenom" value="{{ user.prenom }}" required>
+    </div>
+    <div>
+        <label>Téléphone</label>
+        <input type="tel" name="telephone" value="{{ user.telephone }}">
+    </div>
+    <div>
+        <label>Spécialité (pour les psychologues)</label>
+        <input type="text" name="specialite" value="{{ user.specialite }}">
+    </div>
+    <div>
+        <label>Mot de passe (laisser vide si inchangé)</label>
+        <input type="password" name="password">
+    </div>
+    <div>
+        <label>Rôle actuel : {{ user.roles|join(', ') }}</label>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Modifier</button>
+</form>
+
+<style>
+.user-form div { margin-bottom: 15px; }
+.user-form label { display: block; font-weight: bold; margin-bottom: 5px; }
+.user-form input, .user-form select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+.mt-2 { margin-top: 10px; }
+.alert { margin-bottom: 20px; }
+</style>
+{% endblock %}

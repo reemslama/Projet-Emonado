@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un utilisateur{% endblock %}
+
+{% block body %}
+<h2>Ajouter un utilisateur</h2>
+
+{% for message in app.flashes('success') %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endfor %}
+
+<form method="post" class="user-form">
+    <div>
+        <label>Nom</label>
+        <input type="text" name="nom" required>
+    </div>
+    <div>
+        <label>Prénom</label>
+        <input type="text" name="prenom" required>
+    </div>
+    <div>
+        <label>Email</label>
+        <input type="email" name="email" required>
+    </div>
+    <div>
+        <label>Téléphone</label>
+        <input type="tel" name="telephone">
+    </div>
+    <div>
+        <label>Spécialité (pour les psychologues)</label>
+        <input type="text" name="specialite">
+    </div>
+    <div>
+        <label>Mot de passe</label>
+        <input type="password" name="password" required>
+    </div>
+    <div>
+        <label>Rôle</label>
+        <select name="role">
+            <option value="ROLE_PATIENT">Patient</option>
+            <option value="ROLE_PSYCHOLOGUE">Psychologue</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Ajouter</button>
+</form>
+
+<style>
+.user-form div { margin-bottom: 15px; }
+.user-form label { display: block; font-weight: bold; margin-bottom: 5px; }
+.user-form input, .user-form select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+.mt-2 { margin-top: 10px; }
+.alert { margin-bottom: 20px; }
+</style>
+{% endblock %}
