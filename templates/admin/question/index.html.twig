@@ -1,0 +1,234 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Questions{% endblock %}
+
+{% block body %}
+{# Header Admin #}
+<header class="masthead" style="min-height: 30vh;">
+    <div class="container px-4 px-lg-5 h-100">
+        <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
+            <div class="col-lg-10">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div></div>
+                    <div></div>
+                    <a href="{{ path('admin_logout') }}" class="btn btn-outline-light">
+                        <i class="bi bi-box-arrow-right"></i> Déconnexion
+                    </a>
+                </div>
+                <i class="bi bi-gear-fill text-white mb-3" style="font-size: 4rem;"></i>
+                <h1 class="text-white font-weight-bold">Administration</h1>
+                <hr class="divider" />
+                <p class="text-white-75">
+                    Connecté en tant que <strong>{{ app.request.session.get('admin_username') }}</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</header>
+
+{# Section principale #}
+<section class="page-section">
+    <div class="container px-4 px-lg-5">
+        {# Bouton Nouvelle Question #}
+        <div class="row mb-4">
+            <div class="col-12 text-end">
+                <a href="{{ path('app_question_new') }}" class="btn btn-primary btn-xl">
+                    <i class="bi bi-plus-circle"></i> Nouvelle Question
+                </a>
+            </div>
+        </div>
+
+        {# Messages Flash #}
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+
+        {# Filtres par catégorie #}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" onclick="filterByCategory('all')">
+                        <i class="bi bi-list"></i> Toutes
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="filterByCategory('stress')">
+                        <i class="bi bi-emoji-frown"></i> Stress
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="filterByCategory('depression')">
+                        <i class="bi bi-heart-pulse"></i> Dépression
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="filterByCategory('iq')">
+                        <i class="bi bi-lightbulb"></i> QI
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Grouper les questions par catégorie #}
+        {% set categories = {
+            'stress': {'name': 'Test de Stress', 'icon': 'emoji-frown', 'color': 'danger'},
+            'depression': {'name': 'Test de Dépression', 'icon': 'heart-pulse', 'color': 'primary'},
+            'iq': {'name': 'Test de QI', 'icon': 'lightbulb', 'color': 'warning'}
+        } %}
+
+        {% for cat_key, cat_info in categories %}
+            {% set cat_questions = questions|filter(q => q.categorie == cat_key) %}
+            
+            {% if cat_questions|length > 0 %}
+            <div class="category-section mb-5" data-category="{{ cat_key }}">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-{{ cat_info.color }} text-white">
+                        <h3 class="mb-0">
+                            <i class="bi bi-{{ cat_info.icon }}"></i> {{ cat_info.name }}
+                            <span class="badge bg-light text-dark ms-2">{{ cat_questions|length }} question(s)</span>
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th width="50%">Question</th>
+                                        <th width="15%" class="text-center">Ordre</th>
+                                        <th width="15%" class="text-center">Réponses</th>
+                                        <th width="15%" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for question in cat_questions|sort((a, b) => a.ordre <=> b.ordre) %}
+                                    <tr>
+                                        <td><span class="badge bg-secondary">{{ question.id }}</span></td>
+                                        <td>{{ question.texte }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">{{ question.ordre }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">{{ question.reponses|length }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ path('app_question_show', {id: question.id}) }}" 
+                                                   class="btn btn-outline-info" 
+                                                   title="Voir">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ path('app_question_edit', {id: question.id}) }}" 
+                                                   class="btn btn-outline-warning" 
+                                                   title="Modifier">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger" 
+                                                        onclick="confirmDelete({{ question.id }}, '{{ question.texte|slice(0, 50) }}')"
+                                                        title="Supprimer">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            {# Formulaire de suppression caché #}
+                                            <form id="delete-form-{{ question.id }}" 
+                                                  method="post" 
+                                                  action="{{ path('app_question_delete', {id: question.id}) }}" 
+                                                  style="display: none;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        {# Si aucune question #}
+        {% if questions|length == 0 %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-lg border-0 text-center p-5">
+                    <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 text-muted">Aucune question</h3>
+                    <p class="text-muted">Commencez par créer votre première question</p>
+                    <a href="{{ path('app_question_new') }}" class="btn btn-primary btn-xl mt-3">
+                        <i class="bi bi-plus-circle"></i> Créer une question
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{# Modal de confirmation de suppression #}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette question ?</p>
+                <p class="fw-bold" id="questionToDelete"></p>
+                <p class="text-danger">Cette action est irréversible !</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash"></i> Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+let deleteFormId = null;
+
+function confirmDelete(questionId, questionText) {
+    deleteFormId = 'delete-form-' + questionId;
+    document.getElementById('questionToDelete').textContent = questionText;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (deleteFormId) {
+        document.getElementById(deleteFormId).submit();
+    }
+});
+
+function filterByCategory(category) {
+    const sections = document.querySelectorAll('.category-section');
+    const buttons = document.querySelectorAll('.btn-group button');
+    
+    // Retirer la classe active de tous les boutons
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // Ajouter la classe active au bouton cliqué
+    event.target.classList.add('active');
+    
+    if (category === 'all') {
+        sections.forEach(section => section.style.display = 'block');
+    } else {
+        sections.forEach(section => {
+            if (section.dataset.category === category) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

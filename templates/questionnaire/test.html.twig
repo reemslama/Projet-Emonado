@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Test {{ categorie|capitalize }}{% endblock %}
+
+{% block body %}
+{# Header avec icône selon la catégorie #}
+<header class="masthead">
+    <div class="container px-4 px-lg-5 h-100">
+        <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
+            <div class="col-lg-10">
+                {% if categorie == 'stress' %}
+                    <i class="bi bi-emoji-frown text-white mb-3" style="font-size: 5rem;"></i>
+                    <h1 class="text-white font-weight-bold">Test de Stress</h1>
+                {% elseif categorie == 'depression' %}
+                    <i class="bi bi-heart-pulse text-white mb-3" style="font-size: 5rem;"></i>
+                    <h1 class="text-white font-weight-bold">Test de Dépression</h1>
+                {% elseif categorie == 'iq' %}
+                    <i class="bi bi-lightbulb text-white mb-3" style="font-size: 5rem;"></i>
+                    <h1 class="text-white font-weight-bold">Test de QI</h1>
+                {% endif %}
+                <hr class="divider" />
+                <p class="text-white-75 mb-5">
+                    {{ questions|length }} question(s) à répondre
+                </p>
+            </div>
+        </div>
+    </div>
+</header>
+
+{# Formulaire avec toutes les questions #}
+<section class="page-section">
+    <div class="container px-4 px-lg-5">
+        <form method="post" action="{{ path('app_resultat') }}" id="testForm">
+            
+            {% for question in questions %}
+            <div class="row justify-content-center mb-5 fade-in-up" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                <div class="col-lg-10">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header 
+                            {% if categorie == 'stress' %}bg-danger
+                            {% elseif categorie == 'depression' %}bg-primary
+                            {% else %}bg-warning
+                            {% endif %} text-white">
+                            <h4 class="mb-0">
+                                <i class="bi bi-question-circle"></i> 
+                                Question {{ loop.index }} / {{ questions|length }}
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">{{ question.texte }}</h5>
+                            
+                            <div class="row g-3">
+                                {% for reponse in question.reponses %}
+                                <div class="col-12">
+                                    <div class="answer-card p-3 border rounded-3" onclick="selectAnswer({{ question.id }}, {{ loop.index0 }})">
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="radio" 
+                                                   name="question_{{ question.id }}" 
+                                                   id="q{{ question.id }}_r{{ loop.index0 }}" 
+                                                   value="{{ reponse.valeur }}" 
+                                                   required>
+                                            <label class="form-check-label w-100" for="q{{ question.id }}_r{{ loop.index0 }}">
+                                                {{ reponse.texte }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {# Bouton de soumission #}
+            <div class="row justify-content-center mt-5">
+                <div class="col-lg-10 text-center">
+                    <button type="submit" class="btn 
+                        {% if categorie == 'stress' %}btn-danger
+                        {% elseif categorie == 'depression' %}btn-primary
+                        {% else %}btn-warning
+                        {% endif %} btn-xl" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> Voir mon résultat
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function selectAnswer(questionId, answerIndex) {
+    // Retirer la classe selected de toutes les cartes de cette question
+    document.querySelectorAll(`input[name="question_${questionId}"]`).forEach((input) => {
+        input.closest('.answer-card').classList.remove('selected');
+    });
+    
+    // Ajouter la classe selected à la carte cliquée
+    const selectedInput = document.getElementById(`q${questionId}_r${answerIndex}`);
+    selectedInput.closest('.answer-card').classList.add('selected');
+    
+    // Cocher le radio button
+    selectedInput.checked = true;
+    
+    // Vérifier si toutes les questions ont été répondues
+    checkAllAnswered();
+}
+
+function checkAllAnswered() {
+    const totalQuestions = {{ questions|length }};
+    const questionGroups = document.querySelectorAll('input[type="radio"]:checked');
+    
+    // Compter les groupes uniques de questions répondues
+    const answeredQuestions = new Set();
+    questionGroups.forEach(input => {
+        answeredQuestions.add(input.name);
+    });
+    
+    // Activer/désactiver le bouton submit
+    const submitBtn = document.getElementById('submitBtn');
+    if (answeredQuestions.size === totalQuestions) {
+        submitBtn.disabled = false;
+    }
+}
+
+// Animation au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+
+    document.querySelectorAll('.fade-in-up').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.5s ease';
+        observer.observe(card);
+    });
+});
+</script>
+
+<style>
+.answer-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.answer-card:hover {
+    background-color: #f8f9fa;
+    border-color: #0d6efd !important;
+    transform: translateX(5px);
+}
+
+.answer-card.selected {
+    background-color: #e7f3ff;
+    border-color: #0d6efd !important;
+    border-width: 2px !important;
+}
+
+.form-check-input:checked ~ .form-check-label {
+    font-weight: 600;
+    color: #0d6efd;
+}
+</style>
+{% endblock %}
