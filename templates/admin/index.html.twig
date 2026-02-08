@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block body %}
+<h2>Bienvenue Admin</h2>
+
+<a href="{{ path('admin_user_add') }}" class="btn btn-success mb-3">Ajouter un utilisateur</a>
+
+<h3>Patients</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for patient in patients %}
+        <tr>
+            <td>{{ patient.nom }}</td>
+            <td>{{ patient.prenom }}</td>
+            <td>{{ patient.email }}</td>
+            <td>{{ patient.telephone }}</td>
+            <td>
+                <a href="{{ path('admin_user_edit', {'id': patient.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
+                <form method="post" action="{{ path('admin_user_delete', {'id': patient.id}) }}" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer ce patient ?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Aucun patient trouvé.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Psychologues</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Spécialité</th>
+            <th>Téléphone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for psy in psychologues %}
+        <tr>
+            <td>{{ psy.nom }}</td>
+            <td>{{ psy.prenom }}</td>
+            <td>{{ psy.email }}</td>
+            <td>{{ psy.specialite }}</td>
+            <td>{{ psy.telephone }}</td>
+            <td>
+                <a href="{{ path('admin_user_edit', {'id': psy.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
+                <form method="post" action="{{ path('admin_user_delete', {'id': psy.id}) }}" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer ce psychologue ?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Aucun psychologue trouvé.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
