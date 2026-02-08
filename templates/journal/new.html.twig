@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Journal{% endblock %}
+
+{% block body %}
+<h2 class="text-success mb-4">
+    <i class="fa-solid fa-pen-to-square"></i> Nouveau Journal
+</h2>
+
+{{ include('journal/_form.html.twig') }}
+
+<a href="{{ path('app_journal_index') }}" class="btn btn-link mt-3">
+    ← Retour
+</a>
+{% endblock %}
+

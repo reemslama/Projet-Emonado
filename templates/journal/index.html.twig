@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Journaux{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-success fw-bold">Mes Journaux</h2>
+    <a href="{{ path('app_journal_new') }}" class="btn btn-success btn-custom">
+        <i class="fa-solid fa-plus"></i> Nouveau journal
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="alert alert-primary text-center">
+            🙂 Heureux<br>
+            <strong>{{ stats['heureux'] ?? 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="alert alert-info text-center">
+            😌 Calme<br>
+            <strong>{{ stats['calme'] ?? 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="alert alert-warning text-center">
+            🚨 SOS<br>
+            <strong>{{ stats['SOS'] ?? 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="alert alert-danger text-center">
+            😡 En colère<br>
+            <strong>{{ stats['en colere'] ?? 0 }}</strong>
+        </div>
+    </div>
+</div>
+
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text"
+               name="q"
+               value="{{ keyword }}"
+               class="form-control"
+               placeholder="Rechercher par humeur ou contenu">
+    </div>
+
+    <div class="col-md-4">
+        <select name="sort" class="form-select">
+            <option value="recent" {{ sort != 'old' ? 'selected' : '' }}>
+                Plus récent
+            </option>
+            <option value="old" {{ sort == 'old' ? 'selected' : '' }}>
+                Plus ancien
+            </option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <button class="btn btn-primary w-100">
+            🔍 Rechercher / Tri 
+        </button>
+    </div>
+</form>
+
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle bg-white shadow-sm">
+        <thead class="table-success text-center">
+            <tr>
+                <th>Humeur</th>
+                <th>Contenu</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for journal in journals %}
+            <tr>
+                <td class="fw-bold text-success">
+                    {{ journal.humeur }}
+                </td>
+
+                <td>
+                    {{ journal.contenu|slice(0, 80) }}{% if journal.contenu|length > 80 %}...{% endif %}
+                </td>
+
+                <td class="text-center">
+                    {{ journal.dateCreation|date('d/m/Y') }}
+                </td>
+
+                <td class="text-center">
+    <a href="{{ path('app_journal_edit', {'id': journal.id}) }}"
+       class="btn btn-sm btn-primary me-2 action-btn">
+        <i class="fa-solid fa-pen"></i>
+        <span class="ms-1">Update</span>
+    </a>
+
+    <form method="post"
+          action="{{ path('app_journal_delete', {'id': journal.id}) }}"
+          onsubmit="return confirm('Voulez-vous vraiment supprimer ce journal ?');"
+          style="display:inline">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ journal.id) }}">
+        <button class="btn btn-sm btn-outline-primary action-btn">
+            <i class="fa-solid fa-trash"></i>
+            <span class="ms-1">Delete</span>
+        </button>
+    </form>
+</td>
+
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    Aucun journal trouvé
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
