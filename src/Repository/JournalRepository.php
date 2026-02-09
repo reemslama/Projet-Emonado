@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Journal;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,57 +17,44 @@ class JournalRepository extends ServiceEntityRepository
         parent::__construct($registry, Journal::class);
     }
 
-    public function searchAndSort(?string $keyword, ?string $sort): array
-{
-    $qb = $this->createQueryBuilder('j');
+    /**
+     * 🔐 Journaux d’un utilisateur seulement
+     */
+    public function searchAndSortByUser(
+        User $user,
+        ?string $keyword,
+        ?string $sort
+    ): array {
+        $qb = $this->createQueryBuilder('j')
+            ->andWhere('j.user = :user')
+            ->setParameter('user', $user);
 
-    // 🔍 Recherche
-    if ($keyword) {
-        $qb->andWhere('j.humeur LIKE :kw OR j.contenu LIKE :kw')
-           ->setParameter('kw', '%' . $keyword . '%');
+        // 🔍 Recherche
+        if ($keyword) {
+            $qb->andWhere('j.humeur LIKE :kw OR j.contenu LIKE :kw')
+               ->setParameter('kw', '%' . $keyword . '%');
+        }
+
+        // 🔽 Tri
+        if ($sort === 'old') {
+            $qb->orderBy('j.dateCreation', 'ASC');
+        } else {
+            $qb->orderBy('j.dateCreation', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
-    // 🔽 Tri
-    if ($sort === 'old') {
-        $qb->orderBy('j.dateCreation', 'ASC');
-    } else {
-        // recent par défaut
-        $qb->orderBy('j.dateCreation', 'DESC');
-    }
-
-    return $qb->getQuery()->getResult();
-}
-
-
-    //    /**
-    //     * @return Journal[] Returns an array of Journal objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('j')
-    //            ->andWhere('j.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('j.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Journal
-    //    {
-    //        return $this->createQueryBuilder('j')
-    //            ->andWhere('j.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-    public function countByHumeur(): array
+    /**
+     * 📊 Stats PAR UTILISATEUR
+     */
+    public function countByHumeurForUser(User $user): array
     {
         $result = $this->createQueryBuilder('j')
             ->select('j.humeur, COUNT(j.id) AS total')
-            ->where('j.humeur IN (:humeurs)')
+            ->where('j.user = :user')
+            ->andWhere('j.humeur IN (:humeurs)')
+            ->setParameter('user', $user)
             ->setParameter('humeurs', [
                 'heureux',
                 'SOS',
@@ -77,12 +65,11 @@ class JournalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        // Initialisation (évite les valeurs manquantes)
         $stats = [
-            'heureux'   => 0,
-            'SOS'       => 0,
+            'heureux' => 0,
+            'SOS' => 0,
             'en colere' => 0,
-            'calme'     => 0,
+            'calme' => 0,
         ];
 
         foreach ($result as $row) {
@@ -91,5 +78,4 @@ class JournalRepository extends ServiceEntityRepository
 
         return $stats;
     }
-
-    }
+}

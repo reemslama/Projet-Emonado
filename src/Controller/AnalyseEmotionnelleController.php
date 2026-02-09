@@ -71,7 +71,7 @@ final class AnalyseEmotionnelleController extends AbstractController
     #[Route('/{id}', name: 'app_analyse_emotionnelle_delete', methods: ['POST'])]
     public function delete(Request $request, AnalyseEmotionnelle $analyseEmotionnelle, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$analyseEmotionnelle->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$analyseEmotionnelle->getId(), (string) $request->request->get('_token'))) {
             $entityManager->remove($analyseEmotionnelle);
             $entityManager->flush();
         }

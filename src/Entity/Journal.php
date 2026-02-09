@@ -17,20 +17,20 @@ class Journal
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: "Le contenu du journal est obligatoire.")]
-#[Assert\Length(
-    min: 10,
-    minMessage: "Le contenu doit contenir au moins {{ limit }} caractères.",
-    max: 1000,
-    maxMessage: "Le contenu ne peut pas dépasser {{ limit }} caractères."
-)]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "Le contenu doit contenir au moins {{ limit }} caractères.",
+        max: 1000,
+        maxMessage: "Le contenu ne peut pas dépasser {{ limit }} caractères."
+    )]
     private ?string $contenu = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Veuillez choisir votre humeur.")]
-#[Assert\Choice(
-    choices: ['heureux', 'SOS', 'en colere', 'calme'],
-    message: "Veuillez choisir une humeur valide: esque tu es'heureux', 'SOS', 'en colere', 'calme'? "
-)]
+    #[Assert\Choice(
+        choices: ['heureux', 'SOS', 'en colere', 'calme'],
+        message: "Veuillez choisir une humeur valide: 'heureux', 'SOS', 'en colere', 'calme'."
+    )]
     private ?string $humeur = null;
 
     #[ORM\Column]
