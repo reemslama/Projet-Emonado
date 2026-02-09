@@ -1,0 +1,248 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Consultations{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check"></i> Mes Consultations</h2>
+        <a href="{{ path('patient_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Formulaire d'ajout de consultation -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-plus-circle"></i> Ajouter une nouvelle consultation
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" name="action" value="add_consultation">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Date de consultation <span class="text-danger">*</span>
+                        </label>
+                        <input type="datetime-local" name="date_consultation" class="form-control" 
+                               value="{{ "now"|date("Y-m-d\\TH:i") }}" required>
+                        <small class="form-text text-muted">Date et heure de votre consultation</small>
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-sticky-note"></i> Notes de consultation
+                        </label>
+                        <textarea name="notes" class="form-control" rows="4" 
+                                  placeholder="Décrivez votre consultation, vos symptômes, vos préoccupations, etc.&#10;&#10;Exemple:&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations&#10;- État émotionnel"></textarea>
+                        <small class="form-text text-muted">Vous pouvez décrire les raisons de votre consultation, vos symptômes, ou toute autre information pertinente.</small>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Enregistrer la consultation
+                </button>
+            </form>
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="fas fa-info-circle"></i> <strong>Information :</strong> Cette consultation sera ajoutée à votre dossier médical. Un psychologue pourra la consulter et y ajouter ses notes professionnelles.
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des consultations -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Historique des consultations
+                <span class="badge bg-light text-dark ms-2">{{ consultations|length }}</span>
+            </h5>
+            <div>
+                <button class="btn btn-sm btn-light" type="button" onclick="toggleFilters()">
+                    <i class="fas fa-filter"></i> Filtrer
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if consultations|length > 0 %}
+                <!-- Filtres (cachés par défaut) -->
+                <div id="filters" class="mb-3" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Trier par:</label>
+                            <select class="form-select" id="sortConsultations" onchange="sortConsultations()">
+                                <option value="date_desc">Date (plus récentes)</option>
+                                <option value="date_asc">Date (plus anciennes)</option>
+                                <option value="psychologue">Psychologue</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rechercher:</label>
+                            <input type="text" class="form-control" id="searchConsultations" 
+                                   placeholder="Rechercher dans les notes..." onkeyup="filterConsultations()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="consultationsList" class="list-group">
+                    {% for consultation in consultations %}
+                        <div class="list-group-item consultation-item" 
+                             data-date="{% if consultation.dateConsultation %}{{ consultation.dateConsultation|date('Y-m-d H:i') }}{% else %}1970-01-01 00:00{% endif %}"
+                             data-psychologue="{% if consultation.psychologue %}{{ consultation.psychologue.nom }} {{ consultation.psychologue.prenom }}{% else %}Non assigné{% endif %}"
+                             data-notes="{{ (consultation.notes ?? '')|lower }}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-calendar-alt text-success"></i> 
+                                        Consultation {% if consultation.dateConsultation %}du {{ consultation.dateConsultation|date('d/m/Y à H:i') }}{% else %}(date non définie){% endif %}
+                                    </h6>
+                                    <p class="mb-1 text-muted">
+                                        <i class="fas fa-user-md"></i> 
+                                        {% if consultation.psychologue %}
+                                            Avec: <strong>Dr. {{ consultation.psychologue.nom }} {{ consultation.psychologue.prenom }}</strong>
+                                            {% if consultation.psychologue.specialite %}
+                                                <span class="badge bg-info">{{ consultation.psychologue.specialite }}</span>
+                                            {% endif %}
+                                            <span class="badge bg-primary ms-2">
+                                                <i class="fas fa-user-md"></i> Consultation professionnelle
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-user"></i> Consultation personnelle (en attente de suivi)
+                                            </span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    {% if consultation.dateConsultation %}
+                                        <span class="badge bg-success">
+                                            {{ consultation.dateConsultation|date('d/m/Y') }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            Date N/A
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if consultation.notes %}
+                                <div class="mt-2 p-2 bg-light rounded">
+                                    <strong><i class="fas fa-sticky-note"></i> Notes de consultation:</strong>
+                                    <p class="mb-0 mt-1">{{ consultation.notes|nl2br }}</p>
+                                </div>
+                            {% else %}
+                                <p class="mb-1 mt-2 text-muted">
+                                    <i class="fas fa-info-circle"></i> Aucune note disponible pour cette consultation.
+                                </p>
+                            {% endif %}
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-clock"></i> Consultation enregistrée le {{ consultation.createdAt|date('d/m/Y à H:i') }}
+                            </small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Vous n'avez pas encore de consultations enregistrées.
+                    <br>Utilisez le formulaire ci-dessus pour ajouter votre première consultation.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ path('patient_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+        <a href="{{ path('dossier_medical_patient_view') }}" class="btn btn-outline-primary">
+            <i class="fas fa-folder-medical"></i> Voir mon dossier médical complet
+        </a>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    .list-group-item {
+        border-left: 4px solid #28a745;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+    .list-group-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateX(5px);
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
+    }
+</style>
+
+<script>
+function toggleFilters() {
+    const filters = document.getElementById('filters');
+    filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
+}
+
+function sortConsultations() {
+    const sortSelect = document.getElementById('sortConsultations');
+    const list = document.getElementById('consultationsList');
+    if (!sortSelect || !list) return;
+    const sortValue = sortSelect.value;
+    const items = Array.from(list.querySelectorAll('.consultation-item'));
+
+    items.sort((a, b) => {
+        if (sortValue === 'date_desc') {
+            return new Date(b.dataset.date) - new Date(a.dataset.date);
+        } else if (sortValue === 'date_asc') {
+            return new Date(a.dataset.date) - new Date(b.dataset.date);
+        } else if (sortValue === 'psychologue') {
+            return a.dataset.psychologue.localeCompare(b.dataset.psychologue);
+        }
+        return 0;
+    });
+
+    items.forEach(item => list.appendChild(item));
+}
+
+function filterConsultations() {
+    const searchEl = document.getElementById('searchConsultations');
+    const searchValue = (searchEl && searchEl.value) ? searchEl.value.toLowerCase() : '';
+    const items = document.querySelectorAll('.consultation-item');
+
+    items.forEach(item => {
+        const notes = (item.dataset.notes || '').toLowerCase();
+        const psychologue = (item.dataset.psychologue || '').toLowerCase();
+        const h6 = item.querySelector('h6');
+        const date = h6 ? h6.textContent.toLowerCase() : '';
+        
+        if (!searchValue || notes.includes(searchValue) || psychologue.includes(searchValue) || date.includes(searchValue)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}
