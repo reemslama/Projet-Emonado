@@ -3,71 +3,387 @@
 {% block title %}Dashboard Admin{% endblock %}
 
 {% block body %}
-<h2>Bienvenue Admin</h2>
+<div class="container-fluid mt-5 px-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">
+                <i class="bi bi-speedometer2"></i> Bienvenue Admin
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{{ path('admin_user_add') }}" class="btn btn-success">
+                <i class="bi bi-person-plus"></i> Ajouter un utilisateur
+            </a>
+        </div>
+    </div>
 
-<a href="{{ path('admin_user_add') }}" class="btn btn-success mb-3">Ajouter un utilisateur</a>
+    {# ========== PATIENTS ========== #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-people-fill"></i> Patients
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th width="200">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if patients is empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Aucun patient trouvé.</td>
+                            </tr>
+                        {% else %}
+                            {% for patient in patients %}
+                            <tr>
+                                <td>{{ patient.nom }}</td>
+                                <td>{{ patient.prenom }}</td>
+                                <td>{{ patient.email }}</td>
+                                <td>{{ patient.telephone ?? 'N/A' }}</td>
+                                <td>
+                                    <a href="{{ path('admin_user_edit', {id: patient.id}) }}" 
+                                       class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <form method="post" action="{{ path('admin_user_delete', {id: patient.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ patient.id) }}">
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<h3>Patients</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Email</th>
-            <th>Téléphone</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for patient in patients %}
-        <tr>
-            <td>{{ patient.nom }}</td>
-            <td>{{ patient.prenom }}</td>
-            <td>{{ patient.email }}</td>
-            <td>{{ patient.telephone }}</td>
-            <td>
-                <a href="{{ path('admin_user_edit', {'id': patient.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
-                <form method="post" action="{{ path('admin_user_delete', {'id': patient.id}) }}" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer ce patient ?');">
-                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5">Aucun patient trouvé.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    {# ========== PSYCHOLOGUES ========== #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-person-badge-fill"></i> Psychologues
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Email</th>
+                            <th>Spécialité</th>
+                            <th>Téléphone</th>
+                            <th width="200">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if psychologues is empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Aucun psychologue trouvé.</td>
+                            </tr>
+                        {% else %}
+                            {% for psy in psychologues %}
+                            <tr>
+                                <td>{{ psy.nom }}</td>
+                                <td>{{ psy.prenom }}</td>
+                                <td>{{ psy.email }}</td>
+                                <td>{{ psy.specialite ?? 'N/A' }}</td>
+                                <td>{{ psy.telephone ?? 'N/A' }}</td>
+                                <td>
+                                    <a href="{{ path('admin_user_edit', {id: psy.id}) }}" 
+                                       class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <form method="post" action="{{ path('admin_user_delete', {id: psy.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ psy.id) }}">
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<h3>Psychologues</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Email</th>
-            <th>Spécialité</th>
-            <th>Téléphone</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for psy in psychologues %}
-        <tr>
-            <td>{{ psy.nom }}</td>
-            <td>{{ psy.prenom }}</td>
-            <td>{{ psy.email }}</td>
-            <td>{{ psy.specialite }}</td>
-            <td>{{ psy.telephone }}</td>
-            <td>
-                <a href="{{ path('admin_user_edit', {'id': psy.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
-                <form method="post" action="{{ path('admin_user_delete', {'id': psy.id}) }}" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer ce psychologue ?');">
-                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="6">Aucun psychologue trouvé.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    {# ========== QUESTIONS ========== #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-question-circle-fill"></i> Questions du Questionnaire
+            </h2>
+        </div>
+        <div class="card-body">
+            {# Barre d'actions et filtres #}
+            <div class="row mb-3 g-2">
+                <div class="col-md-4">
+                    <a href="{{ path('app_question_new') }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Ajouter une question
+                    </a>
+                </div>
+                
+                {# BARRE DE RECHERCHE #}
+                <div class="col-md-4">
+                    <form method="get" action="{{ path('admin_dashboard') }}" id="searchForm">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   name="search"
+                                   id="searchQuestion" 
+                                   class="form-control" 
+                                   placeholder="Rechercher une question..."
+                                   value="{{ searchKeyword }}">
+                            {% if searchKeyword %}
+                                <button type="button" class="btn btn-outline-secondary" id="clearSearch">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+
+                {# FILTRE PAR CATÉGORIE #}
+                <div class="col-md-4">
+                    <form method="get" action="{{ path('admin_dashboard') }}" class="d-flex align-items-center" id="categoryForm">
+                        {% if searchKeyword %}
+                            <input type="hidden" name="search" value="{{ searchKeyword }}">
+                        {% endif %}
+                        <label for="categorie" class="me-2 mb-0 text-nowrap">
+                            <i class="bi bi-funnel"></i> Catégorie :
+                        </label>
+                        <select name="categorie" id="categorie" class="form-select" onchange="this.form.submit()">
+                            <option value="all" {% if categorieFilter == 'all' %}selected{% endif %}>
+                                Toutes
+                            </option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if categorieFilter == cat %}selected{% endif %}>
+                                    {{ cat|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            {# Badges de filtres actifs #}
+            <div class="mb-3">
+                {% if searchKeyword %}
+                <div class="alert alert-warning alert-dismissible fade show d-inline-block me-2" role="alert">
+                    <i class="bi bi-search"></i>
+                    Recherche : <strong>"{{ searchKeyword }}"</strong>
+                    <a href="{{ path('admin_dashboard', {categorie: categorieFilter}) }}" class="btn btn-sm btn-outline-dark ms-2">
+                        <i class="bi bi-x-circle"></i> Effacer
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if categorieFilter != 'all' %}
+                <div class="alert alert-info alert-dismissible fade show d-inline-block" role="alert">
+                    <i class="bi bi-funnel-fill"></i>
+                    Catégorie : <strong>{{ categorieFilter|capitalize }}</strong>
+                    <a href="{{ path('admin_dashboard', {search: searchKeyword}) }}" class="btn btn-sm btn-outline-primary ms-2">
+                        <i class="bi bi-x-circle"></i> Tout afficher
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            {# Tableau des questions #}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle" id="questionsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Texte de la question</th>
+                            <th style="width: 120px;">Catégorie</th>
+                            <th style="width: 100px;">Type</th>
+                            <th style="width: 80px;">Ordre</th>
+                            <th style="width: 100px;">Réponses</th>
+                            <th style="width: 280px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if questions is empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                    <p class="mt-2 mb-0">
+                                        {% if searchKeyword %}
+                                            Aucune question trouvée pour "<strong>{{ searchKeyword }}</strong>".
+                                        {% elseif categorieFilter != 'all' %}
+                                            Aucune question dans la catégorie "<strong>{{ categorieFilter }}</strong>".
+                                        {% else %}
+                                            Aucune question trouvée.
+                                        {% endif %}
+                                    </p>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for question in questions %}
+                            <tr>
+                                <td class="text-center">{{ question.id }}</td>
+                                <td>
+                                    {% if question.texte|length > 80 %}
+                                        {{ question.texte|slice(0, 80) }}...
+                                    {% else %}
+                                        {{ question.texte }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ question.categorie|capitalize }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ question.typeQuestion }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-dark">{{ question.ordre }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">
+                                        {{ question.reponses|length }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_question_show', {id: question.id}) }}" 
+                                       class="btn btn-sm btn-info me-1" 
+                                       title="Voir les détails">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                    <a href="{{ path('app_question_edit', {id: question.id}) }}" 
+                                       class="btn btn-sm btn-warning me-1" 
+                                       title="Modifier">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <form method="post" action="{{ path('app_question_delete', {id: question.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette question et toutes ses réponses ?')"
+                                                title="Supprimer">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Compteur de résultats #}
+            <div class="mt-3">
+                <p class="text-muted mb-0">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <strong>{{ questions|length }}</strong> question(s) affichée(s)
+                    {% if searchKeyword %}
+                        pour "<strong>{{ searchKeyword }}</strong>"
+                    {% endif %}
+                    {% if categorieFilter != 'all' %}
+                        dans la catégorie "<strong>{{ categorieFilter }}</strong>"
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Améliorer la lisibilité des boutons */
+    .btn-sm {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    /* Éviter le retour à la ligne dans les cellules d'actions */
+    td form {
+        margin: 0;
+    }
+    
+    /* Aligner verticalement le contenu des cellules */
+    .align-middle {
+        vertical-align: middle !important;
+    }
+
+    /* Style pour la barre de recherche */
+    #searchQuestion {
+        border-left: none;
+    }
+
+    #searchQuestion:focus {
+        box-shadow: none;
+        border-color: #dee2e6;
+    }
+
+    .input-group:focus-within .input-group-text {
+        border-color: #86b7fe;
+    }
+
+    /* Style pour les badges d'alertes */
+    .alert.d-inline-block {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bouton pour effacer la recherche
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            const searchInput = document.getElementById('searchQuestion');
+            searchInput.value = '';
+            document.getElementById('searchForm').submit();
+        });
+    }
+
+    // Soumettre automatiquement le formulaire de recherche après un délai
+    const searchInput = document.getElementById('searchQuestion');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            document.getElementById('searchForm').submit();
+        }, 800); // Délai de 800ms pour éviter trop de soumissions
+    });
+
+    // Effacer la recherche avec Escape
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            this.value = '';
+            document.getElementById('searchForm').submit();
+        }
+    });
+});
+</script>
 {% endblock %}
