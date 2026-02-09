@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    <h2>Mon Profil</h2>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <!-- Formulaire Mise à jour -->
+    <form method="post" class="profile-form">
+        <input type="hidden" name="action" value="update">
+
+        <div>
+            <label>Nom</label>
+            <input type="text" name="nom" value="{{ user.nom }}" required>
+        </div>
+
+        <div>
+            <label>Prénom</label>
+            <input type="text" name="prenom" value="{{ user.prenom }}" required>
+        </div>
+
+        <div>
+            <label>Email</label>
+            <input type="email" value="{{ user.email }}" disabled>
+        </div>
+
+        <div>
+            <label>Téléphone</label>
+            <input type="tel" name="telephone" value="{{ user.telephone }}">
+        </div>
+
+        <div>
+            <label>Sexe</label>
+            <select name="sexe">
+                <option value="">-- Sélectionner --</option>
+                <option value="Homme" {% if user.sexe == 'Homme' %}selected{% endif %}>Homme</option>
+                <option value="Femme" {% if user.sexe == 'Femme' %}selected{% endif %}>Femme</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Date de naissance</label>
+            <input type="date" name="date_naissance" value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}">
+        </div>
+
+        <div>
+            <label>Mot de passe (laisser vide si inchangé)</label>
+            <input type="password" name="password">
+        </div>
+
+        <button type="submit" class="btn btn-success mt-3">Mettre à jour</button>
+    </form>
+
+    <!-- Bouton Déconnexion -->
+    <a href="{{ path('app_logout') }}" class="btn btn-secondary mt-3">Déconnexion</a>
+
+    <!-- Formulaire Supprimer Profil -->
+    <form method="post" onsubmit="return confirm('Voulez-vous vraiment supprimer votre profil ?');">
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn btn-danger mt-3">Supprimer mon profil</button>
+    </form>
+</div>
+
+<style>
+.profile-container {
+   background-color: rgba(221, 245, 131, 0.27);
+    border-radius: 25px;
+    padding: 30px 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-form div { margin-bottom: 15px; }
+.profile-form label { display: block; font-weight: bold; margin-bottom: 5px; }
+.profile-form input, .profile-form select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; color: white; font-weight: 600; }
+.btn-secondary { background-color: #7cb342; }
+.btn-secondary:hover { background-color: #669933; }
+.btn-danger { background-color: #669933; }
+.btn-danger:hover { background-color: #669933; }
+</style>
+{% endblock %}
