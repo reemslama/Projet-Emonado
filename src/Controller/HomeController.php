@@ -11,13 +11,13 @@ class HomeController extends AbstractController
     #[Route('/', name: 'home')]
     public function index(): Response
     {
-        // On indique le chemin complet depuis templates/
         return $this->render('home/index.html.twig');
     }
 
     #[Route('/test', name: 'test_page')]
     public function test(): Response
     {
-        return $this->render('test/index.html.twig'); 
+        // Redirige vers le template de choix du questionnaire
+        return $this->render('questionnaire/choix.html.twig'); 
     }
 }

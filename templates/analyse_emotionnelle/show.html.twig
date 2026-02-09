@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AnalyseEmotionnelle{% endblock %}
+
+{% block body %}
+    <h1>AnalyseEmotionnelle</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ analyse_emotionnelle.id }}</td>
+            </tr>
+            <tr>
+                <th>EmotionPrincipale</th>
+                <td>{{ analyse_emotionnelle.emotionPrincipale }}</td>
+            </tr>
+            <tr>
+                <th>NiveauStress</th>
+                <td>{{ analyse_emotionnelle.niveauStress }}</td>
+            </tr>
+            <tr>
+                <th>ScoreBienEtre</th>
+                <td>{{ analyse_emotionnelle.scoreBienEtre }}</td>
+            </tr>
+            <tr>
+                <th>ResumeIA</th>
+                <td>{{ analyse_emotionnelle.resumeIA }}</td>
+            </tr>
+            <tr>
+                <th>DateAnalyse</th>
+                <td>{{ analyse_emotionnelle.dateAnalyse ? analyse_emotionnelle.dateAnalyse|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_analyse_emotionnelle_index') }}">back to list</a>
+
+    <a href="{{ path('app_analyse_emotionnelle_edit', {'id': analyse_emotionnelle.id}) }}">edit</a>
+
+    {{ include('analyse_emotionnelle/_delete_form.html.twig') }}
+{% endblock %}

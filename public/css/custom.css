@@ -1,0 +1,72 @@
+/* Personnalisations pour le questionnaire */
+
+/* Animation pour les cartes de réponses */
+.answer-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.answer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: #f4623a;
+}
+
+.answer-card.selected {
+    border-color: #f4623a;
+    background-color: #fff5f2;
+}
+
+/* Style pour les boutons de progression */
+.progress-custom {
+    height: 30px;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.progress-custom .progress-bar {
+    border-radius: 15px;
+    background: linear-gradient(90deg, #f4623a 0%, #f4813a 100%);
+}
+
+/* Cartes de statistiques */
+.stat-card {
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.stat-card.danger {
+    background: linear-gradient(135deg, #dc3545 0%, #f4623a 100%);
+}
+
+.stat-card.primary {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+}
+
+/* Animation de chargement */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease;
+}

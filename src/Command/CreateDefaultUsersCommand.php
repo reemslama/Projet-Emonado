@@ -27,8 +27,8 @@ class CreateDefaultUsersCommand extends Command
     {
         // Admin
         $admin = new User();
-        $admin->setEmail('admin@emonaso.com');
-        $admin->setPassword($this->hasher->hashPassword($admin, 'Admin123'));
+        $admin->setEmail('admin@exemple.com');
+        $admin->setPassword($this->hasher->hashPassword($admin, 'adminpass'));
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setNom('Admin');
         $admin->setPrenom('System');
