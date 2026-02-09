@@ -37,27 +37,77 @@ class Question
 
     // GETTERS / SETTERS
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int 
+    { 
+        return $this->id; 
+    }
 
-    public function getTexte(): ?string { return $this->texte; }
-    public function setTexte(string $texte): self { $this->texte = $texte; return $this; }
+    public function getTexte(): ?string 
+    { 
+        return $this->texte; 
+    }
 
-    public function getOrdre(): ?int { return $this->ordre; }
-    public function setOrdre(int $ordre): self { $this->ordre = $ordre; return $this; }
+    public function setTexte(string $texte): self 
+    { 
+        $this->texte = $texte; 
+        return $this; 
+    }
 
-    public function getTypeQuestion(): ?string { return $this->typeQuestion; }
-    public function setTypeQuestion(string $type): self { $this->typeQuestion = $type; return $this; }
+    public function getOrdre(): ?int 
+    { 
+        return $this->ordre; 
+    }
 
-    public function getCategorie(): ?string { return $this->categorie; }
-    public function setCategorie(string $cat): self { $this->categorie = $cat; return $this; }
+    public function setOrdre(int $ordre): self 
+    { 
+        $this->ordre = $ordre; 
+        return $this; 
+    }
 
-    public function getReponses(): Collection { return $this->reponses; }
+    public function getTypeQuestion(): ?string 
+    { 
+        return $this->typeQuestion; 
+    }
+
+    public function setTypeQuestion(string $type): self 
+    { 
+        $this->typeQuestion = $type; 
+        return $this; 
+    }
+
+    public function getCategorie(): ?string 
+    { 
+        return $this->categorie; 
+    }
+
+    public function setCategorie(string $cat): self 
+    { 
+        $this->categorie = $cat; 
+        return $this; 
+    }
+
+    public function getReponses(): Collection 
+    { 
+        return $this->reponses; 
+    }
 
     public function addReponse(Reponse $reponse): self
     {
         if (!$this->reponses->contains($reponse)) {
             $this->reponses[] = $reponse;
             $reponse->setQuestion($this);
+        }
+        return $this;
+    }
+
+    // ✅ MÉTHODE MANQUANTE AJOUTÉE
+    public function removeReponse(Reponse $reponse): self
+    {
+        if ($this->reponses->removeElement($reponse)) {
+            // Défaire la relation bidirectionnelle
+            if ($reponse->getQuestion() === $this) {
+                $reponse->setQuestion(null);
+            }
         }
         return $this;
     }
