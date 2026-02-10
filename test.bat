@@ -60,10 +60,10 @@ echo   - Admin: admin@emonaso.com / Admin123
 echo   - Psychologue: psy@emonaso.com / Psy123
 echo.
 echo Pour demarrer le serveur:
-echo   symfony server:start
-echo   OU
-echo   php -S localhost:8000 -t public
+echo   Double-cliquez sur: start-server.bat
+echo   OU en ligne de commande:
+echo   php -S 127.0.0.1:8080 -t public
 echo.
-echo L'application sera accessible sur: http://localhost:8000
+echo L'application sera accessible sur: http://127.0.0.1:8080
 echo.
 pause

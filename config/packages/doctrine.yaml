@@ -38,10 +38,6 @@ when@prod:
             result_cache_driver:
                 type: pool
                 pool: doctrine.result_cache_pool
-<<<<<<< HEAD
-
-=======
->>>>>>> 85e636dbed613d6441995c636b187c1312d0b5ad
     framework:
         cache:
             pools:

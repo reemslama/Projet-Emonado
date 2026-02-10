@@ -11,14 +11,14 @@
 ### 1. 🔐 Authentification et Inscription
 
 #### 1.1 Page d'accueil
-- **URL**: `http://localhost:8000/`
+- **URL**: `http://127.0.0.1:8080/`
 - **Test**: Vérifier que la page s'affiche correctement
 - **Actions**: 
   - Vérifier les liens de navigation (Connexion, Inscription)
   - Vérifier le design et la mise en page
 
 #### 1.2 Inscription (Register)
-- **URL**: `http://localhost:8000/register`
+- **URL**: `http://127.0.0.1:8080/register`
 - **Test**: Créer un nouveau compte patient
 - **Actions**:
   - Remplir le formulaire avec :
@@ -34,14 +34,14 @@
   - Vérifier le message de succès
 
 #### 1.3 Connexion (Login)
-- **URL**: `http://localhost:8000/login`
+- **URL**: `http://127.0.0.1:8080/login`
 - **Test**: Se connecter avec un compte existant
 - **Actions**:
   - Entrer l'email et le mot de passe
   - Vérifier la redirection vers le tableau de bord approprié selon le rôle
 
 #### 1.4 Déconnexion (Logout)
-- **URL**: `http://localhost:8000/logout`
+- **URL**: `http://127.0.0.1:8080/logout`
 - **Test**: Se déconnecter
 - **Actions**:
   - Cliquer sur "Déconnexion"
@@ -53,7 +53,7 @@
 ### 2. 👤 Fonctionnalités Patient
 
 #### 2.1 Tableau de bord Patient
-- **URL**: `http://localhost:8000/patient`
+- **URL**: `http://127.0.0.1:8080/patient`
 - **Prérequis**: Être connecté en tant que patient
 - **Test**: Vérifier l'affichage du tableau de bord
 - **Actions**:
@@ -66,7 +66,7 @@
   - Cliquer sur chaque icône pour vérifier la navigation
 
 #### 2.2 Profil Patient
-- **URL**: `http://localhost:8000/patient/profil`
+- **URL**: `http://127.0.0.1:8080/patient/profil`
 - **Prérequis**: Être connecté en tant que patient
 - **Test**: Modifier le profil
 - **Actions**:
@@ -78,7 +78,7 @@
   - Vérifier que les modifications sont sauvegardées
 
 #### 2.3 Dossier Médical Patient
-- **URL**: `http://localhost:8000/patient/dossier`
+- **URL**: `http://127.0.0.1:8080/patient/dossier`
 - **Prérequis**: Être connecté en tant que patient
 - **Test**: Consulter et modifier le dossier médical
 - **Actions**:
@@ -101,7 +101,7 @@
 ### 3. 🧠 Fonctionnalités Psychologue
 
 #### 3.1 Tableau de bord Psychologue
-- **URL**: `http://localhost:8000/psychologue`
+- **URL**: `http://127.0.0.1:8080/psychologue`
 - **Prérequis**: Être connecté en tant que psychologue
 - **Test**: Vérifier l'affichage du tableau de bord
 - **Actions**:
@@ -109,7 +109,7 @@
   - Vérifier les liens de navigation disponibles
 
 #### 3.2 Profil Psychologue
-- **URL**: `http://localhost:8000/psychologue/profil`
+- **URL**: `http://127.0.0.1:8080/psychologue/profil`
 - **Prérequis**: Être connecté en tant que psychologue
 - **Test**: Modifier le profil psychologue
 - **Actions**:
@@ -118,7 +118,7 @@
   - Sauvegarder et vérifier les modifications
 
 #### 3.3 Liste des Dossiers Médicaux (Psychologue)
-- **URL**: `http://localhost:8000/psychologue/dossiers`
+- **URL**: `http://127.0.0.1:8080/psychologue/dossiers`
 - **Prérequis**: Être connecté en tant que psychologue
 - **Test**: Consulter la liste des dossiers médicaux
 - **Actions**:
@@ -126,7 +126,7 @@
   - Vérifier les informations affichées pour chaque dossier
 
 #### 3.4 Vue d'un Dossier Médical (Psychologue)
-- **URL**: `http://localhost:8000/psychologue/dossier/{id}`
+- **URL**: `http://127.0.0.1:8080/psychologue/dossier/{id}`
 - **Prérequis**: Être connecté en tant que psychologue, avoir au moins un dossier
 - **Test**: Consulter et modifier un dossier médical
 - **Actions**:
@@ -144,7 +144,7 @@
     - Vérifier que les modifications sont enregistrées
 
 #### 3.5 Créer un Dossier Médical
-- **URL**: `http://localhost:8000/psychologue/dossier/create/{patientId}`
+- **URL**: `http://127.0.0.1:8080/psychologue/dossier/create/{patientId}`
 - **Prérequis**: Être connecté en tant que psychologue, avoir un ID de patient valide
 - **Test**: Créer un nouveau dossier médical pour un patient
 - **Actions**:
@@ -157,7 +157,7 @@
 ### 4. 👨‍💼 Fonctionnalités Admin
 
 #### 4.1 Tableau de bord Admin
-- **URL**: `http://localhost:8000/admin`
+- **URL**: `http://127.0.0.1:8080/admin`
 - **Prérequis**: Être connecté en tant qu'admin (ROLE_ADMIN)
 - **Test**: Consulter le tableau de bord administrateur
 - **Actions**:
@@ -166,7 +166,7 @@
   - Vérifier les statistiques
 
 #### 4.2 Ajouter un Utilisateur (Admin)
-- **URL**: `http://localhost:8000/admin/user/add`
+- **URL**: `http://127.0.0.1:8080/admin/user/add`
 - **Prérequis**: Être connecté en tant qu'admin
 - **Test**: Créer un nouvel utilisateur
 - **Actions**:
@@ -183,7 +183,7 @@
   - Vérifier la redirection vers le tableau de bord admin
 
 #### 4.3 Modifier un Utilisateur (Admin)
-- **URL**: `http://localhost:8000/admin/user/edit/{id}`
+- **URL**: `http://127.0.0.1:8080/admin/user/edit/{id}`
 - **Prérequis**: Être connecté en tant qu'admin, avoir un ID d'utilisateur valide
 - **Test**: Modifier les informations d'un utilisateur
 - **Actions**:
@@ -192,7 +192,7 @@
   - Vérifier que les modifications sont enregistrées
 
 #### 4.4 Supprimer un Utilisateur (Admin)
-- **URL**: `http://localhost:8000/admin/user/delete/{id}` (POST)
+- **URL**: `http://127.0.0.1:8080/admin/user/delete/{id}` (POST)
 - **Prérequis**: Être connecté en tant qu'admin, avoir un ID d'utilisateur valide
 - **Test**: Supprimer un utilisateur
 - **Actions**:

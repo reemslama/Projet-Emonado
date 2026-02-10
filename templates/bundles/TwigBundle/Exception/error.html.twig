@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Erreur {{ status_code }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 text-center">
+          <h1 class="display-6 mb-3">Une erreur est survenue</h1>
+          <p class="text-muted mb-1">Code: {{ status_code }} – {{ status_text }}</p>
+
+          <hr class="my-4" />
+
+          {% if status_code == 404 %}
+            <p>La page demandée est introuvable. Vérifiez l’URL ou retournez à l’accueil.</p>
+          {% elseif status_code == 403 %}
+            <p>Vous n’avez pas l’autorisation d’accéder à cette ressource.</p>
+          {% elseif status_code >= 500 %}
+            <p>Un incident technique s’est produit de notre côté. Réessayez plus tard.</p>
+          {% else %}
+            <p>La requête n’a pas pu être traitée. Merci de réessayer.</p>
+          {% endif %}
+
+          <div class="mt-4 d-flex gap-2 justify-content-center">
+            <a class="btn btn-primary" href="{{ path('home') }}">Retour à l’accueil</a>
+            {% if app.request is defined and app.request.headers.get('referer') %}
+              <a class="btn btn-outline-secondary" href="{{ app.request.headers.get('referer') }}">Page précédente</a>
+            {% endif %}
+          </div>
+
+          {% if app.environment is defined and app.environment == 'dev' %}
+            <div class="alert alert-warning text-start mt-4">
+              <strong>Débogage (dev uniquement):</strong>
+              <ul class="mb-0 small">
+                <li>Route: {{ app.request.attributes.get('_route') ?? 'n/a' }}</li>
+                <li>URI: {{ app.request.uri ?? 'n/a' }}</li>
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

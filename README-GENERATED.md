@@ -43,9 +43,9 @@ Le code inclut aussi un sous-dossier « emonado/ » qui semble correspondre à u
 - php bin/console doctrine:fixtures:load
 
 5) Lancer le serveur de développement:
-- symfony serve -d (ou php -S localhost:8000 -t public)
+- symfony serve -d (ou php -S 127.0.0.1:8080 -t public)
 
-L’application sera disponible via public/index.php (par défaut http://127.0.0.1:8000/).
+L’application sera disponible via public/index.php (par défaut http://127.0.0.1:8080/).
 
 ---
 

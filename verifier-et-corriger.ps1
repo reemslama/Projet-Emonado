@@ -31,4 +31,4 @@ if ($LASTEXITCODE -ne 0) { Write-Host "ERREUR schema:update" -ForegroundColor Re
 Write-Host "OK" -ForegroundColor Green
 
 Write-Host "`n=== Toutes les verifications et corrections sont terminees. ===" -ForegroundColor Green
-Write-Host "Vous pouvez lancer l'application (ex: symfony server:start ou php -S localhost:8000 -t public)" -ForegroundColor Yellow
+Write-Host "Vous pouvez lancer l'application: start-server.bat ou php -S 127.0.0.1:8080 -t public" -ForegroundColor Yellow

@@ -48,18 +48,6 @@
         ]
     },
     "phpunit/phpunit": {
-<<<<<<< HEAD
-        "version": "9.6",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "9.6",
-            "ref": "6a9341aa97d441627f8bd424ae85dc04c944f8b4"
-        },
-        "files": [
-            "./.env.test",
-            "./phpunit.xml.dist",
-=======
         "version": "10.5",
         "recipe": {
             "repo": "github.com/symfony/recipes",
@@ -69,8 +57,7 @@
         },
         "files": [
             "./.env.test",
-            "./phpunit.dist.xml",
->>>>>>> 85e636dbed613d6441995c636b187c1312d0b5ad
+            "./phpunit.xml.dist",
             "./tests/bootstrap.php"
         ]
     },

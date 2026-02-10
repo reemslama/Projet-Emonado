@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -39,6 +41,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $specialite = null; // <-- Pour les psychologues
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
+    private Collection $journals;
+
+    public function __construct()
+    {
+        $this->journals = new ArrayCollection();
+    }
 
     // ---------- SECURITY ----------
     public function getUserIdentifier(): string
@@ -80,4 +90,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getSpecialite(): ?string { return $this->specialite; }
     public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
+
+    /**
+     * @return Collection<int, Journal>
+     */
+    public function getJournals(): Collection
+    {
+        return $this->journals;
+    }
+
+    public function addJournal(Journal $journal): self
+    {
+        if (!$this->journals->contains($journal)) {
+            $this->journals->add($journal);
+            $journal->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJournal(Journal $journal): self
+    {
+        if ($this->journals->removeElement($journal)) {
+            if ($journal->getUser() === $this) {
+                $journal->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

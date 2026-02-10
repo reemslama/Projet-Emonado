@@ -23,32 +23,33 @@ composer install
    DATABASE_URL="mysql://root:VOTRE_MOT_DE_PASSE@127.0.0.1:3306/emonado_db?serverVersion=8.0"
    ```
 
-   Créez la base de données :
-   ```bash
-   php bin/console doctrine:database:create
-   ```
+3. **Mettre à jour la base de données**
+   
+   Démarrer MySQL, puis double-cliquez sur **`update-database.bat`**  
+   (ou en ligne de commande : `php bin/console doctrine:schema:update --force`)
+   
+   Voir **BASE-DE-DONNEES.txt** en cas de problème.
 
-3. **Appliquer les migrations**
-```bash
-php bin/console doctrine:migrations:migrate
-```
-
-4. **Créer les utilisateurs par défaut**
+4. **Créer les utilisateurs par défaut** (après la mise à jour de la base)
 ```bash
 php bin/console app:create-default-users
 ```
 
 5. **Démarrer le serveur**
 ```bash
-# Option 1 : Symfony CLI (recommandé)
-symfony server:start
+# Option 1 : Script Windows (double-clic)
+start-server.bat
 
-# Option 2 : PHP Built-in Server
-php -S localhost:8000 -t public
+# Option 2 : PHP Built-in Server (port 8080)
+php -S 127.0.0.1:8080 -t public
+
+# Option 3 : Symfony CLI
+symfony server:start
 ```
 
 6. **Accéder à l'application**
-   - Ouvrez votre navigateur : `http://localhost:8000`
+   - Ouvrez votre navigateur et allez à : **http://127.0.0.1:8080**
+   - En cas d'erreur "connexion refusée", voir **DEMARRAGE.txt**
 
 ## 👥 Comptes de Test
 
