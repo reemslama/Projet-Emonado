@@ -10,6 +10,12 @@
     <h2>Bienvenue Dr. {{ app.user.nom }} {{ app.user.prenom }}</h2>
 
     <div class="icons-grid">
+        <!-- Icon Dossiers Médicaux -->
+        <div class="icon-box" onclick="window.location='{{ path('dossier_medical_psy_list') }}'">
+            <i class="fas fa-folder-medical"></i>
+            <span>Dossiers médicaux</span>
+        </div>
+
         <!-- Icon Profil -->
         <div class="icon-box" onclick="window.location='{{ path('psychologue_profil') }}'">
             <i class="fas fa-user-circle"></i>
@@ -29,15 +35,16 @@
 
 <style>
 .dashboard-container {
- background-color: d0e8ff(221, 245, 131, 0.27);
+    background-color: rgba(208, 232, 255, 0.27);
     border-radius: 25px;
     padding: 30px 20px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: 0 auto;
 }
 
 .icons-grid {

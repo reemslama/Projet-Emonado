@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dossier Médical - {{ dossier.patient.nom }} {{ dossier.patient.prenom }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dossier Médical de {{ dossier.patient.nom }} {{ dossier.patient.prenom }}</h2>
+        <a href="{{ path('dossier_medical_psy_list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <!-- Informations Patient -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Informations Patient</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nom:</strong> {{ dossier.patient.nom }}</p>
+                    <p><strong>Prénom:</strong> {{ dossier.patient.prenom }}</p>
+                    <p><strong>Email:</strong> {{ dossier.patient.email }}</p>
+                    <p><strong>Téléphone:</strong> {{ dossier.patient.telephone ?? 'N/A' }}</p>
+                    <p><strong>Sexe:</strong> {{ dossier.patient.sexe ?? 'N/A' }}</p>
+                    {% if dossier.patient.dateNaissance %}
+                        <p><strong>Date de naissance:</strong> {{ dossier.patient.dateNaissance|date('d/m/Y') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Psychologiques -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes Psychologiques</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="action" value="update_notes">
+                        <div class="mb-3">
+                            <textarea name="notes_psychologiques" class="form-control" rows="8" 
+                                      placeholder="Ajoutez vos notes psychologiques ici...">{{ dossier.notesPsychologiques ?? '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-save"></i> Enregistrer les notes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historique Médical -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Historique Médical</h5>
+        </div>
+        <div class="card-body">
+            {% if dossier.historiqueMedical %}
+                <p>{{ dossier.historiqueMedical }}</p>
+            {% else %}
+                <p class="text-muted">Aucun historique médical enregistré.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Consultations -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Consultations ({{ dossier.consultations|length }})</h5>
+        </div>
+        <div class="card-body">
+            <!-- Formulaire d'ajout de consultation -->
+            <div class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-3">Ajouter une nouvelle consultation</h6>
+                <form method="post">
+                    <input type="hidden" name="action" value="add_consultation">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date de consultation</label>
+                            <input type="datetime-local" name="date_consultation" class="form-control" 
+                                   value="{{ "now"|date("Y-m-d\\TH:i") }}" required>
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="3" 
+                                      placeholder="Notes de la consultation..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Ajouter la consultation
+                    </button>
+                </form>
+            </div>
+
+            <!-- Liste des consultations -->
+            {% if dossier.consultations|length > 0 %}
+                <div class="list-group">
+                    {% for consultation in dossier.consultations|reverse %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-calendar-alt"></i> 
+                                    Consultation du {{ consultation.dateConsultation|date('d/m/Y à H:i') }}
+                                </h6>
+                                <small class="text-muted">
+                                    {% if consultation.psychologue %}
+                                        Par: {{ consultation.psychologue.nom }} {{ consultation.psychologue.prenom }}
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-user"></i> Consultation créée par le patient
+                                        </span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% if consultation.notes %}
+                                <p class="mb-1 mt-2">{{ consultation.notes }}</p>
+                            {% else %}
+                                <p class="mb-1 mt-2 text-muted">Aucune note.</p>
+                            {% endif %}
+                            <small class="text-muted">
+                                Créée le {{ consultation.createdAt|date('d/m/Y à H:i') }}
+                            </small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aucune consultation enregistrée pour ce patient.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <a href="{{ path('dossier_medical_psy_list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    .list-group-item {
+        border-left: 4px solid #28a745;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>
+{% endblock %}
