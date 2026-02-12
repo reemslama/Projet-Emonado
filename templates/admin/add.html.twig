@@ -1,54 +1,70 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_admin.html.twig' %}
 
 {% block title %}Ajouter un utilisateur{% endblock %}
 
+{% block header %}Ajouter un utilisateur{% endblock %}
+
 {% block body %}
-<h2>Ajouter un utilisateur</h2>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
 
-{% for message in app.flashes('success') %}
-    <div class="alert alert-success">{{ message }}</div>
-{% endfor %}
+        {% if errors|length > 0 %}
+            <div class="alert alert-danger">
+                <ul class="mb-0 list-unstyled">
+                    {% for message in errors %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-<form method="post" class="user-form">
-    <div>
-        <label>Nom</label>
-        <input type="text" name="nom" required>
+        <form method="post" class="row g-3" novalidate>
+            <div class="col-md-6">
+                <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nom" name="nom" value="{{ formData.nom|default('') }}">
+            </div>
+            <div class="col-md-6">
+                <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="prenom" name="prenom" value="{{ formData.prenom|default('') }}">
+            </div>
+            <div class="col-md-6">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="email" name="email" value="{{ formData.email|default('') }}" autocomplete="email">
+            </div>
+            <div class="col-md-6">
+                <label for="telephone" class="form-label">Téléphone</label>
+                <input type="text" class="form-control" id="telephone" name="telephone" value="{{ formData.telephone|default('') }}">
+            </div>
+            <div class="col-md-6">
+                <label for="specialite" class="form-label">Spécialité (pour les psychologues)</label>
+                <input type="text" class="form-control" id="specialite" name="specialite" value="{{ formData.specialite|default('') }}">
+            </div>
+            <div class="col-md-6">
+                <label for="role" class="form-label">Rôle <span class="text-danger">*</span></label>
+                <select class="form-select" id="role" name="role">
+                    <option value="ROLE_PATIENT" {{ formData.role|default('') == 'ROLE_PATIENT' ? 'selected' : '' }}>Patient</option>
+                    <option value="ROLE_PSYCHOLOGUE" {{ formData.role|default('') == 'ROLE_PSYCHOLOGUE' ? 'selected' : '' }}>Psychologue</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="password" class="form-label">Mot de passe <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Ajouter l'utilisateur
+                </button>
+                <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+        </form>
     </div>
-    <div>
-        <label>Prénom</label>
-        <input type="text" name="prenom" required>
-    </div>
-    <div>
-        <label>Email</label>
-        <input type="email" name="email" required>
-    </div>
-    <div>
-        <label>Téléphone</label>
-        <input type="tel" name="telephone">
-    </div>
-    <div>
-        <label>Spécialité (pour les psychologues)</label>
-        <input type="text" name="specialite">
-    </div>
-    <div>
-        <label>Mot de passe</label>
-        <input type="password" name="password" required>
-    </div>
-    <div>
-        <label>Rôle</label>
-        <select name="role">
-            <option value="ROLE_PATIENT">Patient</option>
-            <option value="ROLE_PSYCHOLOGUE">Psychologue</option>
-        </select>
-    </div>
-    <button type="submit" class="btn btn-success mt-2">Ajouter</button>
-</form>
-
-<style>
-.user-form div { margin-bottom: 15px; }
-.user-form label { display: block; font-weight: bold; margin-bottom: 5px; }
-.user-form input, .user-form select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
-.mt-2 { margin-top: 10px; }
-.alert { margin-bottom: 20px; }
-</style>
+</div>
 {% endblock %}

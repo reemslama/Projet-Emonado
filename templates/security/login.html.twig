@@ -6,6 +6,16 @@
 <main class="login-container">
   <section class="login-wrapper">
 
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('info') %}
+      <div class="alert alert-info">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+      <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
     {% if error %}
       <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
     {% endif %}
@@ -24,9 +34,12 @@
         <input type="password" name="password" class="form-control" placeholder="Mot de passe" required>
       </div>
 
+      <div class="mb-3 text-center">
+        <a href="{{ path('app_forgot_password') }}" class="small text-muted">Mot de passe oublié ?</a>
+      </div>
+
       <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-    
     </form>
   </section>
 </main>

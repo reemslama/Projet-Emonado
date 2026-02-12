@@ -94,75 +94,94 @@ class AdminController extends AbstractController
         return $this->json($results);
     }
 
+    private const PASSWORD_MIN_LENGTH = 6;
+
     // ==================== GESTION UTILISATEURS ====================
     #[Route('/admin/user/add', name: 'admin_user_add')]
     public function add(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepo): Response
     {
+        $errors = [];
+        $formData = [
+            'nom' => '',
+            'prenom' => '',
+            'email' => '',
+            'telephone' => '',
+            'specialite' => '',
+            'role' => 'ROLE_PATIENT',
+        ];
+
         if ($request->isMethod('POST')) {
-            $email = trim((string) $request->request->get('email'));
-            
-            // Validation de base
-            if (empty($email)) {
-                $this->addFlash('error', 'L\'email est obligatoire !');
-                return $this->render('admin/add.html.twig', [
-                    'formData' => $request->request->all()
-                ]);
-            }
-            
-            // Vérifier si un utilisateur avec cet email existe déjà
-            $existingUser = $userRepo->findOneBy(['email' => $email]);
-            
-            if ($existingUser) {
-                $this->addFlash('error', 'Un utilisateur avec cet email existe déjà !');
-                return $this->render('admin/add.html.twig', [
-                    'formData' => $request->request->all()
-                ]);
-            }
-            
-            // Créer le nouvel utilisateur
-            $user = new User();
-            $user->setNom((string) $request->request->get('nom'));
-            $user->setPrenom((string) $request->request->get('prenom'));
-            $user->setEmail($email);
-            $user->setTelephone($request->request->get('telephone'));
-            $user->setSpecialite($request->request->get('specialite'));
+            $nom = trim((string) $request->request->get('nom', ''));
+            $prenom = trim((string) $request->request->get('prenom', ''));
+            $email = trim((string) $request->request->get('email', ''));
+            $telephone = trim((string) $request->request->get('telephone', ''));
+            $specialite = trim((string) $request->request->get('specialite', ''));
+            $role = (string) $request->request->get('role', 'ROLE_PATIENT');
+            $password = (string) $request->request->get('password', '');
 
-            $role = (string) $request->request->get('role');
-            if (!$role) { 
-                $role = 'ROLE_USER'; 
+            $formData = [
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'email' => $email,
+                'telephone' => $telephone,
+                'specialite' => $specialite,
+                'role' => $role,
+            ];
+
+            if ($nom === '') {
+                $errors[] = 'Le nom est obligatoire.';
             }
-            $user->setRoles([$role]);
-
-            $password = (string) $request->request->get('password');
-            if (empty($password)) {
-                $this->addFlash('error', 'Le mot de passe est obligatoire !');
-                return $this->render('admin/add.html.twig', [
-                    'formData' => $request->request->all()
-                ]);
+            if ($prenom === '') {
+                $errors[] = 'Le prénom est obligatoire.';
             }
-            
-            $user->setPassword($passwordHasher->hashPassword($user, $password));
+            if ($email === '') {
+                $errors[] = 'L\'email est obligatoire.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'L\'email n\'est pas valide.';
+            }
+            if ($password === '') {
+                $errors[] = 'Le mot de passe est obligatoire.';
+            } elseif (strlen($password) < self::PASSWORD_MIN_LENGTH) {
+                $errors[] = 'Le mot de passe doit contenir au moins ' . self::PASSWORD_MIN_LENGTH . ' caractères.';
+            }
+            if (!in_array($role, ['ROLE_PATIENT', 'ROLE_PSYCHOLOGUE'], true)) {
+                $errors[] = 'Le rôle choisi n\'est pas valide.';
+            }
 
-            try {
-                $em->persist($user);
-                $em->flush();
+            if (empty($errors) && $email !== '') {
+                $existingUser = $userRepo->findOneBy(['email' => $email]);
+                if ($existingUser) {
+                    $errors[] = 'Un utilisateur avec cet email existe déjà.';
+                }
+            }
 
-                $this->addFlash('success', 'Utilisateur ajouté avec succès !');
-                return $this->redirectToRoute('admin_dashboard');
-            } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', 'Erreur : cet email est déjà utilisé.');
-                return $this->render('admin/add.html.twig', [
-                    'formData' => $request->request->all()
-                ]);
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur lors de l\'ajout de l\'utilisateur : ' . $e->getMessage());
-                return $this->render('admin/add.html.twig', [
-                    'formData' => $request->request->all()
-                ]);
+            if (empty($errors)) {
+                $user = new User();
+                $user->setNom($nom);
+                $user->setPrenom($prenom);
+                $user->setEmail($email);
+                $user->setTelephone($telephone ?: null);
+                $user->setSpecialite($specialite ?: null);
+                $user->setRoles([$role]);
+                $user->setPassword($passwordHasher->hashPassword($user, $password));
+
+                try {
+                    $em->persist($user);
+                    $em->flush();
+                    $this->addFlash('success', 'Utilisateur ajouté avec succès.');
+                    return $this->redirectToRoute('admin_dashboard');
+                } catch (UniqueConstraintViolationException $e) {
+                    $errors[] = 'Cet email est déjà utilisé.';
+                } catch (\Exception $e) {
+                    $errors[] = 'Une erreur est survenue lors de l\'ajout. Veuillez réessayer.';
+                }
             }
         }
 
-        return $this->render('admin/add.html.twig');
+        return $this->render('admin/add.html.twig', [
+            'errors' => $errors,
+            'formData' => $formData,
+        ]);
     }
 
     #[Route('/admin/user/edit/{id}', name: 'admin_user_edit')]

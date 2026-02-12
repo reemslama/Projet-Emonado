@@ -42,6 +42,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $specialite = null; // <-- Pour les psychologues
 
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $resetPasswordToken = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $resetPasswordTokenExpiresAt = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
     private Collection $journals;
 
@@ -90,6 +96,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getSpecialite(): ?string { return $this->specialite; }
     public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
+
+    public function getResetPasswordToken(): ?string { return $this->resetPasswordToken; }
+    public function setResetPasswordToken(?string $resetPasswordToken): self { $this->resetPasswordToken = $resetPasswordToken; return $this; }
+
+    public function getResetPasswordTokenExpiresAt(): ?\DateTimeImmutable { return $this->resetPasswordTokenExpiresAt; }
+    public function setResetPasswordTokenExpiresAt(?\DateTimeImmutable $resetPasswordTokenExpiresAt): self { $this->resetPasswordTokenExpiresAt = $resetPasswordTokenExpiresAt; return $this; }
 
     /**
      * @return Collection<int, Journal>
