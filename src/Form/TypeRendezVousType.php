@@ -8,8 +8,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Length;
 
 class TypeRendezVousType extends AbstractType
 {
@@ -19,32 +17,17 @@ class TypeRendezVousType extends AbstractType
             ->add('libelle', TextType::class, [
                 'label' => 'Libellé',
                 'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Ex: Urgence, Suivi, Consultation...'
-                ],
-                'constraints' => [
-                    new NotBlank(['message' => 'Le libellé est obligatoire']),
-                    new Length([
-                        'min' => 2,
-                        'max' => 255,
-                        'minMessage' => 'Le libellé doit contenir au moins {{ limit }} caractères',
-                        'maxMessage' => 'Le libellé ne peut pas dépasser {{ limit }} caractères'
-                    ])
+                    'placeholder' => 'Ex: Urgence, Suivi, Consultation...',
+                    'class' => 'form-control form-control-lg'
                 ]
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
                 'attr' => [
-                    'class' => 'form-control',
-                    'rows' => 3,
-                    'placeholder' => 'Description optionnelle du type de rendez-vous...'
-                ],
-                'constraints' => [
-                    new Length([
-                        'max' => 500,
-                        'maxMessage' => 'La description ne peut pas dépasser {{ limit }} caractères'
-                    ])
+                    'placeholder' => 'Description optionnelle du type de rendez-vous...',
+                    'rows' => 4,
+                    'class' => 'form-control'
                 ]
             ]);
     }
@@ -53,6 +36,7 @@ class TypeRendezVousType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => TypeRendezVous::class,
+            'attr' => ['novalidate' => 'novalidate'] // Désactive validation HTML5
         ]);
     }
 }

@@ -1,23 +1,96 @@
 {% extends 'base.html.twig' %}
 
+{# Désactiver COMPLÈTEMENT le thème par défaut #}
+{% form_theme form with ['form_div_layout.html.twig'] %}
+
+{# Redéfinir form_errors pour qu'il n'affiche rien #}
+{% block form_errors %}
+    {# Vide - on gère les erreurs manuellement #}
+{% endblock %}
+
 {% block body %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white py-3">
-                <h4 class="mb-0">Nouveau Rendez-vous</h4>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h4 class="fw-bold mb-0">Nouveau Rendez-vous</h4>
+        </div>
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+            <div class="row">
+                {# Nom du patient #}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Nom du patient</label>
+                    {{ form_widget(form.nomPatient, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.nomPatient.vars.errors|length > 0 %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.nomPatient.vars.errors %}
+                                {{ error.message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# CIN #}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">CIN</label>
+                    {{ form_widget(form.cin, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.cin.vars.errors|length > 0 %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.cin.vars.errors %}
+                                {{ error.message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Psychologue #}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Psychologue</label>
+                    {{ form_widget(form.nomPsychologue, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.nomPsychologue.vars.errors|length > 0 %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.nomPsychologue.vars.errors %}
+                                {{ error.message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Date #}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Date et heure</label>
+                    {{ form_widget(form.date, {'attr': {'class': 'form-control'}}) }}
+                    <small class="text-muted d-block mt-1">jj/mm/aaaa --:--</small>
+                    {% if form.date.vars.errors|length > 0 %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.date.vars.errors %}
+                                {{ error.message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Type #}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Type de rendez-vous</label>
+                    {{ form_widget(form.type, {'attr': {'class': 'form-select'}}) }}
+                    {% if form.type.vars.errors|length > 0 %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.type.vars.errors %}
+                                {{ error.message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="card-body p-4">
-                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    <div class="mb-3">
-                        {{ form_widget(form) }}
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success btn-lg">Enregistrer le RDV</button>
-                        <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-link text-muted">Retour à la liste</a>
-                    </div>
-                {{ form_end(form) }}
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Enregistrer le RDV</button>
+                <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-outline-secondary">Retour à la liste</a>
             </div>
+
+            {{ form_end(form) }}
         </div>
     </div>
 </div>

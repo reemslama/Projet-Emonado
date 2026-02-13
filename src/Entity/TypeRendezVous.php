@@ -18,9 +18,19 @@ class TypeRendezVous
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le libellé est obligatoire")]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: "Le libellé doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le libellé ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 500,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: RendezVous::class)]
