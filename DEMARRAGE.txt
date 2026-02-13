@@ -1,0 +1,49 @@
+========================================
+  EMONADO - Comment demarrer l'application
+========================================
+
+ERREUR "127.0.0.1 n'autorise pas la connexion" ?
+  -> Soit le serveur n'est pas demarre.
+  -> Soit vous avez ouvert une mauvaise adresse (sans le port).
+
+----------------------------------------
+ETAPE 1 : Demarrer le serveur
+----------------------------------------
+
+  Double-cliquez sur :  start-server.bat
+
+  Une fenetre noire (invite de commandes) va s'ouvrir.
+  NE LA FERMEZ PAS tant que vous utilisez le site.
+
+  Attendez de voir la ligne :
+    "PHP ... Development Server (http://127.0.0.1:8080) started"
+
+----------------------------------------
+ETAPE 2 : Ouvrir le site dans le navigateur
+----------------------------------------
+
+  Dans Chrome, Edge ou Firefox, tapez EXACTEMENT :
+
+      http://127.0.0.1:8080
+
+  PAS seulement "127.0.0.1" (il manque le port :8080).
+
+  Ou cliquez sur le lien si le script a ouvert le navigateur.
+
+----------------------------------------
+Si ca ne marche pas
+----------------------------------------
+
+  1. Verifiez que la fenetre du serveur (start-server.bat) est
+     toujours ouverte. Si vous l'avez fermee, relancez start-server.bat.
+
+  2. Utilisez bien l'URL :  http://127.0.0.1:8080
+     (avec "http://" et ":8080").
+
+  3. Si le port 8080 est deja utilise, modifiez start-server.bat :
+     changez la ligne "set PORT=8080" en "set PORT=9090"
+     puis utilisez :  http://127.0.0.1:9090
+
+  4. Antivirus / pare-feu : autorisez PHP si une alerte apparait.
+
+========================================

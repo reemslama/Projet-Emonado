@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil Patient{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="patient-container">
+
+  <h2>Bienvenue {{ app.user.nom }} {{ app.user.prenom }}</h2>
+
+  <div class="icons-grid">
+    <a href="{{ path('dossier_medical_patient_view') }}" class="icon-box">
+      <i class="fas fa-folder-medical"></i>
+      <span>Mon dossier</span>
+    </a>
+
+    <a href="{{ path('patient_profil') }}" class="icon-box">
+      <i class="fas fa-user-circle"></i>
+      <span>Profil</span>
+    </a>
+
+    <a href="{{ path('patient_consultations') }}" class="icon-box">
+      <i class="fas fa-calendar-check"></i>
+      <span>Consultations</span>
+    </a>
+
+    <div class="icon-box">
+      <i class="fas fa-comments"></i>
+      <span>Chat</span>
+    </div>
+
+    <div class="icon-box">
+      <i class="fas fa-envelope"></i>
+      <span>Messagerie</span>
+    </div>
+
+    <a href="{{ path('app_journal_index') }}" class="icon-box">
+      <i class="fas fa-pen"></i>
+      <span>Écrire</span>
+    </a>
+  </div>
+</div>
+
+<style>
+.patient-container {
+    background-color: rgba(221, 245, 131, 0.27);
+    border-radius: 25px;
+    padding: 30px 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.icons-grid {
+  display: flex;
+  gap: 30px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.icon-box {
+  width: 120px;
+  height: 120px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s;
+}
+
+.icon-box:hover {
+  transform: scale(1.05);
+}
+
+.icon-box i {
+  font-size: 2rem;
+  color: #7cb342;
+  margin-bottom: 10px;
+}
+
+.icon-box span {
+  font-weight: 600;
+}
+</style>
+{% endblock %}

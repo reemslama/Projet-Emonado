@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Journal{% endblock %}
+
+{% block body %}
+    <h1>Edit Journal</h1>
+
+    {{ include('journal/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_journal_index') }}">back to list</a>
+
+    {{ include('journal/_delete_form.html.twig') }}
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Dossiers Médicaux{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <h2 class="mb-4">Dossiers Médicaux</h2>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if dossiers|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Patient</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Date de création</th>
+                                <th>Dernière mise à jour</th>
+                                <th>Consultations</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dossier in dossiers %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ dossier.patient.nom }} {{ dossier.patient.prenom }}</strong>
+                                    </td>
+                                    <td>{{ dossier.patient.email }}</td>
+                                    <td>{{ dossier.patient.telephone ?? 'N/A' }}</td>
+                                    <td>{{ dossier.createdAt|date('d/m/Y H:i') }}</td>
+                                    <td>{{ dossier.updatedAt ? dossier.updatedAt|date('d/m/Y H:i') : 'Jamais' }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ dossier.consultations|length }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('dossier_medical_psy_view', {'id': dossier.id}) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aucun dossier médical trouvé.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ path('psychologue_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .table th {
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 0.4em 0.6em;
+    }
+</style>
+{% endblock %}

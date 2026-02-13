@@ -1,0 +1,81 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Modifier Question #{{ question.id }}{% endblock %}
+
+{% block header %}Modifier Question #{{ question.id }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="bi bi-file-earmark-text"></i> Informations de la question
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        {{ form_start(form) }}
+                        
+                        <div class="mb-4">
+                            {{ form_label(form.texte, 'Question', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.texte, {'attr': {'class': 'form-control form-control-lg', 'rows': 3}}) }}
+                            {{ form_errors(form.texte) }}
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.categorie, 'Catégorie', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.categorie, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                                {{ form_errors(form.categorie) }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form_label(form.ordre, 'Ordre', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.ordre, {'attr': {'class': 'form-control form-control-lg'}}) }}
+                                {{ form_errors(form.ordre) }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form_label(form.typeQuestion, 'Type', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.typeQuestion, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                                {{ form_errors(form.typeQuestion) }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">
+                            <i class="bi bi-list-check"></i> Réponses
+                        </h5>
+
+                        <div id="reponses-collection">
+                            {{ form_row(form.reponses) }}
+                        </div>
+
+                        {{ form_rest(form) }}
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{{ path('admin_dashboard') }}#questions" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #f4623a;
+    box-shadow: 0 0 0 0.25rem rgba(244, 98, 58, 0.25);
+}
+</style>
+{% endblock %}

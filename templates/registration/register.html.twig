@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg bg-transparent border-0">
+            <div class="card-header bg-success text-white text-center">
+                <h3>Créer un compte Patient</h3>
+            </div>
+            <div class="card-body p-4">
+                {% if errors|length > 0 %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0 list-unstyled">
+                            {% for message in errors %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <form method="post" novalidate>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" name="nom" id="nom" class="form-control" value="{{ formData.nom|default('') }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom" class="form-label">Prénom</label>
+                            <input type="text" name="prenom" id="prenom" class="form-control" value="{{ formData.prenom|default('') }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="text" name="email" id="email" class="form-control" value="{{ formData.email|default('') }}" autocomplete="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <input type="password" name="password" id="password" class="form-control" autocomplete="new-password">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="telephone" class="form-label">Téléphone</label>
+                            <input type="text" name="telephone" id="telephone" class="form-control" value="{{ formData.telephone|default('') }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sexe" class="form-label">Sexe</label>
+                            <select name="sexe" id="sexe" class="form-select">
+                                <option value="">-- Sélectionner --</option>
+                                <option value="Homme" {{ formData.sexe|default('') == 'Homme' ? 'selected' : '' }}>Homme</option>
+                                <option value="Femme" {{ formData.sexe|default('') == 'Femme' ? 'selected' : '' }}>Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_naissance" class="form-label">Date de naissance</label>
+                        <input type="date" name="date_naissance" id="date_naissance" class="form-control" value="{{ formData.date_naissance|default('') }}">
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button class="btn btn-success btn-lg btn-custom">Créer mon compte</button>
+                    </div>
+                </form>
+                <div class="text-center">
+                    <p>Vous avez déjà un compte ?</p>
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-custom">Se connecter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

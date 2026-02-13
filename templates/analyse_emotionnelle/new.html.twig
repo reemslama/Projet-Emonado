@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New AnalyseEmotionnelle{% endblock %}
+
+{% block body %}
+    <h1>Create new AnalyseEmotionnelle</h1>
+
+    {{ include('analyse_emotionnelle/_form.html.twig') }}
+
+    <a href="{{ path('app_analyse_emotionnelle_index') }}">back to list</a>
+{% endblock %}
