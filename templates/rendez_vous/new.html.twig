@@ -1,21 +1,24 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouveau Rendez-vous{% endblock %}
-
 {% block body %}
-<section class="content">
-    <div class="container-fluid">
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h3 class="card-title">Créer un nouveau Rendez-vous</h3>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0">Nouveau Rendez-vous</h4>
             </div>
-            <div class="card-body">
-                {# Le formulaire contient déjà son propre bouton de retour #}
-                {{ include('rendez_vous/_form.html.twig') }}
-                
-                {# Le bloc mt-3 avec le lien a été supprimé ici pour éviter le doublon #}
+            <div class="card-body p-4">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <div class="mb-3">
+                        {{ form_widget(form) }}
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg">Enregistrer le RDV</button>
+                        <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-link text-muted">Retour à la liste</a>
+                    </div>
+                {{ form_end(form) }}
             </div>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}

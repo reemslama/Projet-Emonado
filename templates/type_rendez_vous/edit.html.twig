@@ -1,12 +1,46 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<h1>Type Rendez-Vous</h1>
-
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button>Save</button>
-{{ form_end(form) }}
-
-<a href="{{ path('app_type_rendez_vous_index') }}">back to list</a>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h4 class="fw-bold mb-0">Modifier le type de rendez-vous</h4>
+        </div>
+        <div class="card-body">
+            {{ form_start(form) }}
+                
+                {# Affichage des erreurs globales #}
+                {{ form_errors(form) }}
+                
+                {# Champs du formulaire #}
+                <div class="mb-3">
+                    {{ form_label(form.libelle, 'Libellé', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(form.libelle, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.libelle) }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form_label(form.couleur, 'Couleur', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(form.couleur, {'attr': {'class': 'form-control form-control-color'}}) }}
+                    {{ form_errors(form.couleur) }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-warning">
+                        Modifier
+                    </button>
+                    <a href="{{ path('app_type_rendez_vous_index') }}" class="btn btn-outline-secondary">
+                        Annuler
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
 {% endblock %}

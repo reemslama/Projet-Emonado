@@ -16,46 +16,102 @@ class RendezVous
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Le nom du patient est obligatoire")]
-    private ?string $nom_patient = null;
+    #[Assert\NotBlank(message: 'Le nom du patient est obligatoire')]
+    #[Assert\Length(min: 2, max: 255)]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ\s\-]+$/',
+        message: 'Le nom ne peut contenir que des lettres, espaces et tirets'
+    )]
+    private ?string $nomPatient = null;
 
     #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: "Le CIN est obligatoire")]
+    #[Assert\NotBlank(message: 'Le CIN est obligatoire')]
+    #[Assert\Regex(
+        pattern: '/^[0-9]{8,12}$/',
+        message: 'Le CIN doit contenir entre 8 et 12 chiffres'
+    )]
     private ?string $cin = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Le nom du psychologue est obligatoire")]
-    private ?string $nom_psychologue = null;
+    #[Assert\NotBlank(message: 'Le nom du psychologue est obligatoire')]
+    #[Assert\Length(min: 2, max: 255)]
+    private ?string $nomPsychologue = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Assert\NotNull(message: "La date est obligatoire.")]
+    #[Assert\NotBlank(message: 'La date est obligatoire')]
+    #[Assert\Type(\DateTimeInterface::class)]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\Column(length: 100)]
-    private ?string $status = "en attente";
-
-    #[ORM\ManyToOne(targetEntity: TypeRendezVous::class)]
+    #[ORM\ManyToOne(inversedBy: 'rendezVouses')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Le type de rendez-vous est obligatoire')]
     private ?TypeRendezVous $type = null;
 
-    // --- GETTERS (Crucial pour Twig) ---
-    public function getId(): ?int { return $this->id; }
+    // ============================================
+    // ✅ GETTERS
+    // ============================================
+    
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getNomPatient(): ?string { return $this->nom_patient; }
-    public function setNomPatient(?string $nom_patient): self { $this->nom_patient = $nom_patient; return $this; }
+    public function getNomPatient(): ?string  // ✅ MANQUANT - À AJOUTER
+    {
+        return $this->nomPatient;
+    }
 
-    public function getCin(): ?string { return $this->cin; }
-    public function setCin(?string $cin): self { $this->cin = $cin; return $this; }
+    public function getCin(): ?string  // ✅ MANQUANT - À AJOUTER
+    {
+        return $this->cin;
+    }
 
-    public function getNomPsychologue(): ?string { return $this->nom_psychologue; }
-    public function setNomPsychologue(?string $nom_psychologue): self { $this->nom_psychologue = $nom_psychologue; return $this; }
+    public function getNomPsychologue(): ?string  // ✅ MANQUANT - À AJOUTER
+    {
+        return $this->nomPsychologue;
+    }
 
-    public function getDate(): ?\DateTimeInterface { return $this->date; }
-    public function setDate(?\DateTimeInterface $date): self { $this->date = $date; return $this; }
+    public function getDate(): ?\DateTimeInterface  // ✅ MANQUANT - À AJOUTER
+    {
+        return $this->date;
+    }
 
-    public function getStatus(): ?string { return $this->status; }
-    public function setStatus(?string $status): self { $this->status = $status; return $this; }
+    public function getType(): ?TypeRendezVous  // ✅ MANQUANT - À AJOUTER
+    {
+        return $this->type;
+    }
 
-    public function getType(): ?TypeRendezVous { return $this->type; }
-    public function setType(?TypeRendezVous $type): self { $this->type = $type; return $this; }
+    // ============================================
+    // ✅ SETTERS
+    // ============================================
+    
+    public function setNomPatient(string $nomPatient): self  // ✅ MANQUANT - À AJOUTER
+    {
+        $this->nomPatient = $nomPatient;
+        return $this;
+    }
+
+    public function setCin(string $cin): self  // ✅ MANQUANT - À AJOUTER
+    {
+        $this->cin = $cin;
+        return $this;
+    }
+
+    public function setNomPsychologue(string $nomPsychologue): self  // ✅ MANQUANT - À AJOUTER
+    {
+        $this->nomPsychologue = $nomPsychologue;
+        return $this;
+    }
+
+    public function setDate(\DateTimeInterface $date): self  // ✅ MANQUANT - À AJOUTER
+    {
+        $this->date = $date;
+        return $this;
+    }
+
+    public function setType(?TypeRendezVous $type): self  // ✅ MANQUANT - À AJOUTER
+    {
+        $this->type = $type;
+        return $this;
+    }
 }

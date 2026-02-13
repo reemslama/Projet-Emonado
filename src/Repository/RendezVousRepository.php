@@ -16,18 +16,23 @@ class RendezVousRepository extends ServiceEntityRepository
         parent::__construct($registry, RendezVous::class);
     }
 
-    /**
-     * Tâche 4 : Fonctionnalité de Recherche
-     * Cette méthode filtre les rendez-vous par nom de patient ou de psychologue.
-     */
-    public function searchByTerm(string $term): array
+    public function findBySearchAndSort(?string $search, ?string $sort): array
     {
-        return $this->createQueryBuilder('r')
-            ->where('r.nom_patient LIKE :term')
-            ->orWhere('r.nom_psychologue LIKE :term')
-            ->setParameter('term', '%' . $term . '%')
-            ->orderBy('r.date', 'ASC') // Ajoute aussi le tri par date ici
-            ->getQuery()
-            ->getResult();
+        $qb = $this->createQueryBuilder('r')
+            ->leftJoin('r.type', 't')
+            ->addSelect('t');
+
+        if ($search) {
+            $qb->andWhere('r.nomPatient LIKE :q OR r.cin LIKE :q')
+               ->setParameter('q', '%' . $search . '%');
+        }
+
+        if ($sort === 'nom') {
+            $qb->orderBy('r.nomPatient', 'ASC');
+        } else {
+            $qb->orderBy('r.date', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

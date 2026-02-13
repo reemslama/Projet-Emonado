@@ -1,52 +1,50 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Types de Rendez-Vous{% endblock %}
-
 {% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Types de rendez-vous</h2>
+        <a href="{{ path('app_type_rendez_vous_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau type
+        </a>
+    </div>
 
-<section class="content">
-    <div class="container-fluid">
-
-        <div class="card">
-            <div class="card-header bg-dark">
-                <h3 class="card-title">Liste des Types de Rendez-Vous</h3>
-                <div class="card-tools">
-                    <a href="{{ path('app_type_rendez_vous_new') }}" class="btn btn-success btn-sm">
-                        + Ajouter
-                    </a>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <table class="table table-bordered table-hover">
-                    <thead>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Libellé</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type in types %}
                         <tr>
-                            <th>ID</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for type in type_rendez_vouses %}
-                        <tr>
-                            <td>{{ type.id }}</td>
-                            <td>{{ type.description }}</td>
+                            <td class="fw-bold">{{ type.libelle }}</td>
                             <td>
-                                <a href="{{ path('app_type_rendez_vous_show', {'id': type.id}) }}" class="btn btn-primary btn-sm">Voir</a>
-                                <a href="{{ path('app_type_rendez_vous_edit', {'id': type.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                {% if type.description %}
+                                    {{ type.description }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">Aucune description</span>
+                                {% endif %}
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="3">Aucun type trouvé</td>
+                            <td colspan="2" class="text-center py-5 text-muted fst-italic">
+                                <i class="fas fa-folder-open fa-2x mb-3"></i><br>
+                                Aucun type de rendez-vous trouvé.
+                                <br>
+                                <a href="{{ path('app_type_rendez_vous_new') }}" class="btn btn-primary btn-sm mt-3">
+                                    Créer le premier type
+                                </a>
+                            </td>
                         </tr>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
         </div>
-
     </div>
-</section>
-
+</div>
 {% endblock %}

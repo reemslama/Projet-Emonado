@@ -1,45 +1,68 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block body %}
-{# La classe justify-content-between écarte le titre et le bouton aux deux extrémités #}
-<nav class="navbar navbar-dark bg-dark mb-4 px-4 d-flex justify-content-between align-items-center">
-    <span class="navbar-brand m-0">EmoNado Admin</span>
-    
-    {# Un seul bouton, placé à droite #}
-    <a href="{{ path('app_front_home') }}" class="btn btn-outline-info btn-sm">Voir le Front</a>
-</nav>
-
-<div class="card shadow mx-4">
-    <div class="card-header d-flex justify-content-between align-items-center bg-white">
-        <h3 class="text-primary m-0">Tableau de Bord</h3>
-        <a href="{{ path('app_rendez_vous_new') }}" class="btn btn-success">Nouveau RDV</a>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Liste des Rendez-vous</h2>
+        <a href="{{ path('app_rendez_vous_new') }}" class="btn btn-primary">Nouveau</a>
     </div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead>
+
+    {# Formulaire de recherche #}
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control shadow-sm" 
+                   placeholder="Rechercher nom ou CIN..." 
+                   value="{{ app.request.query.get('q') }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-dark shadow-sm">Filtrer</button>
+            <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-outline-secondary shadow-sm">Réinitialiser</a>
+        </div>
+    </form>
+
+    <div class="card shadow-sm border-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
                 <tr>
-                    <th>ID</th>
-                    <th>Patient</th>
+                    <th>
+                        <a href="{{ path('app_rendez_vous_index', {sort: 'nom', q: app.request.query.get('q')}) }}" 
+                           class="text-decoration-none text-dark">
+                            Patient ↑↓
+                        </a>
+                    </th>
                     <th>CIN</th>
                     <th>Psychologue</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th>Type</th>
+                    <th>
+                        <a href="{{ path('app_rendez_vous_index', {sort: 'date', q: app.request.query.get('q')}) }}" 
+                           class="text-decoration-none text-dark">
+                            Date ↑↓
+                        </a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
-            {% for r in rendez_vous %}
-                <tr>
-                    <td>{{ r.id }}</td>
-                    {# Utilisation du format CamelCase pour correspondre aux getters de l'entité #}
-                    <td>{{ r.nomPatient|upper }}</td> 
-                    <td>{{ r.cin }}</td>
-                    <td>{{ r.nomPsychologue }}</td>
-                    <td>{{ r.date|date('d/m/Y H:i') }}</td>
-                    <td>
-                        <a href="{{ path('app_rendez_vous_edit', {id: r.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
-                    </td>
-                </tr>
-            {% endfor %}
+                {# ✅ CORRECTION: utilisation de 'rendez_vous' au lieu de 'rendezvous' #}
+                {% for r in rendez_vous %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ r.nomPatient|upper }}</td>
+                        <td><code>{{ r.cin }}</code></td>
+                        <td>Dr. {{ r.nomPsychologue }}</td>
+                        <td>
+                            <span class="badge" 
+                                  style="background-color: {{ r.type ? r.type.couleur|default('#0d6efd') : '#0d6efd' }}; color: white;">
+                                {{ r.type ? r.type.libelle : 'Non défini' }}
+                            </span>
+                        </td>
+                        <td>{{ r.date ? r.date|date('d/m/Y H:i') : '' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted fst-italic">
+                            Aucun résultat trouvé.
+                        </td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

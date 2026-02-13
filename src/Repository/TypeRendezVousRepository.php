@@ -16,28 +16,12 @@ class TypeRendezVousRepository extends ServiceEntityRepository
         parent::__construct($registry, TypeRendezVous::class);
     }
 
-    //    /**
-    //     * @return TypeRendezVous[] Returns an array of TypeRendezVous objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?TypeRendezVous
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    // Ajoutez vos méthodes personnalisées ici
+    public function findAllOrdered(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->orderBy('t.libelle', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
