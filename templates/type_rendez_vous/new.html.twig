@@ -14,9 +14,9 @@
                         {# Affichage des erreurs globales #}
                         {{ form_errors(form) }}
                         
-                        {# Champ Libell├® #}
+                        {# Champ Libellé #}
                         <div class="mb-4">
-                            {{ form_label(form.libelle, 'Libell├®', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                            {{ form_label(form.libelle, 'Libellé', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
                             {{ form_widget(form.libelle, {'attr': {'class': 'form-control form-control-lg'}}) }}
                             <small class="text-muted">Ex: Urgence, Suivi, Consultation, Bilan...</small>
                             {{ form_errors(form.libelle) }}
