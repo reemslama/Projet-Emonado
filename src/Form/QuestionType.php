@@ -17,38 +17,63 @@ class QuestionType extends AbstractType
     {
         $builder
             ->add('texte', TextareaType::class, [
-                'label' => 'Question',
+                'label' => 'Texte de la question',
                 'required' => true,
-                'attr' => ['rows' => 3]
+                'attr' => [
+                    'rows' => 3,
+                    'placeholder' => 'Entrez la question ici...',
+                ],
             ])
+
             ->add('ordre', IntegerType::class, [
-                'label' => 'Ordre',
+                'label' => 'Ordre d\'affichage',
                 'required' => true,
+                'attr' => [
+                    'min' => 1,
+                    'placeholder' => '1, 2, 3...',
+                ],
             ])
+
             ->add('typeQuestion', ChoiceType::class, [
                 'label' => 'Type de question',
                 'choices' => [
-                    'Choix unique' => 'choix_unique',
-                    'Choix multiple' => 'choix_multiple',
+                    'Choix unique (radio)' => 'choix_unique',
+                    'Choix multiple (checkbox)' => 'choix_multiple',
+                    // Tu pourras ajouter plus tard : 'Échelle (Likert)', 'Texte libre', etc.
                 ],
+                'placeholder' => 'Choisissez un type...',
                 'required' => true,
             ])
+
             ->add('categorie', ChoiceType::class, [
                 'label' => 'Catégorie',
                 'choices' => [
                     'Stress' => 'stress',
                     'Dépression' => 'depression',
-                    'QI' => 'iq',
+                    'Anxiété' => 'anxiete',
+                    'QI / Capacités cognitives' => 'iq',
+                    'Estime de soi' => 'estime_soi',
+                    'Sommeil' => 'sommeil',
+                    // Ajoute ici les catégories que tu utilises vraiment
                 ],
+                'placeholder' => 'Sélectionnez une catégorie...',
                 'required' => true,
             ])
+
             ->add('reponses', CollectionType::class, [
                 'entry_type' => ReponseType::class,
-                'entry_options' => ['label' => false],
+                'entry_options' => [
+                    'label' => false,
+                ],
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,
-                'label' => false,
+                'label' => 'Réponses possibles',
+                'attr' => [
+                    'class' => 'reponses-collection',
+                ],
+                'prototype' => true,          // Important pour le JavaScript
+                'delete_empty' => true,       // Supprime les réponses vides
             ])
         ;
     }
@@ -57,6 +82,7 @@ class QuestionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Question::class,
+            'attr' => ['novalidate' => 'novalidate'], // optionnel : désactive la validation HTML5 par défaut
         ]);
     }
 }

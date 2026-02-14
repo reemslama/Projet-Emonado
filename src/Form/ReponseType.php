@@ -14,25 +14,41 @@ class ReponseType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            // 1. Texte de la réponse (le plus important)
             ->add('texte', TextType::class, [
-                'label' => 'Texte de la réponse',
-                'required' => true,
+                'label'       => false,               // pas de label → plus aéré
+                'attr'        => [
+                    'placeholder' => 'Réponse (ex: Pas du tout, Oui, Rarement...)',
+                    'class'       => 'form-control',
+                ],
+                'required'    => true,
             ])
+
+            // 2. Valeur / score (très court)
             ->add('valeur', IntegerType::class, [
-                'label' => 'Valeur/Points',
-                'required' => true,
-            ])
-            ->add('ordre', IntegerType::class, [
-                'label' => 'Ordre',
-                'required' => true,
+                'label'       => false,
+                'attr'        => [
+                    'placeholder' => 'Score',
+                    'class'       => 'form-control text-center',
+                    'style'       => 'max-width: 90px;',
+                    'min'         => -5,
+                    'max'         => 5,
+                ],
+                'required'    => true,
             ])
         ;
+        // → on enlève complètement le champ 'ordre' pour simplifier
+        //   (on peut trier par défaut ou le gérer autrement plus tard si besoin)
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Reponse::class,
+            'label'      => false,
+            'attr'       => [
+                'class' => 'row g-2 align-items-center reponse-row',
+            ],
         ]);
     }
 }

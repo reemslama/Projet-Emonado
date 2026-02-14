@@ -5,77 +5,111 @@
 {% block header %}Nouvelle Question{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">
-                            <i class="bi bi-file-earmark-text"></i> Informations de la question
-                        </h4>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Informations de la question
+                    </h4>
+                </div>
+
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <!-- Question -->
+                    <div class="mb-4">
+                        {{ form_label(form.texte, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.texte, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Entrez votre question ici...', 'rows': 3}}) }}
+                        {{ form_errors(form.texte) }}
                     </div>
-                    <div class="card-body p-4">
-                        {{ form_start(form) }}
-                        
-                        <div class="mb-4">
-                            {{ form_label(form.texte, 'Question', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                            {{ form_widget(form.texte, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Entrez votre question...', 'rows': 3}}) }}
-                            {{ form_errors(form.texte) }}
+
+                    <!-- Catégorie / Ordre / Type -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-5">
+                            {{ form_label(form.categorie, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.categorie, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                            {{ form_errors(form.categorie) }}
                         </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                {{ form_label(form.categorie, 'Catégorie', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                                {{ form_widget(form.categorie, {'attr': {'class': 'form-select form-select-lg'}}) }}
-                                {{ form_errors(form.categorie) }}
-                            </div>
-                            <div class="col-md-3">
-                                {{ form_label(form.ordre, 'Ordre', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                                {{ form_widget(form.ordre, {'attr': {'class': 'form-control form-control-lg'}}) }}
-                                {{ form_errors(form.ordre) }}
-                            </div>
-                            <div class="col-md-3">
-                                {{ form_label(form.typeQuestion, 'Type', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                                {{ form_widget(form.typeQuestion, {'attr': {'class': 'form-select form-select-lg'}}) }}
-                                {{ form_errors(form.typeQuestion) }}
-                            </div>
+                        <div class="col-md-3">
+                            {{ form_label(form.ordre, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.ordre, {'attr': {'class': 'form-control form-control-lg', 'min': '1'}}) }}
+                            {{ form_errors(form.ordre) }}
                         </div>
-
-                        <hr class="my-4">
-
-                        <h5 class="mb-3">
-                            <i class="bi bi-list-check"></i> Réponses
-                        </h5>
-
-                        <div id="reponses-collection">
-                            {{ form_row(form.reponses) }}
+                        <div class="col-md-4">
+                            {{ form_label(form.typeQuestion, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.typeQuestion, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                            {{ form_errors(form.typeQuestion) }}
                         </div>
+                    </div>
 
-                        {{ form_rest(form) }}
+                    <hr class="my-4">
 
-                        <div class="d-flex justify-content-between mt-5">
-                            <a href="{{ path('admin_dashboard') }}#questions" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-arrow-left"></i> Retour
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-save"></i> Créer la question
+                    <!-- Bloc Réponses -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-check me-2"></i>Réponses possibles
+                            </h5>
+                            <button type="button"
+                                    class="btn btn-sm btn-success add-another-response">
+                                <i class="bi bi-plus-lg"></i> Ajouter une réponse
                             </button>
                         </div>
 
-                        {{ form_end(form) }}
-                    </div>
-                </div>
+                        <div id="reponses-collection-holder"
+                             data-prototype="{{ form_widget(form.reponses.vars.prototype)|e('html_attr') }}"
+                             data-widget-counter="{{ form.reponses|length }}"
+                             data-widget-tags="{{ '<div class="reponse-item border rounded p-3 mb-3 bg-light position-relative"></div>'|e }}">
 
-                {# Aide #}
-                <div class="card mt-4 border-info">
-                    <div class="card-body">
-                        <h6 class="text-info"><i class="bi bi-info-circle"></i> Conseils</h6>
-                        <ul class="mb-0 small">
-                            <li>Rédigez des questions claires et précises</li>
-                            <li>Assurez-vous que l'ordre est cohérent dans chaque catégorie</li>
-                            <li>Les valeurs des réponses déterminent le score (0, 1, 2, 3)</li>
-                        </ul>
+                            {% for reponseForm in form.reponses %}
+                                <div class="reponse-item border rounded p-3 mb-3 bg-light position-relative">
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger position-absolute top-0 end-0 mt-2 me-2 delete-response">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                    {{ form_widget(reponseForm) }}
+                                    {{ form_errors(reponseForm) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if form.reponses.vars.errors|length > 0 %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form_errors(form.reponses) }}
+                            </div>
+                        {% endif %}
                     </div>
+
+                    {{ form_rest(form) }}
+
+                    <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                        <a href="{{ path('admin_dashboard') }}#questions"
+                           class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-save me-2"></i>Créer la question
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Aide rapide -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h6 class="text-info mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Conseils pour les réponses
+                    </h6>
+                    <ul class="small mb-0">
+                        <li>Le **score/valeur** influence le résultat du test (ex: -2 = très défavorable, +2 = très favorable)</li>
+                        <li>Ordre = position d’affichage (optionnel si vous ne voulez pas forcer un ordre)</li>
+                        <li>Pour une question à choix unique → 4 à 6 réponses sont généralement suffisantes</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -83,11 +117,67 @@
 </div>
 {% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const collectionHolder = document.getElementById('reponses-collection-holder');
+            if (!collectionHolder) return;
+
+            let index = collectionHolder.dataset.widgetCounter;
+
+            // Bouton "Ajouter une réponse"
+            document.querySelector('.add-another-response').addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const prototype = collectionHolder.dataset.prototype;
+                const item = document.createElement('div');
+                item.innerHTML = prototype.replace(/__name__/g, index);
+                item.className = collectionHolder.dataset.widgetTags.replace(/<div[^>]*>|<\/div>/g, '').trim();
+
+                // Ajout du bouton supprimer
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 mt-2 me-2 delete-response';
+                deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                item.firstElementChild.appendChild(deleteBtn);
+
+                collectionHolder.appendChild(item.firstElementChild);
+                index++;
+
+                // Réactiver le listener sur le nouveau bouton supprimer
+                item.querySelector('.delete-response').addEventListener('click', removeResponse);
+            });
+
+            // Suppression d'une réponse
+            document.querySelectorAll('.delete-response').forEach(btn => {
+                btn.addEventListener('click', removeResponse);
+            });
+
+            function removeResponse(e) {
+                e.preventDefault();
+                e.target.closest('.reponse-item').remove();
+            }
+        });
+    </script>
+{% endblock %}
+
 {% block stylesheets %}
-<style>
-.form-control:focus, .form-select:focus {
-    border-color: #f4623a;
-    box-shadow: 0 0 0 0.25rem rgba(244, 98, 58, 0.25);
-}
-</style>
+    {{ parent() }}
+    <style>
+        .reponse-item {
+            transition: all 0.2s;
+        }
+        .reponse-item:hover {
+            box-shadow: 0 0 0 3px rgba(244, 98, 58, 0.15);
+        }
+        .delete-response {
+            z-index: 10;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #f4623a;
+            box-shadow: 0 0 0 0.25rem rgba(244, 98, 58, 0.25);
+        }
+    </style>
 {% endblock %}

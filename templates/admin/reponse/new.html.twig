@@ -1,0 +1,60 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Ajouter une Réponse{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Ajouter une Réponse
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    
+                    <div class="mb-4">
+                        {{ form_label(form.question) }}
+                        {{ form_widget(form.question) }}
+                        {{ form_errors(form.question) }}
+                        <small class="form-text text-muted">
+                            Sélectionnez la question à laquelle cette réponse appartient
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.texte) }}
+                        {{ form_widget(form.texte) }}
+                        {{ form_errors(form.texte) }}
+                        <small class="form-text text-muted">
+                            Le texte de la réponse que l'utilisateur verra
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.valeur) }}
+                        {{ form_widget(form.valeur) }}
+                        {{ form_errors(form.valeur) }}
+                        <small class="form-text text-muted">
+                            Le score attribué à cette réponse (0, 1, 2, 3...)
+                        </small>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('admin_reponse_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Créer la réponse
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

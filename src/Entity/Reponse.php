@@ -16,28 +16,68 @@ class Reponse
     #[ORM\Column(length: 255)]
     private ?string $texte = null;
 
-    #[ORM\Column]
-    private ?int $valeur = null;
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private int $valeur = 0;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $ordre = null;
 
-    #[ORM\ManyToOne(inversedBy: 'reponses')]
+    #[ORM\ManyToOne(inversedBy: 'reponses', targetEntity: Question::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Question $question = null;
 
-    // GETTERS / SETTERS
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getId(): ?int { return $this->id; }
+    public function getTexte(): ?string
+    {
+        return $this->texte;
+    }
 
-    public function getTexte(): ?string { return $this->texte; }
-    public function setTexte(string $texte): self { $this->texte = $texte; return $this; }
+    public function setTexte(string $texte): self
+    {
+        $this->texte = $texte;
+        return $this;
+    }
 
-    public function getValeur(): ?int { return $this->valeur; }
-    public function setValeur(int $valeur): self { $this->valeur = $valeur; return $this; }
+    public function getValeur(): int
+    {
+        return $this->valeur;
+    }
 
-    public function getOrdre(): ?int { return $this->ordre; }
-    public function setOrdre(int $ordre): self { $this->ordre = $ordre; return $this; }
+    public function setValeur(int $valeur): self
+    {
+        $this->valeur = $valeur;
+        return $this;
+    }
 
-    public function getQuestion(): ?Question { return $this->question; }
-    public function setQuestion(?Question $q): self { $this->question = $q; return $this; }
+    public function getOrdre(): ?int
+    {
+        return $this->ordre;
+    }
+
+    public function setOrdre(?int $ordre): self
+    {
+        $this->ordre = $ordre;
+        return $this;
+    }
+
+    public function getQuestion(): ?Question
+    {
+        return $this->question;
+    }
+
+    public function setQuestion(?Question $question): self
+    {
+        $this->question = $question;
+
+        // (optionnel mais recommandé) synchronisation de la relation inverse
+        if ($question !== null && !$question->getReponses()->contains($this)) {
+            $question->addReponse($this);
+        }
+
+        return $this;
+    }
 }
