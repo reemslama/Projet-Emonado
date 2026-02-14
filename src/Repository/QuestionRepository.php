@@ -6,6 +6,9 @@ use App\Entity\Question;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Question>
+ */
 class QuestionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -14,8 +17,9 @@ class QuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Récupère toutes les catégories distinctes
-     * @return array
+     * Récupère toutes les catégories distinctes (non nulles)
+     *
+     * @return array<string>
      */
     public function findAllCategories(): array
     {
@@ -30,7 +34,8 @@ class QuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Filtre les questions par catégorie
+     * Récupère les questions par catégorie (ou toutes si 'all' ou null)
+     *
      * @param string|null $categorie
      * @return Question[]
      */
@@ -44,47 +49,53 @@ class QuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Compte les questions par catégorie
-     * @return array
+     * Compte le nombre de questions par catégorie
+     *
+     * @return array<array{categorie: string|null, total: int}>
      */
     public function countByCategorie(): array
     {
         return $this->createQueryBuilder('q')
             ->select('q.categorie, COUNT(q.id) as total')
             ->groupBy('q.categorie')
+            ->orderBy('q.categorie', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * Recherche des questions par mot-clé dans le texte
+     * Recherche des questions par mot-clé (texte, catégorie ou type)
+     *
      * @param string $keyword
      * @return Question[]
      */
     public function searchByKeyword(string $keyword): array
     {
+        $keyword = '%' . trim($keyword) . '%';
+
         return $this->createQueryBuilder('q')
-            ->where('q.texte LIKE :keyword')
-            ->orWhere('q.categorie LIKE :keyword')
-            ->orWhere('q.typeQuestion LIKE :keyword')
-            ->setParameter('keyword', '%' . $keyword . '%')
+            ->where('LOWER(q.texte) LIKE LOWER(:keyword)')
+            ->orWhere('LOWER(q.categorie) LIKE LOWER(:keyword)')
+            ->orWhere('LOWER(q.typeQuestion) LIKE LOWER(:keyword)')
+            ->setParameter('keyword', $keyword)
             ->orderBy('q.ordre', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * Recherche avancée avec filtre de catégorie
-     * @param string $keyword
+     * Recherche avancée : mot-clé + filtre catégorie optionnel
+     *
+     * @param string      $keyword
      * @param string|null $category
      * @return Question[]
      */
     public function searchByKeywordAndCategory(string $keyword, ?string $category = null): array
     {
         $qb = $this->createQueryBuilder('q')
-            ->where('q.texte LIKE :keyword')
-            ->orWhere('q.typeQuestion LIKE :keyword')
-            ->setParameter('keyword', '%' . $keyword . '%');
+            ->where('LOWER(q.texte) LIKE LOWER(:keyword)')
+            ->orWhere('LOWER(q.typeQuestion) LIKE LOWER(:keyword)')
+            ->setParameter('keyword', '%' . trim($keyword) . '%');
 
         if ($category && $category !== 'all') {
             $qb->andWhere('q.categorie = :category')
@@ -97,19 +108,25 @@ class QuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Vérifie si une question existe déjà avec ce texte
-     * @param string $texte
+     * Vérifie si une question existe déjà avec ce texte (insensible à la casse et espaces)
+     * Retourne false si le texte est null ou vide
+     *
+     * @param string|null $texte
      * @return bool
      */
-    public function existsByTexte(string $texte): bool
+    public function existsByTexte(?string $texte): bool
     {
+        if ($texte === null || trim($texte) === '') {
+            return false;
+        }
+
         $count = $this->createQueryBuilder('q')
             ->select('COUNT(q.id)')
-            ->where('q.texte = :texte')
-            ->setParameter('texte', $texte)
+            ->where('LOWER(TRIM(q.texte)) = LOWER(:texte)')
+            ->setParameter('texte', trim($texte))
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $count > 0;
+        return (int)$count > 0;
     }
 }

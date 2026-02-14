@@ -1,171 +1,137 @@
-{% extends 'HomeQ.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Choisir un type de test{% endblock %}
 
 {% block body %}
-{# Masthead/Header avec photo floue en arrière-plan #}
-<header class="masthead" style="
-    background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.65)), url('{{ asset('assets/img/photo.png') }}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    filter: blur(0px); /* on ne floute pas le contenu, seulement l'image via pseudo-élément */
-    position: relative;
-    overflow: hidden;
-">
-    <!-- Pseudo-élément pour appliquer le flou uniquement à l'image de fond -->
-    <div style="
-        position: absolute;
-        inset: 0;
-        background-image: url('{{ asset('assets/img/photo.png') }}');
-        background-size: cover;
-        background-position: center;
-        filter: blur(6px); /* ← degré de flou – 4px à 8px donne un bel effet */
-        z-index: -1;
-    "></div>
+{# En-tête simple sans image de fond #}
+<div class="text-center mb-5">
+    <h1 class="text-success fw-bold">Choisissez votre test</h1>
+    <hr class="divider mx-auto" style="width: 100px; height: 3px; background-color: #198754;" />
+    <p class="text-muted lead mt-3">
+        Sélectionnez le type de questionnaire que vous souhaitez passer
+    </p>
+</div>
 
-    <div class="container px-4 px-lg-5 h-100 position-relative">
-        <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
-            <div class="col-lg-8 align-self-end">
-                <h1 class="text-black fw-bold">Choisissez votre test</h1>
-                <hr class="divider" />
-            </div>
-            <div class="col-lg-8 align-self-baseline">
-                <p class="text-black mb-5 lead">
-                    Sélectionnez le type de questionnaire que vous souhaitez passer
+{# Cartes de tests #}
+<div class="row gx-4 gx-lg-5 justify-content-center mb-5">
+    
+    {# Test Stress #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow-lg border-0 fade-in-up">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fa-solid fa-face-frown fs-1 text-danger"></i>
+                </div>
+                <h3 class="h4 mb-3">Test de Stress</h3>
+                <p class="text-muted mb-4">
+                    Évaluez votre niveau de stress et identifiez les facteurs déclencheurs
                 </p>
+                <div class="mb-3">
+                    <span class="badge bg-danger">6 questions</span>
+                </div>
+                <a href="{{ path('app_test', {categorie: 'stress'}) }}" class="btn btn-danger btn-lg w-100 btn-custom">
+                    <i class="fa-solid fa-play-circle"></i> Commencer
+                </a>
             </div>
         </div>
     </div>
-</header>
 
-{# Le reste du contenu reste inchangé #}
-<section class="page-section">
-    <div class="container px-4 px-lg-5">
-        <h2 class="text-center mt-0 text-black">Types de tests disponibles</h2>
-        <hr class="divider" />
-        
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-            
-            {# Test Stress #}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100 shadow-lg border-0 fade-in-up">
-                    <div class="card-body text-center p-5">
-                        <div class="mb-4">
-                            <i class="bi bi-emoji-frown fs-1 text-danger"></i>
-                        </div>
-                        <h3 class="h4 mb-3">Test de Stress</h3>
-                        <p class="text-muted mb-4">
-                            Évaluez votre niveau de stress et identifiez les facteurs déclencheurs
-                        </p>
-                        <div class="mb-3">
-                            <span class="badge bg-danger">6 questions</span>
-                        </div>
-                        <a href="{{ path('app_test', {categorie: 'stress'}) }}" class="btn btn-danger btn-xl w-100">
-                            <i class="bi bi-play-circle"></i> Commencer
-                        </a>
-                    </div>
+    {# Test Dépression #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fa-solid fa-heart-pulse fs-1 text-primary"></i>
                 </div>
-            </div>
-
-            {# Test Dépression #}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.2s;">
-                    <div class="card-body text-center p-5">
-                        <div class="mb-4">
-                            <i class="bi bi-heart-pulse fs-1 text-primary"></i>
-                        </div>
-                        <h3 class="h4 mb-3">Test de Dépression</h3>
-                        <p class="text-muted mb-4">
-                            Identifiez les signes de dépression et évaluez votre bien-être mental
-                        </p>
-                        <div class="mb-3">
-                            <span class="badge bg-primary">5 questions</span>
-                        </div>
-                        <a href="{{ path('app_test', {categorie: 'depression'}) }}" class="btn btn-primary btn-xl w-100">
-                            <i class="bi bi-play-circle"></i> Commencer
-                        </a>
-                    </div>
+                <h3 class="h4 mb-3">Test de Dépression</h3>
+                <p class="text-muted mb-4">
+                    Identifiez les signes de dépression et évaluez votre bien-être mental
+                </p>
+                <div class="mb-3">
+                    <span class="badge bg-primary">5 questions</span>
                 </div>
+                <a href="{{ path('app_test', {categorie: 'depression'}) }}" class="btn btn-primary btn-lg w-100 btn-custom">
+                    <i class="fa-solid fa-play-circle"></i> Commencer
+                </a>
             </div>
-
-            {# Test IQ #}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.4s;">
-                    <div class="card-body text-center p-5">
-                        <div class="mb-4">
-                            <i class="bi bi-lightbulb fs-1 text-warning"></i>
-                        </div>
-                        <h3 class="h4 mb-3">Test de QI</h3>
-                        <p class="text-muted mb-4">
-                            Mesurez vos capacités intellectuelles et votre raisonnement logique
-                        </p>
-                        <div class="mb-3">
-                            <span class="badge bg-warning text-dark">5 questions</span>
-                        </div>
-                        <a href="{{ path('app_test', {categorie: 'iq'}) }}" class="btn btn-warning btn-xl w-100">
-                            <i class="bi bi-play-circle"></i> Commencer
-                        </a>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
-</section>
+
+    {# Test IQ #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.4s;">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fa-solid fa-lightbulb fs-1 text-warning"></i>
+                </div>
+                <h3 class="h4 mb-3">Test de QI</h3>
+                <p class="text-muted mb-4">
+                    Mesurez vos capacités intellectuelles et votre raisonnement logique
+                </p>
+                <div class="mb-3">
+                    <span class="badge bg-warning text-dark">5 questions</span>
+                </div>
+                <a href="{{ path('app_test', {categorie: 'iq'}) }}" class="btn btn-warning btn-lg w-100 btn-custom">
+                    <i class="fa-solid fa-play-circle"></i> Commencer
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
 
 {# Section informations #}
-<section class="page-section bg-primary">
-    <div class="container px-4 px-lg-5">
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h2 class="text-white mt-0">Comment ça marche ?</h2>
-                <hr class="divider divider-light" />
-                <div class="row mt-5">
-                    <div class="col-md-4 mb-4">
-                        <i class="bi bi-1-circle fs-1 text-white mb-3 d-block"></i>
-                        <h5 class="text-white">Choisissez</h5>
-                        <p class="text-white-75">Sélectionnez le type de test qui vous intéresse</p>
+<div class="bg-success text-white p-5 rounded mb-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+        <div class="col-lg-10 text-center">
+            <h2 class="text-white mt-0">Comment ça marche ?</h2>
+            <hr class="divider mx-auto bg-white" style="width: 100px; height: 2px;" />
+            <div class="row mt-5">
+                <div class="col-md-4 mb-4">
+                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <span class="fs-2 fw-bold">1</span>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <i class="bi bi-2-circle fs-1 text-white mb-3 d-block"></i>
-                        <h5 class="text-white">Répondez</h5>
-                        <p class="text-white-75">Répondez honnêtement à toutes les questions</p>
+                    <h5 class="text-white">Choisissez</h5>
+                    <p class="text-white-75">Sélectionnez le type de test qui vous intéresse</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <span class="fs-2 fw-bold">2</span>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <i class="bi bi-3-circle fs-1 text-white mb-3 d-block"></i>
-                        <h5 class="text-white">Résultat</h5>
-                        <p class="text-white-75">Découvrez votre score et des conseils personnalisés</p>
+                    <h5 class="text-white">Répondez</h5>
+                    <p class="text-white-75">Répondez honnêtement à toutes les questions</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <span class="fs-2 fw-bold">3</span>
                     </div>
+                    <h5 class="text-white">Résultat</h5>
+                    <p class="text-white-75">Découvrez votre score et des conseils personnalisés</p>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 {# Disclaimer #}
-<section class="page-section">
-    <div class="container px-4 px-lg-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="alert alert-info" role="alert">
-                    <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Information importante</h5>
-                    <p class="mb-0">
-                        Ces tests sont à but informatif uniquement et ne remplacent pas un diagnostic médical professionnel. 
-                        Si vous ressentez des difficultés persistantes, consultez un professionnel de santé.
-                    </p>
-                </div>
-            </div>
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="alert alert-info" role="alert">
+            <h5 class="alert-heading"><i class="fa-solid fa-info-circle"></i> Information importante</h5>
+            <p class="mb-0">
+                Ces tests sont à but informatif uniquement et ne remplacent pas un diagnostic médical professionnel. 
+                Si vous ressentez des difficultés persistantes, consultez un professionnel de santé.
+            </p>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}
 
 {% block stylesheets %}
 <style>
 .card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
 }
 
 .card:hover {
@@ -187,11 +153,18 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
 
-/* Force le texte en noir dans le header */
-.masthead h1, .masthead p {
-    color: #000000 !important;
-    text-shadow: 0 1px 3px rgba(255,255,255,0.9); /* légère ombre blanche pour lisibilité */
+.btn-custom {
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    transform: scale(1.05);
+}
+
+.divider {
+    border: none;
 }
 </style>
 {% endblock %}

@@ -1,203 +1,333 @@
-{% extends 'HomeQ.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Résultat - Score: {{ score }}{% endblock %}
 
 {% block body %}
-{# Header avec score #}
-<header class="masthead">
-    <div class="container px-4 px-lg-5 h-100">
-        <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
-            <div class="col-lg-8 align-self-end">
-                <h1 class="text-white font-weight-bold">
-                    <i class="bi bi-trophy-fill"></i> Résultat
-                </h1>
-                <hr class="divider" />
-            </div>
-            <div class="col-lg-8 align-self-baseline">
-                <div class="display-1 text-white mb-4 font-weight-bold">
-                    Score : {{ score }}
-                </div>
-            </div>
+<style>
+    body {
+        background: #fafbfc;
+    }
+
+    .result-container {
+        max-width: 650px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+
+    /* Score principal - minimaliste */
+    .score-card {
+        background: white;
+        border-radius: 16px;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e9ecef;
+        margin-bottom: 30px;
+    }
+
+    .score-number {
+        font-size: 5rem;
+        font-weight: 300;
+        color: {% if score <= 5 %}#28a745{% elseif score <= 10 %}#17a2b8{% elseif score <= 15 %}#ffc107{% else %}#dc3545{% endif %};
+        margin: 0;
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 10px;
+        font-weight: 400;
+    }
+
+    .level-text {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-top: 30px;
+        color: #2c3e50;
+    }
+
+    .level-description {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-top: 10px;
+        font-weight: 300;
+    }
+
+    /* Barre simple */
+    .progress-simple {
+        height: 6px;
+        background: #e9ecef;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 40px 0 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: {% if score <= 5 %}#28a745{% elseif score <= 10 %}#17a2b8{% elseif score <= 15 %}#ffc107{% else %}#dc3545{% endif %};
+        transition: width 1s ease;
+        border-radius: 3px;
+    }
+
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #adb5bd;
+    }
+
+    /* Section recommandations minimaliste */
+    .recommendations {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e9ecef;
+        margin-bottom: 20px;
+    }
+
+    .recommendations h6 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .recommendations ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recommendations li {
+        padding: 12px 0;
+        color: #495057;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f1f3f5;
+        line-height: 1.6;
+    }
+
+    .recommendations li:last-child {
+        border-bottom: none;
+    }
+
+    /* Contact simple */
+    .contact-simple {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin: 20px 0;
+    }
+
+    .contact-simple h6 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .contact-simple p {
+        margin: 8px 0;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    /* Boutons minimalistes */
+    .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 40px 0 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-minimal {
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid;
+        cursor: pointer;
+    }
+
+    .btn-minimal-primary {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+    }
+
+    .btn-minimal-primary:hover {
+        background: #157347;
+        border-color: #157347;
+        color: white;
+    }
+
+    .btn-minimal-outline {
+        background: white;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+
+    .btn-minimal-outline:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+        color: #495057;
+    }
+
+    /* Disclaimer discret */
+    .disclaimer-simple {
+        background: #fff9e6;
+        border-left: 3px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 30px 0;
+    }
+
+    .disclaimer-simple p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #856404;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .score-number {
+            font-size: 4rem;
+        }
+        .score-card, .recommendations {
+            padding: 35px 25px;
+        }
+        .actions {
+            flex-direction: column;
+        }
+        .btn-minimal {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="result-container">
+    
+    {# Score principal #}
+    <div class="score-card">
+        <div class="score-number">{{ score }}</div>
+        <div class="score-label">sur 18 points</div>
+        
+        <div class="level-text">
+            {% if score <= 5 %}Niveau Faible
+            {% elseif score <= 10 %}Niveau Modéré
+            {% elseif score <= 15 %}Niveau Élevé
+            {% else %}Niveau Très Élevé
+            {% endif %}
+        </div>
+        
+        <div class="level-description">
+            {% if score <= 5 %}Continuez ainsi, vous êtes sur la bonne voie.
+            {% elseif score <= 10 %}Restez vigilant et prenez soin de vous.
+            {% elseif score <= 15 %}Envisagez de prendre des mesures.
+            {% else %}Nous vous conseillons de consulter un professionnel.
+            {% endif %}
+        </div>
+        
+        {# Barre de progression minimaliste #}
+        <div class="progress-simple">
+            <div class="progress-fill" style="width: {{ (score / 18 * 100)|round }}%"></div>
+        </div>
+        <div class="progress-labels">
+            <span>0</span>
+            <span>18</span>
         </div>
     </div>
-</header>
-
-{# Section résultats détaillés #}
-<section class="page-section">
-    <div class="container px-4 px-lg-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10 text-center fade-in-up">
-                
-                {# Interprétation selon le score #}
-                {% if score <= 5 %}
-                    <div class="mb-5">
-                        <i class="bi bi-emoji-smile-fill text-success" style="font-size: 5rem;"></i>
-                        <h2 class="mt-4 text-success">Niveau Faible</h2>
-                        <p class="text-muted fs-5">Votre niveau est faible. Continuez ainsi !</p>
-                    </div>
-                {% elseif score <= 10 %}
-                    <div class="mb-5">
-                        <i class="bi bi-emoji-neutral-fill text-info" style="font-size: 5rem;"></i>
-                        <h2 class="mt-4 text-info">Niveau Modéré</h2>
-                        <p class="text-muted fs-5">Votre niveau est modéré. Restez vigilant(e).</p>
-                    </div>
-                {% elseif score <= 15 %}
-                    <div class="mb-5">
-                        <i class="bi bi-emoji-frown-fill text-warning" style="font-size: 5rem;"></i>
-                        <h2 class="mt-4 text-warning">Niveau Élevé</h2>
-                        <p class="text-muted fs-5">Votre niveau est élevé. Il serait bon de prendre des mesures.</p>
-                    </div>
-                {% else %}
-                    <div class="mb-5">
-                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 5rem;"></i>
-                        <h2 class="mt-4 text-danger">Niveau Très Élevé</h2>
-                        <p class="text-muted fs-5">Votre niveau est très élevé. Nous vous conseillons de consulter un professionnel.</p>
-                    </div>
-                {% endif %}
-
-                {# Jauge de progression #}
-                <div class="my-5" id="resultContent">
-                    <h5 class="mb-3">Votre score sur l'échelle</h5>
-                    <div class="progress" style="height: 40px;">
-                        <div class="progress-bar 
-                            {% if score <= 5 %}bg-success
-                            {% elseif score <= 10 %}bg-info
-                            {% elseif score <= 15 %}bg-warning
-                            {% else %}bg-danger
-                            {% endif %}" 
-                            role="progressbar" 
-                            style="width: {{ (score / 18 * 100)|round }}%"
-                            aria-valuenow="{{ score }}" 
-                            aria-valuemin="0" 
-                            aria-valuemax="18">
-                            <strong>{{ score }} points</strong>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-2">
-                        <small class="text-muted">0</small>
-                        <small class="text-muted">18</small>
-                    </div>
-                </div>
-
-                {# Conseils selon le score #}
-                <div class="mt-5 p-4 bg-light rounded-3 text-start">
-                    <h5 class="mb-3"><i class="bi bi-lightbulb text-warning"></i> Recommandations</h5>
-                    
-                    {% if score <= 5 %}
-                        <ul class="mb-0">
-                            <li>Continuez à maintenir vos bonnes habitudes</li>
-                            <li>Pratiquez régulièrement des activités relaxantes</li>
-                            <li>Maintenez un équilibre vie professionnelle/personnelle</li>
-                        </ul>
-                    {% elseif score <= 10 %}
-                        <ul class="mb-0">
-                            <li>Identifiez les sources de stress dans votre vie</li>
-                            <li>Essayez des techniques de relaxation (méditation, yoga)</li>
-                            <li>Assurez-vous de dormir suffisamment</li>
-                            <li>Pratiquez une activité physique régulière</li>
-                        </ul>
-                    {% elseif score <= 15 %}
-                        <ul class="mb-0">
-                            <li>Parlez de vos préoccupations à quelqu'un de confiance</li>
-                            <li>Envisagez de consulter un professionnel de santé</li>
-                            <li>Apprenez et pratiquez des techniques de gestion du stress</li>
-                            <li>Prenez du temps pour vous chaque jour</li>
-                            <li>Limitez la consommation de caféine et d'alcool</li>
-                        </ul>
-                    {% else %}
-                        <ul class="mb-0">
-                            <li><strong>Consultez rapidement un professionnel de santé</strong></li>
-                            <li>Ne restez pas seul(e) face à ces difficultés</li>
-                            <li>Contactez une ligne d'écoute si nécessaire</li>
-                            <li>Parlez-en à votre médecin traitant</li>
-                        </ul>
-                    {% endif %}
-                </div>
-
-                {# Numéros utiles #}
-                {% if score > 10 %}
-                <div class="mt-4 p-4 border border-primary rounded-3 text-start">
-                    <h5 class="mb-3"><i class="bi bi-telephone text-primary"></i> Numéros utiles</h5>
-                    <ul class="mb-0">
-                        <li><strong>SOS Détresse</strong> : 0800 808 005 (gratuit, 24h/24)</li>
-                        <li><strong>Tunisie Allo Ecoute</strong> : 80 101 919</li>
-                        <li><strong>Urgences</strong> : 190</li>
-                    </ul>
-                </div>
-                {% endif %}
-
-                {# Boutons d'action - AVEC BOUTON PDF #}
-                <div class="mt-5 pt-5">
-                    <a href="{{ path('app_choix') }}" class="btn btn-xl me-2 mb-3" style="background-color: #ff6347; color: white; border-radius: 50px; padding: 15px 40px; font-weight: bold;">
-                        <i class="bi bi-arrow-repeat"></i> FAIRE UN AUTRE TEST
-                    </a>
-                    
-                    <button onclick="exportToPDF()" class="btn btn-xl me-2 mb-3" style="background-color: #28a745; color: white; border-radius: 50px; padding: 15px 40px; font-weight: bold;">
-                        <i class="bi bi-file-earmark-pdf-fill"></i> EXPORTER PDF
-                    </button>
-                    
-                    <a href="{{ path('app_home') }}" class="btn btn-xl mb-3" style="background-color: white; color: #333; border: 2px solid #ddd; border-radius: 50px; padding: 15px 40px; font-weight: bold;">
-                        <i class="bi bi-house-fill"></i> ACCUEIL
-                    </a>
-                </div>
-            </div>
-        </div>
+    
+    {# Recommandations #}
+    <div class="recommendations">
+        <h6>Recommandations</h6>
+        <ul>
+            {% if score <= 5 %}
+                <li>Maintenez vos bonnes habitudes de vie</li>
+                <li>Pratiquez des activités relaxantes régulièrement</li>
+                <li>Conservez votre équilibre vie pro/perso</li>
+            {% elseif score <= 10 %}
+                <li>Identifiez vos sources de stress</li>
+                <li>Essayez la méditation ou le yoga</li>
+                <li>Assurez-vous de bien dormir (7-8h)</li>
+                <li>Faites de l'exercice régulièrement</li>
+            {% elseif score <= 15 %}
+                <li>Parlez à quelqu'un de confiance</li>
+                <li>Consultez un professionnel si besoin</li>
+                <li>Pratiquez la gestion du stress</li>
+                <li>Prenez du temps pour vous</li>
+                <li>Limitez caféine et alcool</li>
+            {% else %}
+                <li>Consultez rapidement un professionnel</li>
+                <li>Ne restez pas seul(e)</li>
+                <li>Contactez une ligne d'écoute</li>
+                <li>Parlez-en à votre médecin</li>
+            {% endif %}
+        </ul>
     </div>
-</section>
-
-{# Section Disclaimer #}
-<section class="page-section bg-light">
-    <div class="container px-4 px-lg-5 text-center">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="alert alert-warning" role="alert">
-                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Avertissement</h5>
-                    <p class="mb-0">
-                        Ce test est fourni à titre informatif uniquement et ne constitue pas un diagnostic médical. 
-                        Si vous ressentez des difficultés persistantes, veuillez consulter un professionnel de santé qualifié.
-                    </p>
-                </div>
-            </div>
-        </div>
+    
+    {# Contacts si nécessaire #}
+    {% if score > 10 %}
+    <div class="contact-simple">
+        <h6>Numéros d'urgence</h6>
+        <p><strong>SOS Détresse</strong> : 0800 808 005 (24h/24)</p>
+        <p><strong>Allo Ecoute</strong> : 80 101 919</p>
+        <p><strong>Urgences</strong> : 190</p>
     </div>
-</section>
+    {% endif %}
+    
+    {# Boutons d'action #}
+    <div class="actions">
+        <button onclick="exportToPDF()" class="btn-minimal btn-minimal-primary">
+            <i class="fa-solid fa-download"></i> Télécharger PDF
+        </button>
+        <a href="{{ path('test_page') }}" class="btn-minimal btn-minimal-outline">
+            <i class="fa-solid fa-rotate"></i> Autre test
+        </a>
+        <a href="{{ path('home') }}" class="btn-minimal btn-minimal-outline">
+            <i class="fa-solid fa-home"></i> Accueil
+        </a>
+    </div>
+    
+    {# Disclaimer #}
+    <div class="disclaimer-simple">
+        <p>
+            Ce test est informatif et ne remplace pas un diagnostic médical. 
+            Consultez un professionnel de santé si vous ressentez des difficultés persistantes.
+        </p>
+    </div>
+    
+</div>
 {% endblock %}
 
 {% block javascripts %}
-<!-- Bibliothèque jsPDF pour générer le PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-// Fonction pour exporter en PDF
 function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Configuration
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
-    let yPosition = margin;
+    let y = 30;
     
-    // En-tête
-    doc.setFillColor(66, 139, 202);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    // Titre
+    doc.setFontSize(20);
     doc.setFont(undefined, 'bold');
-    doc.text('Résultat du Test', pageWidth / 2, 25, { align: 'center' });
-    
-    yPosition = 60;
+    doc.text('Résultat Emonado', margin, y);
+    y += 15;
     
     // Score
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(18);
-    doc.text('Votre Score', margin, yPosition);
-    yPosition += 10;
-    
-    doc.setFontSize(32);
-    doc.setFont(undefined, 'bold');
+    doc.setFontSize(48);
     {% if score <= 5 %}
         doc.setTextColor(40, 167, 69);
     {% elseif score <= 10 %}
@@ -207,141 +337,97 @@ function exportToPDF() {
     {% else %}
         doc.setTextColor(220, 53, 69);
     {% endif %}
-    doc.text('{{ score }} / 18 points', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 15;
+    doc.text('{{ score }}', pageWidth / 2, y, { align: 'center' });
+    y += 10;
     
-    // Interprétation
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text('/ 18 points', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+    
+    // Niveau
     doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(0);
     {% if score <= 5 %}
-        doc.text('Niveau Faible', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 8;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
-        doc.text('Votre niveau est faible. Continuez ainsi !', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text('Niveau Faible', pageWidth / 2, y, { align: 'center' });
     {% elseif score <= 10 %}
-        doc.text('Niveau Modéré', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 8;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
-        doc.text('Votre niveau est modéré. Restez vigilant(e).', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text('Niveau Modéré', pageWidth / 2, y, { align: 'center' });
     {% elseif score <= 15 %}
-        doc.text('Niveau Élevé', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 8;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
-        doc.text('Votre niveau est élevé. Il serait bon de prendre des mesures.', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text('Niveau Élevé', pageWidth / 2, y, { align: 'center' });
     {% else %}
-        doc.text('Niveau Très Élevé', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 8;
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
-        const lines = doc.splitTextToSize('Votre niveau est très élevé. Nous vous conseillons de consulter un professionnel.', pageWidth - 2 * margin);
-        doc.text(lines, pageWidth / 2, yPosition, { align: 'center' });
+        doc.text('Niveau Très Élevé', pageWidth / 2, y, { align: 'center' });
     {% endif %}
-    yPosition += 20;
+    y += 20;
     
     // Recommandations
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('Recommandations', margin, yPosition);
-    yPosition += 10;
+    doc.text('Recommandations', margin, y);
+    y += 8;
     
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
     
     {% if score <= 5 %}
-        const recommendations = [
-            '• Continuez à maintenir vos bonnes habitudes',
-            '• Pratiquez régulièrement des activités relaxantes',
-            '• Maintenez un équilibre vie professionnelle/personnelle'
+        const recs = [
+            'Maintenez vos bonnes habitudes',
+            'Activités relaxantes régulières',
+            'Équilibre vie pro/perso'
         ];
     {% elseif score <= 10 %}
-        const recommendations = [
-            '• Identifiez les sources de stress dans votre vie',
-            '• Essayez des techniques de relaxation (méditation, yoga)',
-            '• Assurez-vous de dormir suffisamment',
-            '• Pratiquez une activité physique régulière'
+        const recs = [
+            'Identifiez vos sources de stress',
+            'Méditation ou yoga',
+            'Bon sommeil (7-8h)',
+            'Exercice régulier'
         ];
     {% elseif score <= 15 %}
-        const recommendations = [
-            '• Parlez de vos préoccupations à quelqu\'un de confiance',
-            '• Envisagez de consulter un professionnel de santé',
-            '• Apprenez et pratiquez des techniques de gestion du stress',
-            '• Prenez du temps pour vous chaque jour',
-            '• Limitez la consommation de caféine et d\'alcool'
+        const recs = [
+            'Parlez à quelqu\'un',
+            'Consultez si besoin',
+            'Gestion du stress',
+            'Temps pour vous',
+            'Limitez caféine/alcool'
         ];
     {% else %}
-        const recommendations = [
-            '• Consultez rapidement un professionnel de santé',
-            '• Ne restez pas seul(e) face à ces difficultés',
-            '• Contactez une ligne d\'écoute si nécessaire',
-            '• Parlez-en à votre médecin traitant'
+        const recs = [
+            'Consultez un professionnel',
+            'Ne restez pas seul(e)',
+            'Ligne d\'écoute',
+            'Médecin traitant'
         ];
     {% endif %}
     
-    recommendations.forEach(rec => {
-        if (yPosition > pageHeight - 40) {
-            doc.addPage();
-            yPosition = margin;
-        }
-        doc.text(rec, margin + 5, yPosition);
-        yPosition += 7;
+    recs.forEach(r => {
+        doc.text('• ' + r, margin + 5, y);
+        y += 6;
     });
     
     {% if score > 10 %}
-    yPosition += 10;
-    
-    // Numéros utiles
-    if (yPosition > pageHeight - 60) {
-        doc.addPage();
-        yPosition = margin;
-    }
-    
-    doc.setFontSize(16);
+    y += 10;
+    doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
-    doc.text('Numéros utiles', margin, yPosition);
-    yPosition += 10;
+    doc.text('Numéros d\'urgence', margin, y);
+    y += 8;
     
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    const numbers = [
-        '• SOS Détresse : 0800 808 005 (gratuit, 24h/24)',
-        '• Tunisie Allo Ecoute : 80 101 919',
-        '• Urgences : 190'
-    ];
-    
-    numbers.forEach(num => {
-        doc.text(num, margin + 5, yPosition);
-        yPosition += 7;
-    });
+    doc.text('• SOS Détresse : 0800 808 005', margin + 5, y);
+    y += 6;
+    doc.text('• Allo Ecoute : 80 101 919', margin + 5, y);
+    y += 6;
+    doc.text('• Urgences : 190', margin + 5, y);
     {% endif %}
     
-    // Footer
-    doc.setFontSize(9);
-    doc.setTextColor(128, 128, 128);
-    doc.text('Ce test est fourni à titre informatif uniquement.', pageWidth / 2, pageHeight - 20, { align: 'center' });
-    doc.text('Consultez un professionnel de santé pour un diagnostic médical.', pageWidth / 2, pageHeight - 15, { align: 'center' });
-    doc.text('Date : ' + new Date().toLocaleDateString('fr-FR'), pageWidth / 2, pageHeight - 10, { align: 'center' });
-    
-    // Sauvegarder le PDF
-    doc.save('resultat_test_{{ score }}pts.pdf');
+    doc.save('resultat_{{ score }}pts.pdf');
 }
 
-// Animation au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    const fadeElement = document.querySelector('.fade-in-up');
-    if (fadeElement) {
-        fadeElement.style.opacity = '0';
-        fadeElement.style.transform = 'translateY(30px)';
-        fadeElement.style.transition = 'all 0.6s ease';
-        
-        setTimeout(() => {
-            fadeElement.style.opacity = '1';
-            fadeElement.style.transform = 'translateY(0)';
-        }, 100);
+// Animation
+document.addEventListener('DOMContentLoaded', () => {
+    const fill = document.querySelector('.progress-fill');
+    if (fill) {
+        fill.style.width = '0%';
+        setTimeout(() => fill.style.width = '{{ (score / 18 * 100)|round }}%', 200);
     }
 });
 </script>

@@ -1,140 +1,132 @@
-{% extends 'HomeQ.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Test {{ categorie|capitalize }}{% endblock %}
 
 {% block body %}
-{# Header avec icône selon la catégorie #}
-<header class="masthead">
-    <div class="container px-4 px-lg-5 h-100">
-        <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
-            <div class="col-lg-10">
-                {% if categorie == 'stress' %}
-                    <i class="bi bi-emoji-frown text-white mb-3" style="font-size: 5rem;"></i>
-                    <h1 class="text-white font-weight-bold">Test de Stress</h1>
-                {% elseif categorie == 'depression' %}
-                    <i class="bi bi-heart-pulse text-white mb-3" style="font-size: 5rem;"></i>
-                    <h1 class="text-white font-weight-bold">Test de Dépression</h1>
-                {% elseif categorie == 'iq' %}
-                    <i class="bi bi-lightbulb text-white mb-3" style="font-size: 5rem;"></i>
-                    <h1 class="text-white font-weight-bold">Test de QI</h1>
-                {% endif %}
-                <hr class="divider" />
-                <p class="text-white-75 mb-5">
-                    {{ questions|length }} question(s) à répondre
-                </p>
-            </div>
-        </div>
-    </div>
-</header>
+{# Header simple avec icône selon la catégorie #}
+<div class="text-center mb-4">
+    {% if categorie == 'stress' %}
+        <i class="fa-solid fa-face-frown text-danger mb-3" style="font-size: 4rem;"></i>
+        <h1 class="text-danger fw-bold">Test de Stress</h1>
+    {% elseif categorie == 'depression' %}
+        <i class="fa-solid fa-heart-pulse text-primary mb-3" style="font-size: 4rem;"></i>
+        <h1 class="text-primary fw-bold">Test de Dépression</h1>
+    {% elseif categorie == 'iq' %}
+        <i class="fa-solid fa-lightbulb text-warning mb-3" style="font-size: 4rem;"></i>
+        <h1 class="text-warning fw-bold">Test de QI</h1>
+    {% endif %}
+    <hr class="divider mx-auto" style="width: 100px; height: 3px; background-color: 
+        {% if categorie == 'stress' %}#dc3545
+        {% elseif categorie == 'depression' %}#0d6efd
+        {% else %}#ffc107
+        {% endif %};" />
+    <p class="text-muted lead mt-3">
+        {{ questions|length }} question(s) à répondre
+    </p>
+</div>
 
 {# Barre de progression #}
-<div class="container px-4 px-lg-5 mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="progress" style="height: 25px;">
-                <div class="progress-bar 
-                    {% if categorie == 'stress' %}bg-danger
-                    {% elseif categorie == 'depression' %}bg-primary
-                    {% else %}bg-warning
-                    {% endif %}" 
-                    role="progressbar" 
-                    id="progressBar" 
-                    style="width: 0%;" 
-                    aria-valuenow="0" 
-                    aria-valuemin="0" 
-                    aria-valuemax="100">
-                    <span id="progressText">0 / {{ questions|length }}</span>
-                </div>
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar 
+                {% if categorie == 'stress' %}bg-danger
+                {% elseif categorie == 'depression' %}bg-primary
+                {% else %}bg-warning
+                {% endif %}" 
+                role="progressbar" 
+                id="progressBar" 
+                style="width: 0%;" 
+                aria-valuenow="0" 
+                aria-valuemin="0" 
+                aria-valuemax="100">
+                <span id="progressText">0 / {{ questions|length }}</span>
             </div>
         </div>
     </div>
 </div>
 
 {# Formulaire avec toutes les questions #}
-<section class="page-section">
-    <div class="container px-4 px-lg-5">
-        <form method="post" action="{{ path('app_resultat') }}" id="testForm" novalidate>
-            
-            {% for question in questions %}
-            <div class="row justify-content-center mb-5 fade-in-up question-block" data-question-id="{{ question.id }}" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
-                <div class="col-lg-10">
-                    <div class="card shadow-lg border-0">
-                        <div class="card-header 
-                            {% if categorie == 'stress' %}bg-danger
-                            {% elseif categorie == 'depression' %}bg-primary
-                            {% else %}bg-warning
-                            {% endif %} text-white">
-                            <h4 class="mb-0">
-                                <i class="bi bi-question-circle"></i> 
-                                Question {{ loop.index }} / {{ questions|length }}
-                            </h4>
-                        </div>
-                        <div class="card-body p-4">
-                            <h5 class="mb-4">{{ question.texte }}</h5>
-                            
-                            {# Message d'erreur pour cette question #}
-                            <div class="alert alert-danger d-none error-message" id="error_q{{ question.id }}">
-                                <i class="bi bi-exclamation-triangle-fill"></i> 
-                                Veuillez sélectionner une réponse pour cette question
-                            </div>
-                            
-                            <div class="row g-3">
-                                {% for reponse in question.reponses %}
-                                <div class="col-12">
-                                    <div class="answer-card p-3 border rounded-3" onclick="selectAnswer({{ question.id }}, {{ loop.index0 }})">
-                                        <div class="form-check">
-                                            <input class="form-check-input" 
-                                                   type="radio" 
-                                                   name="question_{{ question.id }}" 
-                                                   id="q{{ question.id }}_r{{ loop.index0 }}" 
-                                                   value="{{ reponse.valeur }}" 
-                                                   data-question="{{ question.id }}"
-                                                   required>
-                                            <label class="form-check-label w-100" for="q{{ question.id }}_r{{ loop.index0 }}">
-                                                {{ reponse.texte }}
-                                            </label>
-                                        </div>
-                                    </div>
+<form method="post" action="{{ path('app_resultat') }}" id="testForm" novalidate>
+    
+    {% for question in questions %}
+    <div class="row justify-content-center mb-4 fade-in-up question-block" data-question-id="{{ question.id }}" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header 
+                    {% if categorie == 'stress' %}bg-danger
+                    {% elseif categorie == 'depression' %}bg-primary
+                    {% else %}bg-warning
+                    {% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="fa-solid fa-circle-question"></i> 
+                        Question {{ loop.index }} / {{ questions|length }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="mb-4">{{ question.texte }}</h5>
+                    
+                    {# Message d'erreur pour cette question #}
+                    <div class="alert alert-danger d-none error-message" id="error_q{{ question.id }}">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 
+                        Veuillez sélectionner une réponse pour cette question
+                    </div>
+                    
+                    <div class="row g-3">
+                        {% for reponse in question.reponses %}
+                        <div class="col-12">
+                            <div class="answer-card p-3 border rounded-3" onclick="selectAnswer({{ question.id }}, {{ loop.index0 }})">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="radio" 
+                                           name="question_{{ question.id }}" 
+                                           id="q{{ question.id }}_r{{ loop.index0 }}" 
+                                           value="{{ reponse.valeur }}" 
+                                           data-question="{{ question.id }}"
+                                           required>
+                                    <label class="form-check-label w-100" for="q{{ question.id }}_r{{ loop.index0 }}">
+                                        {{ reponse.texte }}
+                                    </label>
                                 </div>
-                                {% endfor %}
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-            {% endfor %}
-
-            {# Message d'erreur global #}
-            <div class="row justify-content-center mb-3">
-                <div class="col-lg-10">
-                    <div class="alert alert-danger d-none" id="globalError">
-                        <i class="bi bi-exclamation-octagon-fill"></i>
-                        <strong>Attention !</strong> Vous devez répondre à toutes les questions avant de soumettre le test.
-                        <div class="mt-2" id="missingQuestionsList"></div>
-                    </div>
-                </div>
-            </div>
-
-            {# Bouton de soumission #}
-            <div class="row justify-content-center mt-5">
-                <div class="col-lg-10 text-center">
-                    <button type="submit" 
-                            class="btn 
-                            {% if categorie == 'stress' %}btn-danger
-                            {% elseif categorie == 'depression' %}btn-primary
-                            {% else %}btn-warning
-                            {% endif %} btn-xl" 
-                            id="submitBtn">
-                        <i class="bi bi-check-circle"></i> Voir mon résultat
-                    </button>
-                    <p class="text-muted mt-2" id="warningText">
-                        <i class="bi bi-info-circle"></i> Veuillez répondre à toutes les questions
-                    </p>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
-</section>
+    {% endfor %}
+
+    {# Message d'erreur global #}
+    <div class="row justify-content-center mb-3">
+        <div class="col-lg-10">
+            <div class="alert alert-danger d-none" id="globalError">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <strong>Attention !</strong> Vous devez répondre à toutes les questions avant de soumettre le test.
+                <div class="mt-2" id="missingQuestionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    {# Bouton de soumission #}
+    <div class="row justify-content-center mt-5 mb-5">
+        <div class="col-lg-10 text-center">
+            <button type="submit" 
+                    class="btn 
+                    {% if categorie == 'stress' %}btn-danger
+                    {% elseif categorie == 'depression' %}btn-primary
+                    {% else %}btn-warning
+                    {% endif %} btn-lg btn-custom px-5" 
+                    id="submitBtn">
+                <i class="fa-solid fa-circle-check"></i> Voir mon résultat
+            </button>
+            <p class="text-muted mt-2" id="warningText">
+                <i class="fa-solid fa-circle-info"></i> Veuillez répondre à toutes les questions
+            </p>
+        </div>
+    </div>
+</form>
 {% endblock %}
 
 {% block javascripts %}
@@ -199,11 +191,11 @@ function checkAllAnswered() {
     const warningText = document.getElementById('warningText');
     
     if (answeredQuestions.size === totalQuestions) {
-        warningText.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Toutes les questions ont été répondues !';
+        warningText.innerHTML = '<i class="fa-solid fa-circle-check text-success"></i> Toutes les questions ont été répondues !';
         warningText.classList.remove('text-muted');
         warningText.classList.add('text-success');
     } else {
-        warningText.innerHTML = '<i class="bi bi-info-circle"></i> ' + answeredQuestions.size + ' / ' + totalQuestions + ' questions répondues';
+        warningText.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + answeredQuestions.size + ' / ' + totalQuestions + ' questions répondues';
         warningText.classList.remove('text-success');
         warningText.classList.add('text-muted');
     }
@@ -291,7 +283,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+{% endblock %}
 
+{% block stylesheets %}
 <style>
 .answer-card {
     transition: all 0.3s ease;
@@ -300,19 +294,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .answer-card:hover {
     background-color: #f8f9fa;
-    border-color: #0d6efd !important;
+    border-color: #198754 !important;
     transform: translateX(5px);
 }
 
 .answer-card.selected {
-    background-color: #e7f3ff;
-    border-color: #0d6efd !important;
+    background-color: #d1f2eb;
+    border-color: #198754 !important;
     border-width: 2px !important;
 }
 
 .form-check-input:checked ~ .form-check-label {
     font-weight: 600;
-    color: #0d6efd;
+    color: #198754;
 }
 
 /* Style pour les questions avec erreur */
@@ -342,6 +336,26 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: width 0.5s ease;
     font-weight: bold;
     font-size: 14px;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    border-radius: 15px;
+    transition: all 0.3s ease;
 }
 </style>
 {% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Détails de la Réponse{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-eye"></i> Détails de la Réponse #{{ reponse.id }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th width="30%">ID</th>
+                                <td>{{ reponse.id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Texte</th>
+                                <td><strong>{{ reponse.texte }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Valeur/Score</th>
+                                <td>
+                                    <span class="badge bg-info fs-5">{{ reponse.valeur }} points</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Question associée</th>
+                                <td>
+                                    {% if reponse.question %}
+                                        <div class="mb-2">
+                                            <strong>Question #{{ reponse.question.id }}</strong>
+                                        </div>
+                                        <div class="alert alert-light mb-2">
+                                            {{ reponse.question.texte }}
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-secondary">Ordre: {{ reponse.question.ordre }}</span>
+                                            <span class="badge 
+                                                {% if reponse.question.categorie == 'stress' %}bg-danger
+                                                {% elseif reponse.question.categorie == 'depression' %}bg-primary
+                                                {% elseif reponse.question.categorie == 'iq' %}bg-warning
+                                                {% else %}bg-secondary
+                                                {% endif %}">
+                                                {{ reponse.question.categorie|capitalize }}
+                                            </span>
+                                            <span class="badge bg-dark">{{ reponse.question.typeQuestion }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-danger">Aucune question associée</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('admin_reponse_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour à la liste
+                        </a>
+                        <div>
+                            <a href="{{ path('admin_reponse_edit', {id: reponse.id}) }}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Modifier
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal">
+                                <i class="bi bi-trash"></i> Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal de confirmation de suppression #}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer cette réponse ?<br>
+                <strong>"{{ reponse.texte }}"</strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('admin_reponse_delete', {id: reponse.id}) }}" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

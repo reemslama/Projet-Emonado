@@ -1,9 +1,8 @@
-{% extends 'HomeQ.html.twig' %}
+{% extends 'base_admin.html.twig' %}
 
 {% block title %}Administration - Questions{% endblock %}
 
 {% block body %}
-{# Header Admin #}
 <header class="masthead" style="min-height: 30vh;">
     <div class="container px-4 px-lg-5 h-100">
         <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
@@ -19,14 +18,13 @@
                 <h1 class="text-white font-weight-bold">Administration</h1>
                 <hr class="divider" />
                 <p class="text-white-75">
-                    Connecté en tant que <strong>{{ app.request.session.get('admin_username') }}</strong>
+                    Connecté en tant que <strong>{{ app.request.session.get('admin_username')|default('Administrateur') }}</strong>
                 </p>
             </div>
         </div>
     </div>
 </header>
 
-{# Section principale #}
 <section class="page-section">
     <div class="container px-4 px-lg-5">
         {# Bouton Nouvelle Question #}
@@ -39,53 +37,46 @@
         </div>
 
         {# Messages Flash #}
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle me-1"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
         {% endfor %}
 
-        {# *** NOUVELLE SECTION : Barre de recherche *** #}
+        {# Barre de recherche #}
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <form method="get" action="{{ path('admin_dashboard') }}" class="row g-3">
-                            <div class="col-md-9">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white">
-                                        <i class="bi bi-search"></i>
+                        <form method="get" action="{{ path('admin_dashboard') }}" class="row g-3 align-items-end">
+                            <div class="col-md-8 col-lg-9">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="bi bi-search text-muted"></i>
                                     </span>
                                     <input type="text" 
                                            name="search" 
-                                           class="form-control form-control-lg" 
-                                           placeholder="Rechercher une question par texte ou catégorie..." 
+                                           class="form-control border-start-0" 
+                                           placeholder="Rechercher une question..." 
                                            value="{{ searchKeyword }}"
                                            autocomplete="off">
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="d-grid gap-2 d-md-flex">
-                                    <button type="submit" class="btn btn-primary btn-lg flex-fill">
-                                        <i class="bi bi-search"></i> Rechercher
-                                    </button>
-                                    {% if searchKeyword %}
-                                    <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary btn-lg">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
+                            <div class="col-md-4 col-lg-3">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-search"></i> Rechercher
+                                </button>
                             </div>
                         </form>
-                        
-                        {# Afficher le résultat de recherche #}
+
                         {% if searchKeyword %}
-                        <div class="mt-3">
-                            <p class="mb-0 text-muted">
-                                <i class="bi bi-info-circle"></i> 
-                                <strong>{{ questions|length }}</strong> résultat(s) pour "<strong>{{ searchKeyword }}</strong>"
-                            </p>
+                        <div class="mt-3 text-muted small">
+                            <i class="bi bi-info-circle"></i> 
+                            {{ questions|length }} résultat(s) pour « {{ searchKeyword }} »
+                            <a href="{{ path('admin_dashboard') }}" class="ms-2 text-primary">Effacer</a>
                         </div>
                         {% endif %}
                     </div>
@@ -93,21 +84,21 @@
             </div>
         </div>
 
-        {# Filtres par catégorie (masqués si recherche active) #}
+        {# Filtres catégories (cachés en mode recherche) #}
         {% if not searchKeyword %}
         <div class="row mb-4">
             <div class="col-12">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary active" onclick="filterByCategory('all')">
-                        <i class="bi bi-list"></i> Toutes
+                <div class="btn-group flex-wrap" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-category="all">
+                        <i class="bi bi-list-ul"></i> Toutes
                     </button>
-                    <button type="button" class="btn btn-outline-danger" onclick="filterByCategory('stress')">
+                    <button type="button" class="btn btn-outline-danger" data-category="stress">
                         <i class="bi bi-emoji-frown"></i> Stress
                     </button>
-                    <button type="button" class="btn btn-outline-primary" onclick="filterByCategory('depression')">
+                    <button type="button" class="btn btn-outline-primary" data-category="depression">
                         <i class="bi bi-heart-pulse"></i> Dépression
                     </button>
-                    <button type="button" class="btn btn-outline-warning" onclick="filterByCategory('iq')">
+                    <button type="button" class="btn btn-outline-warning" data-category="iq">
                         <i class="bi bi-lightbulb"></i> QI
                     </button>
                 </div>
@@ -115,216 +106,167 @@
         </div>
         {% endif %}
 
-        {# Grouper les questions par catégorie #}
-        {% set categories = {
-            'stress': {'name': 'Test de Stress', 'icon': 'emoji-frown', 'color': 'danger'},
-            'depression': {'name': 'Test de Dépression', 'icon': 'heart-pulse', 'color': 'primary'},
-            'iq': {'name': 'Test de QI', 'icon': 'lightbulb', 'color': 'warning'}
-        } %}
-
-        {# Si recherche active, afficher toutes les questions dans une seule table #}
-        {% if searchKeyword %}
-            {% if questions|length > 0 %}
-            <div class="card shadow-lg border-0 mb-5">
+        {# Contenu principal #}
+        {% if questions|length > 0 %}
+            {# Mode recherche → une seule table #}
+            {% if searchKeyword %}
+            <div class="card shadow border-0">
                 <div class="card-header bg-info text-white">
-                    <h3 class="mb-0">
-                        <i class="bi bi-search"></i> Résultats de recherche
-                        <span class="badge bg-light text-dark ms-2">{{ questions|length }} question(s)</span>
-                    </h3>
+                    <h4 class="mb-0">
+                        <i class="bi bi-search me-2"></i>Résultats de recherche
+                        <span class="badge bg-light text-dark ms-3">{{ questions|length }}</span>
+                    </h4>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="5%">#</th>
-                                    <th width="40%">Question</th>
-                                    <th width="15%" class="text-center">Catégorie</th>
-                                    <th width="10%" class="text-center">Ordre</th>
-                                    <th width="10%" class="text-center">Réponses</th>
-                                    <th width="20%" class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for question in questions|sort((a, b) => a.ordre <=> b.ordre) %}
-                                <tr>
-                                    <td><span class="badge bg-secondary">{{ question.id }}</span></td>
-                                    <td>{{ question.texte }}</td>
-                                    <td class="text-center">
-                                        {% if question.categorie == 'stress' %}
-                                            <span class="badge bg-danger"><i class="bi bi-emoji-frown"></i> Stress</span>
-                                        {% elseif question.categorie == 'depression' %}
-                                            <span class="badge bg-primary"><i class="bi bi-heart-pulse"></i> Dépression</span>
-                                        {% elseif question.categorie == 'iq' %}
-                                            <span class="badge bg-warning"><i class="bi bi-lightbulb"></i> QI</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ question.categorie }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-info">{{ question.ordre }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success">{{ question.reponses|length }}</span>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ path('app_question_show', {id: question.id}) }}" 
-                                               class="btn btn-outline-info" 
-                                               title="Voir">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="{{ path('app_question_edit', {id: question.id}) }}" 
-                                               class="btn btn-outline-warning" 
-                                               title="Modifier">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <button type="button" 
-                                                    class="btn btn-outline-danger" 
-                                                    onclick="confirmDelete({{ question.id }}, '{{ question.texte|slice(0, 50) }}')"
-                                                    title="Supprimer">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        {# Formulaire de suppression caché #}
-                                        <form id="delete-form-{{ question.id }}" 
-                                              method="post" 
-                                              action="{{ path('app_question_delete', {id: question.id}) }}" 
-                                              style="display: none;">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Question</th>
+                                <th class="text-center">Catégorie</th>
+                                <th class="text-center">Ordre</th>
+                                <th class="text-center">Réponses</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in questions|sort((a, b) => a.ordre <=> b.ordre) %}
+                            <tr>
+                                <td class="text-center"><span class="badge bg-secondary">{{ loop.index }}</span></td>
+                                <td>{{ question.texte }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-{{ question.categorie == 'stress' ? 'danger' : (question.categorie == 'depression' ? 'primary' : 'warning') }}">
+                                        {{ question.categorie|capitalize }}
+                                    </span>
+                                </td>
+                                <td class="text-center"><span class="badge bg-info">{{ question.ordre }}</span></td>
+                                <td class="text-center">
+                                    <span class="badge bg-success position-relative"
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-placement="top"
+                                          title="{{ question.reponses|map(r => r.valeur ~ ' : ' ~ r.texte|slice(0,40))|join('\n') }}">
+                                        {{ question.reponses|length }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ path('app_question_show', {id: question.id}) }}" class="btn btn-outline-info" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_question_edit', {id: question.id}) }}" class="btn btn-outline-primary" title="Modifier">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger delete-btn"
+                                                data-id="{{ question.id }}"
+                                                data-text="{{ question.texte|slice(0,60) }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {% endif %}
-        {% else %}
-            {# Affichage normal par catégorie #}
+
+            {% else %}
+            {# Mode normal → groupé par catégorie #}
             {% for cat_key, cat_info in categories %}
                 {% set cat_questions = questions|filter(q => q.categorie == cat_key) %}
-                
                 {% if cat_questions|length > 0 %}
                 <div class="category-section mb-5" data-category="{{ cat_key }}">
-                    <div class="card shadow-lg border-0">
+                    <div class="card shadow border-0">
                         <div class="card-header bg-{{ cat_info.color }} text-white">
-                            <h3 class="mb-0">
-                                <i class="bi bi-{{ cat_info.icon }}"></i> {{ cat_info.name }}
-                                <span class="badge bg-light text-dark ms-2">{{ cat_questions|length }} question(s)</span>
-                            </h3>
+                            <h4 class="mb-0">
+                                <i class="bi bi-{{ cat_info.icon }} me-2"></i>{{ cat_info.name }}
+                                <span class="badge bg-light text-dark ms-3">{{ cat_questions|length }}</span>
+                            </h4>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th width="5%">#</th>
-                                            <th width="50%">Question</th>
-                                            <th width="15%" class="text-center">Ordre</th>
-                                            <th width="15%" class="text-center">Réponses</th>
-                                            <th width="15%" class="text-end">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for question in cat_questions|sort((a, b) => a.ordre <=> b.ordre) %}
-                                        <tr>
-                                            <td><span class="badge bg-secondary">{{ question.id }}</span></td>
-                                            <td>{{ question.texte }}</td>
-                                            <td class="text-center">
-                                                <span class="badge bg-info">{{ question.ordre }}</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge bg-success">{{ question.reponses|length }}</span>
-                                            </td>
-                                            <td class="text-end">
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="{{ path('app_question_show', {id: question.id}) }}" 
-                                                       class="btn btn-outline-info" 
-                                                       title="Voir">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                    <a href="{{ path('app_question_edit', {id: question.id}) }}" 
-                                                       class="btn btn-outline-warning" 
-                                                       title="Modifier">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <button type="button" 
-                                                            class="btn btn-outline-danger" 
-                                                            onclick="confirmDelete({{ question.id }}, '{{ question.texte|slice(0, 50) }}')"
-                                                            title="Supprimer">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
-                                                
-                                                {# Formulaire de suppression caché #}
-                                                <form id="delete-form-{{ question.id }}" 
-                                                      method="post" 
-                                                      action="{{ path('app_question_delete', {id: question.id}) }}" 
-                                                      style="display: none;">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th>Question</th>
+                                        <th class="text-center">Ordre</th>
+                                        <th class="text-center">Réponses</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for question in cat_questions|sort((a, b) => a.ordre <=> b.ordre) %}
+                                    <tr>
+                                        <td class="text-center"><span class="badge bg-secondary">{{ loop.index }}</span></td>
+                                        <td>{{ question.texte }}</td>
+                                        <td class="text-center"><span class="badge bg-info">{{ question.ordre }}</span></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success position-relative"
+                                                  data-bs-toggle="tooltip" 
+                                                  data-bs-placement="top"
+                                                  title="{{ question.reponses|map(r => r.valeur ~ ' : ' ~ r.texte|slice(0,40))|join('\n') }}">
+                                                {{ question.reponses|length }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ path('app_question_show', {id: question.id}) }}" class="btn btn-outline-info" title="Voir">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ path('app_question_edit', {id: question.id}) }}" class="btn btn-outline-primary" title="Modifier">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger delete-btn"
+                                                        data-id="{{ question.id }}"
+                                                        data-text="{{ question.texte|slice(0,60) }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 {% endif %}
             {% endfor %}
-        {% endif %}
+            {% endif %}
 
-        {# Si aucune question #}
-        {% if questions|length == 0 %}
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow-lg border-0 text-center p-5">
-                    <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
-                    {% if searchKeyword %}
-                        <h3 class="mt-4 text-muted">Aucun résultat trouvé</h3>
-                        <p class="text-muted">Aucune question ne correspond à votre recherche "{{ searchKeyword }}"</p>
-                        <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary btn-xl mt-3">
-                            <i class="bi bi-arrow-left"></i> Retour à toutes les questions
-                        </a>
-                    {% else %}
-                        <h3 class="mt-4 text-muted">Aucune question</h3>
-                        <p class="text-muted">Commencez par créer votre première question</p>
-                        <a href="{{ path('app_question_new') }}" class="btn btn-primary btn-xl mt-3">
-                            <i class="bi bi-plus-circle"></i> Créer une question
-                        </a>
-                    {% endif %}
-                </div>
+        {% else %}
+            {# Aucune question #}
+            <div class="card shadow border-0 text-center p-5">
+                <i class="bi bi-journal-x text-muted" style="font-size: 6rem; opacity: 0.4;"></i>
+                <h3 class="mt-4 text-muted">Aucune question pour le moment</h3>
+                <p class="lead text-muted">Commencez par en ajouter une !</p>
+                <a href="{{ path('app_question_new') }}" class="btn btn-primary btn-lg mt-3">
+                    <i class="bi bi-plus-circle"></i> Créer la première question
+                </a>
             </div>
-        </div>
         {% endif %}
     </div>
 </section>
 
-{# Modal de confirmation de suppression #}
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Modal de confirmation suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle"></i> Confirmer la suppression
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmer la suppression
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer cette question ?</p>
-                <p class="fw-bold" id="questionToDelete"></p>
-                <p class="text-danger">Cette action est irréversible !</p>
+                <p>Voulez-vous vraiment supprimer cette question ?</p>
+                <p class="fw-bold text-truncate" id="questionTextPreview"></p>
+                <p class="text-danger small">Cette action est définitive et supprimera aussi toutes les réponses associées.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="bi bi-trash"></i> Supprimer
+                    <i class="bi bi-trash me-1"></i> Supprimer
                 </button>
             </div>
         </div>
@@ -334,42 +276,47 @@
 
 {% block javascripts %}
 <script>
-let deleteFormId = null;
+document.addEventListener('DOMContentLoaded', function () {
 
-function confirmDelete(questionId, questionText) {
-    deleteFormId = 'delete-form-' + questionId;
-    document.getElementById('questionToDelete').textContent = questionText;
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
-}
+    // Initialisation des tooltips Bootstrap
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-    if (deleteFormId) {
-        document.getElementById(deleteFormId).submit();
-    }
-});
+    // Gestion suppression via modal
+    let currentDeleteId = null;
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            currentDeleteId = this.dataset.id;
+            document.getElementById('questionTextPreview').textContent = this.dataset.text + (this.dataset.text.length >= 60 ? '...' : '');
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        });
+    });
 
-function filterByCategory(category) {
-    const sections = document.querySelectorAll('.category-section');
-    const buttons = document.querySelectorAll('.btn-group button');
-    
-    // Retirer la classe active de tous les boutons
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    // Ajouter la classe active au bouton cliqué
-    event.target.classList.add('active');
-    
-    if (category === 'all') {
-        sections.forEach(section => section.style.display = 'block');
-    } else {
-        sections.forEach(section => {
-            if (section.dataset.category === category) {
-                section.style.display = 'block';
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', function () {
+        if (currentDeleteId) {
+            document.getElementById('delete-form-' + currentDeleteId)?.submit();
+        }
+    });
+
+    // Filtre catégories (version corrigée)
+    document.querySelectorAll('[data-category]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const category = this.dataset.category;
+            const allSections = document.querySelectorAll('.category-section');
+            const allButtons = document.querySelectorAll('[data-category]');
+
+            allButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            if (category === 'all') {
+                allSections.forEach(s => s.style.display = 'block');
             } else {
-                section.style.display = 'none';
+                allSections.forEach(s => {
+                    s.style.display = (s.dataset.category === category) ? 'block' : 'none';
+                });
             }
         });
-    }
-}
+    });
+});
 </script>
 {% endblock %}
