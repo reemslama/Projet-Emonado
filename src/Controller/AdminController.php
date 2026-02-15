@@ -10,6 +10,7 @@ use App\Form\ReponseStandaloneType;
 use App\Repository\UserRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\ReponseRepository;
+use App\Repository\DossierMedicalRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,7 @@ class AdminController extends AbstractController
 
     // ==================== DASHBOARD UNIFIÉ ====================
     #[Route('/admin', name: 'admin_dashboard')]
-    public function dashboard(Request $request, UserRepository $userRepo, QuestionRepository $questionRepo): Response
+    public function dashboard(Request $request, UserRepository $userRepo, QuestionRepository $questionRepo, DossierMedicalRepository $dossierRepo): Response
     {
         // Récupération des utilisateurs
         if (method_exists($userRepo, 'findByRole')) {
@@ -65,13 +66,23 @@ class AdminController extends AbstractController
         $categories = array_unique($categories);
         sort($categories);
 
+        $dossiersParPatient = [];
+        foreach ($dossierRepo->findAll() as $dossier) {
+            $patientId = $dossier->getPatient()->getId();
+            $dossiersParPatient[$patientId] = [
+                'dossier' => $dossier,
+                'consultations' => $dossier->getConsultations()->toArray(),
+            ];
+        }
+
         return $this->render('admin/index.html.twig', [
-            'patients'       => $patients,
-            'psychologues'   => $psychologues,
-            'questions'      => $questions,
-            'categories'     => $categories,
-            'categorieFilter'=> $categorieFilter,
-            'searchKeyword'  => $searchKeyword,
+            'patients'           => $patients,
+            'psychologues'       => $psychologues,
+            'questions'          => $questions,
+            'categories'         => $categories,
+            'categorieFilter'    => $categorieFilter,
+            'searchKeyword'      => $searchKeyword,
+            'dossiersParPatient' => $dossiersParPatient,
         ]);
     }
 

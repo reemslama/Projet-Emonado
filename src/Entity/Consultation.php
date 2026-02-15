@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ConsultationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
 class Consultation
@@ -15,9 +16,16 @@ class Consultation
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank(message: "La date de consultation est obligatoire")]
+    #[Assert\GreaterThanOrEqual(
+        value: 'today',
+        message: "La date de consultation doit être aujourd'hui ou dans le futur"
+    )]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "Le compte rendu est obligatoire")]
+    #[Assert\Length(min: 10, minMessage: "Le compte rendu doit contenir au moins {{ limit }} caractères")]
     private ?string $compteRendu = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -28,7 +36,7 @@ class Consultation
     private ?DossierMedical $dossier = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $psychologue = null;
 
     public function __construct()

@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PatientController extends AbstractController
 {
@@ -23,7 +24,8 @@ class PatientController extends AbstractController
     public function consultations(
         DossierMedicalRepository $dossierRepo,
         EntityManagerInterface $em,
-        Request $request
+        Request $request,
+        ValidatorInterface $validator
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_PATIENT');
 
@@ -45,19 +47,37 @@ class PatientController extends AbstractController
 
         // Ajouter une consultation
         if ($request->isMethod('POST') && $request->request->get('action') === 'add_consultation') {
-            $consultation = new Consultation();
-            $consultation->setDossier($dossier);
-            $consultation->setNotes($request->request->get('notes'));
-            
-            $dateConsultation = $request->request->get('date_consultation');
-            if ($dateConsultation) {
-                $consultation->setDateConsultation(new \DateTime($dateConsultation));
-            } else {
-                $consultation->setDateConsultation(new \DateTime());
+            $dateConsult = $request->request->get('date_consult');
+            $compteRendu = trim((string) $request->request->get('compte_rendu', ''));
+
+            if ($dateConsult === null || $dateConsult === '' || $compteRendu === '') {
+                $this->addFlash('error', 'La date de consultation et le compte rendu sont obligatoires.');
+                $consultations = $dossier->getConsultations()->toArray();
+                usort($consultations, fn($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+                return $this->render('patient/consultations.html.twig', [
+                    'dossier' => $dossier,
+                    'consultations' => $consultations,
+                ]);
             }
 
-            // Le psychologue est optionnel pour les consultations créées par le patient
+            $consultation = new Consultation();
+            $consultation->setDossier($dossier);
+            $consultation->setDate(new \DateTime($dateConsult));
+            $consultation->setCompteRendu($compteRendu);
             $consultation->setPsychologue(null);
+
+            $errors = $validator->validate($consultation);
+            if (count($errors) > 0) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                $consultations = $dossier->getConsultations()->toArray();
+                usort($consultations, fn($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+                return $this->render('patient/consultations.html.twig', [
+                    'dossier' => $dossier,
+                    'consultations' => $consultations,
+                ]);
+            }
 
             $em->persist($consultation);
             $em->flush();
@@ -69,8 +89,8 @@ class PatientController extends AbstractController
         // Tri des consultations par date (plus récentes en premier)
         $consultations = $dossier->getConsultations()->toArray();
         usort($consultations, function ($a, $b) {
-            $dateA = $a->getDateConsultation();
-            $dateB = $b->getDateConsultation();
+            $dateA = $a->getDate();
+            $dateB = $b->getDate();
             if (!$dateA && !$dateB) return 0;
             if (!$dateA) return 1;
             if (!$dateB) return -1;

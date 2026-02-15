@@ -68,6 +68,79 @@
         </div>
     </div>
 
+    {# ========== DOSSIERS MÉDICAUX ET CONSULTATIONS (par patient) ========== #}
+    <div id="dossiers" class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-folder2-open"></i> Dossiers médicaux et consultations
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if patients is empty %}
+                <p class="text-muted mb-0">Aucun patient. Les dossiers et consultations s'afficheront ici par patient.</p>
+            {% else %}
+                {% for patient in patients %}
+                    {% set info = dossiersParPatient[patient.id] ?? null %}
+                    <div class="border rounded p-3 mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-person-fill"></i> 
+                            {{ patient.nom }} {{ patient.prenom }}
+                            <span class="badge bg-secondary">{{ patient.email }}</span>
+                        </h6>
+                        {% if info %}
+                            <div class="ms-3">
+                                <p class="mb-1">
+                                    <strong><i class="bi bi-folder2"></i> Dossier médical :</strong>
+                                    {% if info.dossier %}
+                                        Créé le {{ info.dossier.createdAt|date('d/m/Y H:i') }}
+                                        {% if info.dossier.updatedAt %}
+                                            | Dernière MAJ : {{ info.dossier.updatedAt|date('d/m/Y H:i') }}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Aucun dossier</span>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-calendar-check"></i> Consultations :</strong>
+                                    <span class="badge bg-info">{{ info.consultations|length }}</span>
+                                </p>
+                                {% if info.consultations|length > 0 %}
+                                    <div class="table-responsive ms-2 mb-0">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Compte rendu</th>
+                                                    <th>Psychologue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for c in info.consultations|slice(0, 5) %}
+                                                <tr>
+                                                    <td>{{ c.date ? c.date|date('d/m/Y') : '-' }}</td>
+                                                    <td>{{ c.compteRendu ? (c.compteRendu|slice(0, 60)) ~ (c.compteRendu|length > 60 ? '...' : '') : '-' }}</td>
+                                                    <td>{% if c.psychologue %}{{ c.psychologue.nom }} {{ c.psychologue.prenom }}{% else %}-{% endif %}</td>
+                                                </tr>
+                                                {% endfor %}
+                                                {% if info.consultations|length > 5 %}
+                                                <tr><td colspan="3" class="text-center text-muted">+ {{ info.consultations|length - 5 }} autre(s)</td></tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted mb-0 ms-2">Aucune consultation enregistrée.</p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0 ms-3">Aucun dossier médical pour ce patient.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
     {# ========== PSYCHOLOGUES ========== #}
     <div id="psychologues" class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white">

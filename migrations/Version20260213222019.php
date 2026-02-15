@@ -20,7 +20,10 @@ final class Version20260213222019 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP TABLE debug_test');
+        $tables = $this->connection->fetchAllAssociative("SHOW TABLES LIKE 'debug_test'");
+        if (!empty($tables)) {
+            $this->addSql('DROP TABLE debug_test');
+        }
     }
 
     public function down(Schema $schema): void

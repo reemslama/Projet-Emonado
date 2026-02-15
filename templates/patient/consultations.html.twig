@@ -42,17 +42,17 @@
                         <label class="form-label">
                             <i class="fas fa-calendar-alt"></i> Date de consultation <span class="text-danger">*</span>
                         </label>
-                        <input type="datetime-local" name="date_consultation" class="form-control" 
-                               value="{{ "now"|date("Y-m-d\\TH:i") }}" required>
-                        <small class="form-text text-muted">Date et heure de votre consultation</small>
+                        <input type="date" name="date_consult" class="form-control" 
+                               value="{{ "now"|date("Y-m-d") }}">
+                        <small class="form-text text-muted">La date doit être aujourd'hui ou dans le futur</small>
                     </div>
                     <div class="col-md-8 mb-3">
                         <label class="form-label">
-                            <i class="fas fa-sticky-note"></i> Notes de consultation
+                            <i class="fas fa-sticky-note"></i> Compte rendu <span class="text-danger">*</span>
                         </label>
-                        <textarea name="notes" class="form-control" rows="4" 
-                                  placeholder="Décrivez votre consultation, vos symptômes, vos préoccupations, etc.&#10;&#10;Exemple:&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations&#10;- État émotionnel"></textarea>
-                        <small class="form-text text-muted">Vous pouvez décrire les raisons de votre consultation, vos symptômes, ou toute autre information pertinente.</small>
+                        <textarea name="compte_rendu" class="form-control" rows="4" 
+                                  placeholder="Décrivez votre consultation (minimum 10 caractères)&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations"></textarea>
+                        <small class="form-text text-muted">Le compte rendu est obligatoire (minimum 10 caractères)</small>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-success">
@@ -102,14 +102,14 @@
                 <div id="consultationsList" class="list-group">
                     {% for consultation in consultations %}
                         <div class="list-group-item consultation-item" 
-                             data-date="{% if consultation.dateConsultation %}{{ consultation.dateConsultation|date('Y-m-d H:i') }}{% else %}1970-01-01 00:00{% endif %}"
+                             data-date="{% if consultation.date %}{{ consultation.date|date('Y-m-d') }}{% else %}1970-01-01{% endif %}"
                              data-psychologue="{% if consultation.psychologue %}{{ consultation.psychologue.nom }} {{ consultation.psychologue.prenom }}{% else %}Non assigné{% endif %}"
-                             data-notes="{{ (consultation.notes ?? '')|lower }}">
+                             data-notes="{{ (consultation.compteRendu ?? '')|lower }}">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">
                                         <i class="fas fa-calendar-alt text-success"></i> 
-                                        Consultation {% if consultation.dateConsultation %}du {{ consultation.dateConsultation|date('d/m/Y à H:i') }}{% else %}(date non définie){% endif %}
+                                        Consultation {% if consultation.date %}du {{ consultation.date|date('d/m/Y') }}{% else %}(date non définie){% endif %}
                                     </h6>
                                     <p class="mb-1 text-muted">
                                         <i class="fas fa-user-md"></i> 
@@ -129,9 +129,9 @@
                                     </p>
                                 </div>
                                 <div class="text-end">
-                                    {% if consultation.dateConsultation %}
+                                    {% if consultation.date %}
                                         <span class="badge bg-success">
-                                            {{ consultation.dateConsultation|date('d/m/Y') }}
+                                            {{ consultation.date|date('d/m/Y') }}
                                         </span>
                                     {% else %}
                                         <span class="badge bg-secondary">
@@ -140,10 +140,10 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            {% if consultation.notes %}
+                            {% if consultation.compteRendu %}
                                 <div class="mt-2 p-2 bg-light rounded">
-                                    <strong><i class="fas fa-sticky-note"></i> Notes de consultation:</strong>
-                                    <p class="mb-0 mt-1">{{ consultation.notes|nl2br }}</p>
+                                    <strong><i class="fas fa-sticky-note"></i> Compte rendu:</strong>
+                                    <p class="mb-0 mt-1">{{ consultation.compteRendu|nl2br }}</p>
                                 </div>
                             {% else %}
                                 <p class="mb-1 mt-2 text-muted">
@@ -169,7 +169,7 @@
         <a href="{{ path('patient_index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Retour au tableau de bord
         </a>
-        <a href="{{ path('dossier_medical_patient_view') }}" class="btn btn-outline-primary">
+        <a href="{{ path('patient_dossier') }}" class="btn btn-outline-primary">
             <i class="fas fa-folder-medical"></i> Voir mon dossier médical complet
         </a>
     </div>
