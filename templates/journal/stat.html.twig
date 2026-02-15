@@ -1,0 +1,172 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques des humeurs{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-success fw-bold m-0">Statistiques des humeurs</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_journal_stat_pdf') }}" class="btn btn-success">
+                <i class="fa-solid fa-file-pdf"></i> Exporter en PDF
+            </a>
+            <a href="{{ path('app_journal_index') }}" class="btn btn-outline-success">
+                ← Retour aux journaux
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% set total = (stats['heureux'] ?? 0) + (stats['calme'] ?? 0) + (stats['SOS'] ?? 0) + (stats['en colere'] ?? 0) %}
+
+        {% set moods = [
+            {
+                label: 'Heureux',
+                key: 'heureux',
+                color: '#4CAF50',
+                emoji: '😊'
+            },
+            {
+                label: 'Calme',
+                key: 'calme',
+                color: '#2196F3',
+                emoji: '😌'
+            },
+            {
+                label: 'SOS',
+                key: 'SOS',
+                color: '#FFC107',
+                emoji: '🚨'
+            },
+            {
+                label: 'En colère',
+                key: 'en colere',
+                color: '#F44336',
+                emoji: '😡'
+            }
+        ] %}
+
+        {% for mood in moods %}
+            {% set count = stats[mood.key] ?? 0 %}
+            {% set percent = total > 0 ? (count / total * 100) : 0 %}
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <div class="circular" data-color="{{ mood.color }}" data-value="{{ percent|round(1, 'floor') }}">
+                            <div class="inner">
+                                <div class="value">0%</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <div class="fw-bold">{{ mood.emoji }} {{ mood.label }}</div>
+                            <div class="text-muted small">{{ count }} / {{ total }}{% if total == 0 %} (0%) {% else %} ({{ percent|number_format(1, '.', ' ') }}%) {% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-5 card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Répartition globale</h5>
+            <div style="max-width: 720px; margin: 0 auto;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .circular {
+        --size: 140px;
+        --thickness: 14px;
+        --track: #eef2f7;
+        width: var(--size);
+        height: var(--size);
+        position: relative;
+        border-radius: 50%;
+        background: conic-gradient(var(--progress, #ccc) 0deg, var(--track) 0deg 360deg);
+        display: grid;
+        place-items: center;
+        transition: background 0.2s ease-out;
+    }
+    .circular .inner {
+        width: calc(var(--size) - var(--thickness) * 2);
+        height: calc(var(--size) - var(--thickness) * 2);
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .circular .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2d3748;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Animation des cercles avec conic-gradient
+    document.querySelectorAll('.circular').forEach(el => {
+        const color = el.getAttribute('data-color') || '#22c55e';
+        const target = parseFloat(el.getAttribute('data-value') || '0');
+        const valueEl = el.querySelector('.value');
+
+        let start = 0;
+        const duration = 1200; // ms
+        const startTime = performance.now();
+
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+        function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const eased = easeOutCubic(progress);
+            const current = start + (target - start) * eased;
+            const deg = current * 3.6; // 100% => 360deg
+
+            el.style.setProperty('--progress', `${color} ${deg}deg`);
+            valueEl.textContent = `${current.toFixed(0)}%`;
+
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+    });
+
+    // Graphe global (camembert)
+    const pieCtx = document.getElementById('pieChart');
+    if (pieCtx) {
+        const dataValues = [
+            {{ stats['heureux'] ?? 0 }},
+            {{ stats['calme'] ?? 0 }},
+            {{ stats['SOS'] ?? 0 }},
+            {{ stats['en colere'] ?? 0 }}
+        ];
+
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Heureux', 'Calme', 'SOS', 'En colère'],
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#F44336'],
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 1200 },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

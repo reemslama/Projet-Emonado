@@ -46,30 +46,24 @@ class JournalRepository extends ServiceEntityRepository
     }
 
     /**
-     * 📊 Stats PAR UTILISATEUR
+     * 📊 Statistiques des humeurs par utilisateur
      */
     public function countByHumeurForUser(User $user): array
     {
         $result = $this->createQueryBuilder('j')
             ->select('j.humeur, COUNT(j.id) AS total')
             ->where('j.user = :user')
-            ->andWhere('j.humeur IN (:humeurs)')
             ->setParameter('user', $user)
-            ->setParameter('humeurs', [
-                'heureux',
-                'SOS',
-                'en colere',
-                'calme'
-            ])
             ->groupBy('j.humeur')
             ->getQuery()
             ->getResult();
 
+        // Initialiser toutes les humeurs à 0
         $stats = [
             'heureux' => 0,
+            'calme' => 0,
             'SOS' => 0,
             'en colere' => 0,
-            'calme' => 0,
         ];
 
         foreach ($result as $row) {

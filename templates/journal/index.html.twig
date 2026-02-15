@@ -5,9 +5,14 @@
 {% block body %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-success fw-bold">Mes Journaux</h2>
-    <a href="{{ path('app_journal_new') }}" class="btn btn-success btn-custom">
-        <i class="fa-solid fa-plus"></i> Nouveau journal
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_journal_stat') }}" class="btn btn-outline-success">
+            <i class="fa-solid fa-chart-pie"></i> Statistiques
+        </a>
+        <a href="{{ path('app_journal_new') }}" class="btn btn-success btn-custom">
+            <i class="fa-solid fa-plus"></i> Nouveau journal
+        </a>
+    </div>
 </div>
 
 <div class="row mb-4">
