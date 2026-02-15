@@ -6,6 +6,7 @@ use App\Entity\Consultation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -15,17 +16,35 @@ class ConsultationType extends AbstractType
     {
         $builder
             ->add('dateConsultation', DateTimeType::class, [
-                'label' => 'Date de consultation',
                 'widget' => 'single_text',
+                'label' => 'Date de la consultation',
                 'required' => true,
             ])
-            ->add('notes', TextareaType::class, [
-                'label' => 'Notes de consultation',
+            ->add('motif', TextareaType::class, [
+                'label' => 'Motif de consultation',
                 'required' => false,
-                'attr' => [
-                    'rows' => 10,
-                ],
-            ]);
+                'attr' => ['rows' => 3],
+            ])
+            ->add('examenClinique', TextareaType::class, [
+                'label' => 'Examen clinique',
+                'required' => false,
+                'attr' => ['rows' => 5],
+            ])
+            ->add('diagnostic', TextareaType::class, [
+                'label' => 'Diagnostic',
+                'required' => false,
+                'attr' => ['rows' => 4],
+            ])
+            ->add('planTherapeutique', TextareaType::class, [
+                'label' => 'Plan thérapeutique / Conduite à tenir',
+                'required' => false,
+                'attr' => ['rows' => 5],
+            ])
+            ->add('prochainRdv', TextType::class, [
+                'label' => 'Prochain rendez-vous (date ou texte libre)',
+                'required' => false,
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

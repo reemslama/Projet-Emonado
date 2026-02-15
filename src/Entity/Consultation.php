@@ -14,27 +14,26 @@ class Consultation
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $dateConsultation = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $date = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $notes = null;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?User $psychologue = null;
-
-    #[ORM\ManyToOne(targetEntity: DossierMedical::class, inversedBy: 'consultations')]
-    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
-    private ?DossierMedical $dossier = null;
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $compteRendu = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\ManyToOne(targetEntity: DossierMedical::class, inversedBy: 'consultations')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?DossierMedical $dossier = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $psychologue = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
-        $this->dateConsultation = new \DateTime();
     }
 
     public function getId(): ?int
@@ -42,47 +41,27 @@ class Consultation
         return $this->id;
     }
 
-    public function getDateConsultation(): ?\DateTimeInterface
+    public function getDate(): ?\DateTimeInterface
     {
-        return $this->dateConsultation;
+        return $this->date;
     }
 
-    public function setDateConsultation(\DateTimeInterface $dateConsultation): self
+    public function setDate(\DateTimeInterface $date): self
     {
-        $this->dateConsultation = $dateConsultation;
+        $this->date = $date;
+
         return $this;
     }
 
-    public function getNotes(): ?string
+    public function getCompteRendu(): ?string
     {
-        return $this->notes;
+        return $this->compteRendu;
     }
 
-    public function setNotes(?string $notes): self
+    public function setCompteRendu(string $compteRendu): self
     {
-        $this->notes = $notes;
-        return $this;
-    }
+        $this->compteRendu = $compteRendu;
 
-    public function getPsychologue(): ?User
-    {
-        return $this->psychologue;
-    }
-
-    public function setPsychologue(?User $psychologue): self
-    {
-        $this->psychologue = $psychologue;
-        return $this;
-    }
-
-    public function getDossier(): ?DossierMedical
-    {
-        return $this->dossier;
-    }
-
-    public function setDossier(?DossierMedical $dossier): self
-    {
-        $this->dossier = $dossier;
         return $this;
     }
 
@@ -94,6 +73,31 @@ class Consultation
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getDossier(): ?DossierMedical
+    {
+        return $this->dossier;
+    }
+
+    public function setDossier(?DossierMedical $dossier): self
+    {
+        $this->dossier = $dossier;
+
+        return $this;
+    }
+
+    public function getPsychologue(): ?User
+    {
+        return $this->psychologue;
+    }
+
+    public function setPsychologue(?User $psychologue): self
+    {
+        $this->psychologue = $psychologue;
+
         return $this;
     }
 }

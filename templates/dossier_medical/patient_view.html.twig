@@ -187,16 +187,18 @@
                             <label class="form-label">
                                 <i class="fas fa-calendar-alt"></i> Date de consultation <span class="text-danger">*</span>
                             </label>
-                            <input type="datetime-local" name="date_consultation" class="form-control" 
-                                   value="{{ "now"|date("Y-m-d\\TH:i") }}" required>
+                            <input type="datetime-local" name="date_consultation" class="form-control"
+                            value="{{ "now"|date("Y-m-d\\TH:i") }}" required
+                            max="{{ "now"|date("Y-m-d\\TH:i") }}">
                             <small class="form-text text-muted">Date et heure de votre consultation</small>
                         </div>
                         <div class="col-md-8 mb-3">
                             <label class="form-label">
                                 <i class="fas fa-sticky-note"></i> Notes de consultation
                             </label>
-                            <textarea name="notes" class="form-control" rows="4" 
-                                      placeholder="Décrivez votre consultation, vos symptômes, vos préoccupations, etc.&#10;&#10;Exemple:&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations"></textarea>
+                            <textarea name="notes" class="form-control" rows="4"
+                            maxlength="2000"
+                            placeholder="Décrivez votre consultation, vos symptômes, vos préoccupations, etc.&#10;&#10;Exemple:&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations"></textarea>
                             <small class="form-text text-muted">Vous pouvez décrire les raisons de votre consultation, vos symptômes, ou toute autre information pertinente.</small>
                         </div>
                     </div>

@@ -15,4 +15,7 @@ class ConsultationRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Consultation::class);
     }
+
+    // Vous pouvez ajouter ici des méthodes personnalisées si besoin plus tard
+    // ex: findLastByPatient(), findByDateRange(), etc.
 }
