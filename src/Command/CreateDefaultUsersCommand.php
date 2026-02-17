@@ -27,8 +27,8 @@ class CreateDefaultUsersCommand extends Command
     {
         // Admin
         $admin = new User();
-        $admin->setEmail('admin@emonaso.com');
-        $admin->setPassword($this->hasher->hashPassword($admin, 'adminpass'));
+        $admin->setEmail('admin@emonado.com');
+        $admin->setPassword($this->hasher->hashPassword($admin, 'Admin123'));
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setNom('Admin');
         $admin->setPrenom('System');
@@ -36,7 +36,7 @@ class CreateDefaultUsersCommand extends Command
 
         // Psychologue
         $psy = new User();
-        $psy->setEmail('psy@emonaso.com');
+        $psy->setEmail('psy@emonado.com');
         $psy->setPassword($this->hasher->hashPassword($psy, 'Psy123'));
         $psy->setRoles(['ROLE_PSYCHOLOGUE']);
         $psy->setNom('Jean');
