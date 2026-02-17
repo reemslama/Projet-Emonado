@@ -58,16 +58,66 @@ class JournalRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
+        return $this->buildStatsArray($result);
+    }
+
+    /**
+     * 📊 Statistiques des humeurs sur tous les journaux (vue admin / psychologue)
+     */
+    public function countByHumeurAll(): array
+    {
+        $result = $this->createQueryBuilder('j')
+            ->select('j.humeur, COUNT(j.id) AS total')
+            ->groupBy('j.humeur')
+            ->getQuery()
+            ->getResult();
+
+        return $this->buildStatsArray($result);
+    }
+
+    /**
+     * 🔍 Recherche + tri sur tous les journaux (vue admin / psychologue)
+     */
+    public function searchAndSortAll(
+        ?string $keyword,
+        ?string $sort
+    ): array {
+        $qb = $this->createQueryBuilder('j');
+
+        if ($keyword) {
+            $qb->andWhere('j.humeur LIKE :kw OR j.contenu LIKE :kw')
+               ->setParameter('kw', '%' . $keyword . '%');
+        }
+
+        if ($sort === 'old') {
+            $qb->orderBy('j.dateCreation', 'ASC');
+        } else {
+            $qb->orderBy('j.dateCreation', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * 🧮 Construit le tableau de stats standardisé
+     *
+     * @param array<int, array{humeur: string, total: string|int}> $result
+     */
+    private function buildStatsArray(array $result): array
+    {
         // Initialiser toutes les humeurs à 0
         $stats = [
-            'heureux' => 0,
-            'calme' => 0,
-            'SOS' => 0,
+            'heureux'   => 0,
+            'calme'     => 0,
+            'SOS'       => 0,
             'en colere' => 0,
         ];
 
         foreach ($result as $row) {
-            $stats[$row['humeur']] = (int) $row['total'];
+            $humeur = $row['humeur'];
+            if (array_key_exists($humeur, $stats)) {
+                $stats[$humeur] = (int) $row['total'];
+            }
         }
 
         return $stats;

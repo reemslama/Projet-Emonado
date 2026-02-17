@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -7,9 +7,9 @@
     <script src="https://kit.fontawesome.com/a2e1f6b6da.js" crossorigin="anonymous"></script>
 
     <style>
-        body { 
-            padding-top: 70px; 
-            background-image: url('{{ asset('images/background.png') }}');
+        body {
+            padding-top: 70px;
+            background-image: url('{{ asset(''images/background.png'') }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -32,9 +32,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ path('home') }}">Accueil</a></li>
-                    
-                    
-                    
                     <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Connexion</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a></li>
                 </ul>

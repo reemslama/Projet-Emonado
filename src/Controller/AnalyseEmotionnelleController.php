@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\AnalyseEmotionnelle;
+use App\Entity\Journal;
 use App\Form\AnalyseEmotionnelleType;
 use App\Repository\AnalyseEmotionnelleRepository;
+use App\Service\EmotionAnalysisService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,5 +79,64 @@ final class AnalyseEmotionnelleController extends AbstractController
         }
 
         return $this->redirectToRoute('app_analyse_emotionnelle_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/from-journal/{id}', name: 'app_analyse_emotionnelle_from_journal', methods: ['POST'])]
+    public function fromJournal(
+        Journal $journal,
+        EmotionAnalysisService $emotionAnalysisService,
+        EntityManagerInterface $entityManager,
+        Request $request
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $user = $this->getUser();
+
+        // Autoriser le propriétaire du journal, les admins et psychologues
+        if (
+            $journal->getUser() !== $user
+            && !$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_PSYCHOLOGUE')
+            && !$this->isGranted('ROLE_PSY')
+        ) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isCsrfTokenValid(
+            'analyze' . $journal->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('app_journal_index');
+        }
+
+        // Réutiliser l'analyse si elle existe déjà, sinon en créer une nouvelle
+        $analyse = $journal->getAnalysisEmotionnelle() ?? new AnalyseEmotionnelle();
+
+        $result = $emotionAnalysisService->analyze((string) $journal->getContenu());
+
+        $analyse
+            ->setJournal($journal)
+            ->setEmotionPrincipale($result['emotionPrincipale'] ?? 'neutre')
+            ->setNiveauStress($result['niveauStress'] ?? 0)
+            ->setScoreBienEtre($result['scoreBienEtre'] ?? 50)
+            ->setResumeIA($result['resumeIA'] ?? 'Analyse non disponible.')
+            ->setDateAnalyse(new \DateTime());
+
+        try {
+            $entityManager->persist($analyse);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Analyse émotionnelle générée avec succès.');
+
+            return $this->redirectToRoute('app_analyse_emotionnelle_show', [
+                'id' => $analyse->getId(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Impossible d\'enregistrer l\'analyse émotionnelle pour le moment.');
+
+            return $this->redirectToRoute('app_journal_index');
+        }
     }
 }

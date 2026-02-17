@@ -81,11 +81,13 @@
                 <th>Humeur</th>
                 <th>Contenu</th>
                 <th>Date</th>
+                <th>Analyse IA</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for journal in journals %}
+            {% set can_manage = (journal.user is defined and journal.user is same as(app.user)) or is_granted('ROLE_ADMIN') %}
             <tr>
                 <td class="fw-bold text-success">
                     {{ journal.humeur }}
@@ -100,23 +102,49 @@
                 </td>
 
                 <td class="text-center">
-    <a href="{{ path('app_journal_edit', {'id': journal.id}) }}"
-       class="btn btn-sm btn-primary me-2 action-btn">
-        <i class="fa-solid fa-pen"></i>
-        <span class="ms-1">Update</span>
-    </a>
+                    {% if journal.analysisEmotionnelle is defined and journal.analysisEmotionnelle %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            <i class="fa-solid fa-brain me-1"></i> Disponible
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                            Aucune
+                        </span>
+                    {% endif %}
+                </td>
 
-    <form method="post"
-          action="{{ path('app_journal_delete', {'id': journal.id}) }}"
-          onsubmit="return confirm('Voulez-vous vraiment supprimer ce journal ?');"
-          style="display:inline">
-        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ journal.id) }}">
-        <button class="btn btn-sm btn-outline-primary action-btn">
-            <i class="fa-solid fa-trash"></i>
-            <span class="ms-1">Delete</span>
-        </button>
-    </form>
-</td>
+                <td class="text-center">
+                    {% if can_manage %}
+                        <a href="{{ path('app_journal_edit', {'id': journal.id}) }}"
+                           class="btn btn-sm btn-primary me-2 action-btn">
+                            <i class="fa-solid fa-pen"></i>
+                            <span class="ms-1">Update</span>
+                        </a>
+
+                        <form method="post"
+                              action="{{ path('app_journal_delete', {'id': journal.id}) }}"
+                              onsubmit="return confirm('Voulez-vous vraiment supprimer ce journal ?');"
+                              style="display:inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ journal.id) }}">
+                            <button class="btn btn-sm btn-outline-primary action-btn">
+                                <i class="fa-solid fa-trash"></i>
+                                <span class="ms-1">Delete</span>
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY') %}
+                        <form method="post"
+                              action="{{ path('app_analyse_emotionnelle_from_journal', {'id': journal.id}) }}"
+                              style="display:inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('analyze' ~ journal.id) }}">
+                            <button class="btn btn-sm btn-outline-success action-btn mt-1">
+                                <i class="fa-solid fa-brain"></i>
+                                <span class="ms-1">Analyser avec l'IA</span>
+                            </button>
+                        </form>
+                    {% endif %}
+                </td>
 
             </tr>
         {% else %}

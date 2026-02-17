@@ -22,19 +22,33 @@ class JournalController extends AbstractController
         JournalRepository $journalRepository
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
-
-        $user = $this->getUser();
-
         $keyword = $request->query->get('q', '');
         $sort    = $request->query->get('sort', 'recent');
 
-        $journals = $journalRepository->searchAndSortByUser(
-            $user,
-            $keyword,
-            $sort
-        );
+        // 🧑‍⚕️ / 👑 Vue globale pour l'admin et le psychologue
+        if (
+            $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_PSYCHOLOGUE')
+            || $this->isGranted('ROLE_PSY')
+        ) {
+            $journals = $journalRepository->searchAndSortAll(
+                $keyword,
+                $sort
+            );
 
-        $stats = $journalRepository->countByHumeurForUser($user);
+            $stats = $journalRepository->countByHumeurAll();
+        } else {
+            // 👤 Vue restreinte au propriétaire du journal (patient)
+            $user = $this->getUser();
+
+            $journals = $journalRepository->searchAndSortByUser(
+                $user,
+                $keyword,
+                $sort
+            );
+
+            $stats = $journalRepository->countByHumeurForUser($user);
+        }
 
         return $this->render('journal/index.html.twig', [
             'journals' => $journals,
