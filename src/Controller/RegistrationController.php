@@ -40,7 +40,10 @@ class RegistrationController extends AbstractController
             } else {
                 $nom = trim((string) $request->request->get('nom', ''));
                 $prenom = trim((string) $request->request->get('prenom', ''));
-                $email = trim((string) $request->request->get('email', ''));
+                $emailRaw = (string) $request->request->get('email', '');
+                // Normalize email: trim, lowercase, and remove any stray whitespace characters
+                $email = mb_strtolower(trim($emailRaw));
+                $email = preg_replace('/\s+/', '', $email);
                 $password = (string) $request->request->get('password', '');
                 $telephone = trim((string) $request->request->get('telephone', ''));
                 $sexe = trim((string) $request->request->get('sexe', ''));

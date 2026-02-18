@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -62,9 +63,9 @@ class SecurityController extends AbstractController
 
                     $resetUrl = $urlGenerator->generate('app_reset_password', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
 
-                    $from = $this->getParameter('mailer_from');
+                    $fromEmail = $this->getParameter('mailer_from') ?: 'reemslama21@gmail.com';
                     $emailMessage = (new Email())
-                        ->from($from)
+                        ->from(new Address($fromEmail, 'Emonado'))
                         ->to($user->getEmail())
                         ->subject('Réinitialisation de votre mot de passe - Emonado')
                         ->text("Bonjour,\n\nPour réinitialiser votre mot de passe, cliquez sur le lien suivant (valide 1 heure) :\n\n" . $resetUrl . "\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n\nL'équipe Emonado");
@@ -85,6 +86,9 @@ class SecurityController extends AbstractController
                         }
                     } catch (\Throwable $e) {
                         $errors[] = 'Impossible d\'envoyer l\'email. Veuillez réessayer plus tard.';
+                        if ($this->getParameter('kernel.debug')) {
+                            $errors[] = 'Détail: ' . $e->getMessage();
+                        }
                     }
                 }
             }
