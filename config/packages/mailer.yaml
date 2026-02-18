@@ -2,5 +2,7 @@ framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
         envelope:
-            sender: '%env(MAILER_FROM)%'parameters:
+            sender: '%env(MAILER_FROM)%'
+
+parameters:
     mailer_from: '%env(MAILER_FROM)%'
