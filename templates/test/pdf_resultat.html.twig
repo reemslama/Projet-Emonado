@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat Test {{ test.categorie|upper }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4A90E2;
+        }
+        
+        .header h1 {
+            color: #2C3E50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #7F8C8D;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #F8F9FA;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4A90E2;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .score-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .score-max {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .interpretation-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid {{ interpretation.couleur }};
+        }
+        
+        .interpretation-badge {
+            display: inline-block;
+            background: {{ interpretation.couleur }};
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .interpretation-text {
+            color: #555;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+        
+        .categories-section h2 {
+            color: #2C3E50;
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ECF0F1;
+        }
+        
+        .category-item {
+            background: #F8F9FA;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-name {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .category-score {
+            font-size: 18px;
+            color: #4A90E2;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            background: #ECF0F1;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4A90E2;
+            transition: width 0.3s ease;
+        }
+        
+        .analyse-section {
+            background: #FFFBF0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border-left: 4px solid #F39C12;
+        }
+        
+        .analyse-section h2 {
+            color: #E67E22;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .analyse-text {
+            color: #555;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .questions-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .questions-section h2 {
+            color: #2C3E50;
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ECF0F1;
+        }
+        
+        .question-item {
+            background: #F8F9FA;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+        
+        .question-text {
+            font-weight: bold;
+            color: #2C3E50;
+            margin-bottom: 8px;
+        }
+        
+        .response-text {
+            color: #555;
+            padding-left: 20px;
+        }
+        
+        .response-value {
+            display: inline-block;
+            background: #4A90E2;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 10px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ECF0F1;
+            text-align: center;
+            color: #95A5A6;
+            font-size: 11px;
+        }
+        
+        .footer-date {
+            margin-top: 10px;
+        }
+        
+        @media print {
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# En-tête #}
+        <div class="header">
+            <h1>📊 Résultat du Test Psychologique</h1>
+            <div class="subtitle">Test {{ test.categorie|upper }}</div>
+        </div>
+
+        {# Informations générales #}
+        <div class="info-box">
+            {% if test.patient %}
+            <div class="info-row">
+                <span class="info-label">Patient :</span>
+                <span class="info-value">{{ test.patient.nom }} {{ test.patient.prenom }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Date du test :</span>
+                <span class="info-value">{{ test.dateDebut|date('d/m/Y à H:i') }}</span>
+            </div>
+            {% if test.dateFin %}
+            <div class="info-row">
+                <span class="info-label">Date de fin :</span>
+                <span class="info-value">{{ test.dateFin|date('d/m/Y à H:i') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Durée :</span>
+                <span class="info-value">
+                    {{ ((test.dateFin.timestamp - test.dateDebut.timestamp) / 60)|round }} minutes
+                </span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Nombre de questions :</span>
+                <span class="info-value">{{ test.nombreQuestions }}</span>
+            </div>
+        </div>
+
+        {# Score global #}
+        <div class="score-section">
+            <div>Score Global</div>
+            <div class="score-value">{{ test.scoreActuel }}</div>
+            <div class="score-max">sur {{ test.nombreQuestions * 4 }} points possibles</div>
+        </div>
+
+        {# Interprétation #}
+        <div class="interpretation-section">
+            <div class="interpretation-badge">{{ interpretation.niveau }}</div>
+            <div class="interpretation-text">
+                {{ interpretation.message }}
+            </div>
+        </div>
+
+        {# Scores par catégorie #}
+        {% if scoreParCategorie|length > 0 %}
+        <div class="categories-section">
+            <h2>📈 Détail par Catégorie</h2>
+            {% for categorie, score in scoreParCategorie %}
+            <div class="category-item">
+                <div>
+                    <div class="category-name">{{ categorie|title }}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ (score / 12 * 100)|round }}%;"></div>
+                    </div>
+                </div>
+                <div class="category-score">{{ score }}/12</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Analyse détaillée #}
+        {% if test.analyse %}
+        <div class="analyse-section">
+            <h2>🔍 Analyse Détaillée</h2>
+            <div class="analyse-text">{{ test.analyse }}</div>
+        </div>
+        {% endif %}
+
+        {# Détail des questions/réponses #}
+        <div class="questions-section page-break">
+            <h2>📝 Détail des Questions & Réponses</h2>
+            {% for qr in test.questionsReponses %}
+            <div class="question-item">
+                <div class="question-text">
+                    Q{{ loop.index }}. {{ qr.question }}
+                </div>
+                <div class="response-text">
+                    ➜ {{ qr.reponse }}
+                    <span class="response-value">{{ qr.valeur }} pts</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Pied de page #}
+        <div class="footer">
+            <div>Ce rapport est confidentiel et destiné uniquement au patient et son psychologue.</div>
+            <div class="footer-date">
+                Document généré le {{ dateGeneration|date('d/m/Y à H:i') }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

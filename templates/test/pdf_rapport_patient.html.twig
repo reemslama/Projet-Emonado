@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Psychologique - {{ patient.nom }} {{ patient.prenom }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .patient-info {
+            background: #F8F9FA;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4A90E2;
+        }
+        
+        .patient-info h2 {
+            color: #2C3E50;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .summary-section {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .summary-section h2 {
+            color: #2C3E50;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ECF0F1;
+        }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: #F8F9FA;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #7F8C8D;
+            font-size: 13px;
+        }
+        
+        .test-card {
+            background: #fff;
+            border: 2px solid #ECF0F1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .test-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ECF0F1;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2C3E50;
+        }
+        
+        .test-date {
+            color: #7F8C8D;
+            font-size: 13px;
+        }
+        
+        .test-score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .test-score-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .test-score-max {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .interpretation-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            margin: 10px 0;
+        }
+        
+        .badge-excellent { background: #27AE60; }
+        .badge-bon { background: #2ECC71; }
+        .badge-moyen { background: #F39C12; }
+        .badge-faible { background: #E74C3C; }
+        .badge-critique { background: #C0392B; }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .category-mini {
+            background: #F8F9FA;
+            padding: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-mini-name {
+            font-size: 11px;
+            color: #555;
+        }
+        
+        .category-mini-score {
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ECF0F1;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4A90E2;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #4A90E2;
+        }
+        
+        .evolution-chart {
+            margin-top: 20px;
+            padding: 20px;
+            background: #F8F9FA;
+            border-radius: 8px;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .chart-label {
+            width: 120px;
+            font-size: 11px;
+            color: #555;
+        }
+        
+        .chart-bar-bg {
+            flex: 1;
+            height: 25px;
+            background: #ECF0F1;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #667eea);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ECF0F1;
+            text-align: center;
+            color: #95A5A6;
+            font-size: 11px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .recommendations {
+            background: #FFFBF0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #F39C12;
+        }
+        
+        .recommendations h3 {
+            color: #E67E22;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .recommendations ul {
+            list-style-position: inside;
+            color: #555;
+        }
+        
+        .recommendations li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# En-tête principal #}
+        <div class="header">
+            <h1>📋 Rapport Psychologique Complet</h1>
+            <div class="subtitle">Synthèse des Évaluations</div>
+        </div>
+
+        {# Informations patient #}
+        <div class="patient-info">
+            <h2>👤 Informations Patient</h2>
+            <div class="info-row">
+                <span class="info-label">Nom complet :</span>
+                <span class="info-value">{{ patient.nom }} {{ patient.prenom }}</span>
+            </div>
+            {% if patient.email %}
+            <div class="info-row">
+                <span class="info-label">Email :</span>
+                <span class="info-value">{{ patient.email }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Nombre de tests réalisés :</span>
+                <span class="info-value">{{ tests|length }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Période :</span>
+                <span class="info-value">
+                    Du {{ tests|last.dateDebut|date('d/m/Y') }} 
+                    au {{ tests|first.dateDebut|date('d/m/Y') }}
+                </span>
+            </div>
+        </div>
+
+        {# Vue d'ensemble statistique #}
+        <div class="summary-section">
+            <h2>📊 Vue d'Ensemble</h2>
+            <div class="summary-stats">
+                <div class="stat-box">
+                    <div class="stat-value">{{ tests|length }}</div>
+                    <div class="stat-label">Tests réalisés</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">
+                        {% set totalQuestions = 0 %}
+                        {% for test in tests %}
+                            {% set totalQuestions = totalQuestions + test.nombreQuestions %}
+                        {% endfor %}
+                        {{ totalQuestions }}
+                    </div>
+                    <div class="stat-label">Questions traitées</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">
+                        {% set categories = {} %}
+                        {% for test in tests %}
+                            {% set categories = categories|merge({(test.categorie): true}) %}
+                        {% endfor %}
+                        {{ categories|length }}
+                    </div>
+                    <div class="stat-label">Catégories évaluées</div>
+                </div>
+            </div>
+
+            {# Évolution des scores #}
+            <div class="evolution-chart">
+                <h3 style="color: #2C3E50; margin-bottom: 15px;">📈 Évolution des Scores</h3>
+                {% for test in tests|reverse %}
+                <div class="chart-bar">
+                    <div class="chart-label">
+                        {{ test.categorie|upper }}<br>
+                        <small style="color: #95A5A6;">{{ test.dateDebut|date('d/m/Y') }}</small>
+                    </div>
+                    <div class="chart-bar-bg">
+                        {% set maxScore = test.nombreQuestions * 4 %}
+                        {% set percentage = (test.scoreActuel / maxScore * 100)|round %}
+                        <div class="chart-bar-fill" style="width: {{ percentage }}%;">
+                            {{ test.scoreActuel }}/{{ maxScore }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Détail de chaque test #}
+        <div class="page-break"></div>
+        <h2 style="color: #2C3E50; font-size: 24px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #4A90E2;">
+            📝 Détail des Tests
+        </h2>
+
+        {% for test in tests %}
+        <div class="test-card">
+            <div class="test-card-header">
+                <div>
+                    <div class="test-title">
+                        {{ loop.index }}. Test {{ test.categorie|upper }}
+                    </div>
+                    <div class="test-date">
+                        {{ test.dateDebut|date('d/m/Y à H:i') }}
+                        {% if test.dateFin %}
+                        - Durée: {{ ((test.dateFin.timestamp - test.dateDebut.timestamp) / 60)|round }} min
+                        {% endif %}
+                    </div>
+                </div>
+                {% if test.termine %}
+                <span style="background: #27AE60; color: white; padding: 5px 15px; border-radius: 15px; font-size: 11px;">
+                    ✓ Terminé
+                </span>
+                {% else %}
+                <span style="background: #F39C12; color: white; padding: 5px 15px; border-radius: 15px; font-size: 11px;">
+                    ⏱ En cours
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="test-score-display">
+                <div class="test-score-value">{{ test.scoreActuel }}</div>
+                <div class="test-score-max">sur {{ test.nombreQuestions * 4 }} points</div>
+            </div>
+
+            {% set testStat = statistiques[test.id] %}
+            {% if testStat %}
+            <div style="text-align: center;">
+                {% set badgeClass = 'badge-' ~ testStat.interpretation.niveau|lower|replace({' ': '-'}) %}
+                <span class="interpretation-badge {{ badgeClass }}">
+                    {{ testStat.interpretation.niveau }}
+                </span>
+                <p style="color: #555; margin-top: 10px; line-height: 1.6;">
+                    {{ testStat.interpretation.message }}
+                </p>
+            </div>
+
+            {% if testStat.scoreParCategorie|length > 0 %}
+            <div class="categories-grid">
+                {% for categorie, score in testStat.scoreParCategorie %}
+                <div class="category-mini">
+                    <span class="category-mini-name">{{ categorie|title }}</span>
+                    <span class="category-mini-score">{{ score }}/12</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            {% if test.analyse %}
+            <div style="background: #F8F9FA; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                <strong style="color: #2C3E50;">💡 Analyse :</strong>
+                <p style="color: #555; margin-top: 8px; line-height: 1.6; font-size: 11px;">
+                    {{ test.analyse|slice(0, 300) }}{% if test.analyse|length > 300 %}...{% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {# Recommandations #}
+        <div class="recommendations page-break">
+            <h3>💡 Recommandations Générales</h3>
+            <ul>
+                <li>Continuer le suivi régulier avec votre psychologue</li>
+                <li>Pratiquer les exercices recommandés entre les séances</li>
+                <li>Noter vos observations et émotions dans un journal</li>
+                <li>Maintenir une routine de bien-être (sommeil, exercice, alimentation)</li>
+                <li>Ne pas hésiter à contacter votre thérapeute en cas de besoin</li>
+            </ul>
+        </div>
+
+        {# Pied de page #}
+        <div class="footer">
+            <div><strong>CONFIDENTIEL</strong> - Ce document est strictement confidentiel et destiné uniquement au patient et à son équipe soignante.</div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ECF0F1;">
+                Rapport généré automatiquement le {{ dateGeneration|date('d/m/Y à H:i') }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

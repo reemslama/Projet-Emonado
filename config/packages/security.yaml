@@ -11,7 +11,7 @@ security:
 
     firewalls:
         dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            pattern: ^/(_(profiler|wdt)|css|images|js|assets|bootstrap|fontawesome)/
             security: false
 
         main:
@@ -29,6 +29,7 @@ security:
                 path: /
 
     access_control:
+        - { path: ^/test/pdf, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/psychologue, roles: ROLE_PSYCHOLOGUE }
         - { path: ^/patient, roles: ROLE_PATIENT }
