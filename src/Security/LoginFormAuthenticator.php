@@ -41,16 +41,16 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         $user = $token->getUser();
 
-        if (in_array('ROLE_PATIENT', $user->getRoles())) {
-            return new RedirectResponse($this->urlGenerator->generate('patient_index'));
-        }
-
-        if (in_array('ROLE_PSYCHOLOGUE', $user->getRoles())) {
+        if (in_array('ROLE_PSYCHOLOGUE', $user->getRoles(), true) || in_array('ROLE_PSY', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('psychologue_index'));
         }
 
-        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+        }
+
+        if (in_array('ROLE_USER', $user->getRoles(), true)) {
+            return new RedirectResponse($this->urlGenerator->generate('patient_index'));
         }
 
         return new RedirectResponse('/');

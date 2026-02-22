@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Journal Vocal{% endblock %}
+
+{% block body %}
+<div class="card shadow-sm border-0 mx-auto" style="max-width: 720px;">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-success mb-0">Nouveau journal vocal</h3>
+            <a href="{{ path('app_journal_index') }}" class="btn btn-outline-secondary btn-sm">Retour</a>
+        </div>
+
+        {{ include('components/_flash_messages.html.twig') }}
+
+        {{ form_start(form, {'attr': {'class': 'row g-3', 'novalidate': 'novalidate'}}) }}
+            <div class="col-12">
+                {{ form_row(form.voiceNote) }}
+                <div class="form-text">Formats acceptes: mp3, wav, webm, ogg, m4a/mp4.</div>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-microphone-lines"></i> Envoyer le vocal
+                </button>
+                <a href="{{ path('app_journal_index') }}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

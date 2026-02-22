@@ -2,34 +2,145 @@
 
 namespace App\Service;
 
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 class EmotionAnalysisService
 {
-    /**
-     * Analyse "IA" locale, sans dépendance externe,
-     * basée sur des mots-clés pondérés dans le texte.
-     *
-     * On évite ainsi toute erreur liée à la configuration d'une API distante.
-     */
+    public function __construct(private readonly HttpClientInterface $httpClient)
+    {
+    }
+
     public function analyze(string $contenu): array
     {
+        $normalized = $this->normalizeText($contenu);
+        if ($this->hasCriticalSignal($normalized)) {
+            return $this->criticalSignalAnalysis();
+        }
+
+        $llmResult = $this->llmAnalysis($contenu);
+        if ($llmResult !== null) {
+            return $llmResult;
+        }
+
         return $this->fallbackAnalysis($contenu);
     }
 
+    public function determineMood(string $contenu, array $analysis): string
+    {
+        $normalized = $this->normalizeText($contenu);
+        if ($this->hasCriticalSignal($normalized)) {
+            return 'SOS';
+        }
+
+        $emotion = (string) ($analysis['emotionPrincipale'] ?? 'neutre');
+        return match ($emotion) {
+            'joie' => 'heureux',
+            'colere' => 'en colere',
+            'tristesse', 'peur' => 'SOS',
+            default => ((int) ($analysis['niveauStress'] ?? 0) >= 7 ? 'SOS' : 'calme'),
+        };
+    }
+
+    private function llmAnalysis(string $contenu): ?array
+    {
+        $apiKey = trim((string) ($_ENV['OPENAI_API_KEY'] ?? ''));
+        if ($apiKey === '') {
+            return null;
+        }
+
+        $model = trim((string) ($_ENV['OPENAI_EMOTION_MODEL'] ?? 'gpt-4o-mini'));
+        if ($model === '') {
+            $model = 'gpt-4o-mini';
+        }
+
+        $systemPrompt = 'Tu es un analyste emotionnel clinique. Reponds strictement en JSON valide avec les cles: emotionPrincipale, niveauStress, scoreBienEtre, resumeIA. emotionPrincipale doit etre une de: joie, tristesse, colere, peur, neutre. niveauStress entier 0..10. scoreBienEtre entier 0..100. resumeIA concis en francais simple, sans markdown, max 220 caracteres.';
+        $userPrompt = "Texte journal patient:\n" . $contenu;
+
+        try {
+            $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => $model,
+                    'temperature' => 0.2,
+                    'response_format' => ['type' => 'json_object'],
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => $userPrompt],
+                    ],
+                ],
+                'timeout' => 20,
+            ]);
+
+            $payload = $response->toArray(false);
+            $content = (string) ($payload['choices'][0]['message']['content'] ?? '');
+            if ($content === '') {
+                return null;
+            }
+
+            $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            if (!is_array($decoded)) {
+                return null;
+            }
+
+            return $this->sanitizeAnalysisFromModel($decoded);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /**
-     * Analyse locale améliorée du texte.
+     * @param array<string, mixed> $raw
      *
-     * - Normalisation en minuscules sans accents
-     * - Comptage pondéré des mots liés au stress / bien-être
-     * - Prise en compte de l'intensité (ex: "très", "complètement")
-     * - Clamp du stress entre 0 et 10, bien-être entre 0 et 100
+     * @return array{emotionPrincipale:string,niveauStress:int,scoreBienEtre:int,resumeIA:string}
      */
+    private function sanitizeAnalysisFromModel(array $raw): array
+    {
+        $emotion = mb_strtolower(trim((string) ($raw['emotionPrincipale'] ?? 'neutre')));
+        $allowed = ['joie', 'tristesse', 'colere', 'peur', 'neutre'];
+        if (!in_array($emotion, $allowed, true)) {
+            $emotion = 'neutre';
+        }
+
+        $stress = max(0, min(10, (int) ($raw['niveauStress'] ?? 0)));
+        $wellBeing = max(0, min(100, (int) ($raw['scoreBienEtre'] ?? 50)));
+
+        $resume = trim((string) ($raw['resumeIA'] ?? 'Analyse emotionnelle generee par IA.'));
+        if ($resume === '') {
+            $resume = 'Analyse emotionnelle generee par IA.';
+        }
+        if (mb_strlen($resume) > 260) {
+            $resume = mb_substr($resume, 0, 257) . '...';
+        }
+
+        return [
+            'emotionPrincipale' => $emotion,
+            'niveauStress' => $stress,
+            'scoreBienEtre' => $wellBeing,
+            'resumeIA' => $resume,
+        ];
+    }
+
+    private function criticalSignalAnalysis(): array
+    {
+        return [
+            'emotionPrincipale' => 'tristesse',
+            'niveauStress' => 10,
+            'scoreBienEtre' => 5,
+            'resumeIA' => 'Signal de detresse majeur detecte dans le discours. Prioriser une prise en charge humaine immediate.',
+        ];
+    }
+
     private function fallbackAnalysis(string $contenu): array
     {
         $normalized = $this->normalizeText($contenu);
 
-        // ----------------------------
-        // 1) Détection de l'intensité
-        // ----------------------------
+        if ($this->hasCriticalSignal($normalized)) {
+            return $this->criticalSignalAnalysis();
+        }
+
         $intensityWords = [
             'tres', 'tellement', 'vraiment', 'completement',
             'totalement', 'extremement', 'trop', 'fortement',
@@ -40,36 +151,32 @@ class EmotionAnalysisService
         foreach ($intensityWords as $word) {
             $intensityScore += substr_count($normalized, $word);
         }
-        // Facteur multiplicateur entre 1.0 et 2.0
         $intensityFactor = 1.0 + min($intensityScore * 0.2, 1.0);
 
-        // ---------------------------------
-        // 2) Stress et anxiété (0 à 10)
-        // ---------------------------------
         $stressKeywords = [
-            'stress'    => 3.0,
-            'stresse'   => 3.0,
-            'angoisse'  => 3.0,
-            'anxieux'   => 3.0,
-            'anxiete'   => 3.0,
-            'peur'      => 2.5,
-            'panique'   => 3.0,
-            'inquiet'   => 2.0,
-            'pression'  => 2.0,
-            'deborde'   => 2.0,
-            'epuise'    => 2.0,
-            'epuisee'   => 2.0,
-            'fatigue'   => 1.8,
-            'fatiguee'  => 1.8,
-            'tendu'     => 1.5,
+            'stress' => 3.0,
+            'stresse' => 3.0,
+            'angoisse' => 3.0,
+            'anxieux' => 3.0,
+            'anxiete' => 3.0,
+            'peur' => 2.5,
+            'panique' => 3.0,
+            'inquiet' => 2.0,
+            'pression' => 2.0,
+            'deborde' => 2.0,
+            'epuise' => 2.0,
+            'epuisee' => 2.0,
+            'fatigue' => 1.8,
+            'fatiguee' => 1.8,
+            'tendu' => 1.5,
         ];
 
         $calmKeywords = [
-            'calme'     => 2.0,
-            'detendu'   => 2.0,
-            'apaise'    => 2.0,
-            'soulag'    => 2.0,
-            'relaxe'    => 2.0,
+            'calme' => 2.0,
+            'detendu' => 2.0,
+            'apaise' => 2.0,
+            'soulag' => 2.0,
+            'relaxe' => 2.0,
         ];
 
         $stressScore = 0.0;
@@ -83,50 +190,44 @@ class EmotionAnalysisService
         foreach ($calmKeywords as $word => $weight) {
             $count = substr_count($normalized, $word);
             if ($count > 0) {
-                $stressScore -= $count * $weight; // le calme réduit le stress
+                $stressScore -= $count * $weight;
             }
         }
 
-        // Normalisation sur l'échelle 0–10
-        // On considère qu'un stressScore brut de 0–25 couvre nos cas courants
         $stressScore = max(0.0, min(25.0, $stressScore));
         $niveauStress = (int) round(($stressScore / 25.0) * 10.0);
 
-        // ---------------------------------
-        // 3) Score de bien-être (0 à 100)
-        // ---------------------------------
         $positiveKeywords = [
-            'heureux'       => 4.0,
-            'heureuse'      => 4.0,
-            'joie'          => 4.0,
-            'content'       => 3.0,
-            'contente'      => 3.0,
+            'heureux' => 4.0,
+            'heureuse' => 4.0,
+            'joie' => 4.0,
+            'content' => 3.0,
+            'contente' => 3.0,
             'reconnaissant' => 3.0,
-            'reconnaissante'=> 3.0,
-            'calme'         => 2.5,
-            'apaise'        => 2.5,
-            'soulag'        => 2.5,
-            'bien'          => 2.0,
+            'reconnaissante' => 3.0,
+            'calme' => 2.5,
+            'apaise' => 2.5,
+            'soulag' => 2.5,
+            'bien' => 2.0,
         ];
 
         $negativeKeywords = [
-            'triste'    => 4.0,
-            'mal'       => 2.5,
-            'peur'      => 3.0,
-            'angoisse'  => 3.5,
-            'anxieux'   => 3.5,
-            'anxiete'   => 3.5,
-            'fatigue'   => 3.0,
-            'fatiguee'  => 3.0,
-            'epuise'    => 3.5,
-            'epuisee'   => 3.5,
-            'seul'      => 3.0,
-            'seule'     => 3.0,
-            'deprime'   => 4.0,
-            'vide'      => 3.0,
+            'triste' => 4.0,
+            'mal' => 2.5,
+            'peur' => 3.0,
+            'angoisse' => 3.5,
+            'anxieux' => 3.5,
+            'anxiete' => 3.5,
+            'fatigue' => 3.0,
+            'fatiguee' => 3.0,
+            'epuise' => 3.5,
+            'epuisee' => 3.5,
+            'seul' => 3.0,
+            'seule' => 3.0,
+            'deprime' => 4.0,
+            'vide' => 3.0,
         ];
 
-        // Point de départ "neutre"
         $wellBeingScore = 60.0;
 
         foreach ($positiveKeywords as $word => $weight) {
@@ -143,69 +244,98 @@ class EmotionAnalysisService
             }
         }
 
-        // On tient compte du stress élevé pour baisser encore un peu le bien‑être
         $wellBeingScore -= $niveauStress * 2.0;
-
-        // Clamp 0–100
         $wellBeingScore = max(0.0, min(100.0, $wellBeingScore));
         $scoreBienEtre = (int) round($wellBeingScore);
 
-        // ---------------------------------
-        // 4) Émotion principale
-        // ---------------------------------
         $emotionScores = [
-            'joie'      => 0.0,
+            'joie' => 0.0,
             'tristesse' => 0.0,
-            'colere'    => 0.0,
-            'peur'      => 0.0,
+            'colere' => 0.0,
+            'peur' => 0.0,
         ];
 
-        $joyWords = ['heureux', 'heureuse', 'joie', 'content', 'contente', 'soulag', 'reconnaissan'];
-        foreach ($joyWords as $word) {
+        foreach (['heureux', 'heureuse', 'joie', 'content', 'contente', 'soulag', 'reconnaissan'] as $word) {
             $emotionScores['joie'] += substr_count($normalized, $word);
         }
-
-        $sadWords = ['triste', 'seul', 'seule', 'vide', 'deprime'];
-        foreach ($sadWords as $word) {
+        foreach (['triste', 'seul', 'seule', 'vide', 'deprime'] as $word) {
             $emotionScores['tristesse'] += substr_count($normalized, $word);
         }
-
-        $angerWords = ['colere', 'enerve', 'enervee', 'frustre', 'frustree'];
-        foreach ($angerWords as $word) {
+        foreach (['colere', 'enerve', 'enervee', 'frustre', 'frustree'] as $word) {
             $emotionScores['colere'] += substr_count($normalized, $word);
         }
-
-        $fearWords = ['peur', 'angoisse', 'anxieux', 'anxiete', 'inquiet'];
-        foreach ($fearWords as $word) {
+        foreach (['peur', 'angoisse', 'anxieux', 'anxiete', 'inquiet'] as $word) {
             $emotionScores['peur'] += substr_count($normalized, $word);
         }
 
         $maxEmotionScore = max($emotionScores);
-        if ($maxEmotionScore <= 0.0) {
-            $emotion = 'neutre';
-        } else {
-            // Prendre la première émotion qui a le score max
-            $dominant = array_keys(array_filter($emotionScores, fn ($v) => $v === $maxEmotionScore))[0];
-            $emotion = $dominant;
-        }
+        $emotion = $maxEmotionScore <= 0.0
+            ? 'neutre'
+            : (string) array_keys(array_filter($emotionScores, static fn ($v) => $v === $maxEmotionScore))[0];
+
+        $resumeIA = $this->buildResume($emotion, $niveauStress, $scoreBienEtre);
 
         return [
             'emotionPrincipale' => $emotion,
-            'niveauStress'      => $niveauStress,
-            'scoreBienEtre'     => $scoreBienEtre,
-            'resumeIA'          => 'Analyse locale basée sur la densité et l\'intensité des mots émotionnels.',
+            'niveauStress' => $niveauStress,
+            'scoreBienEtre' => $scoreBienEtre,
+            'resumeIA' => $resumeIA,
         ];
     }
 
-    /**
-     * Normalise le texte : minuscules + suppression des accents
-     * pour permettre une recherche insensible à la casse et aux accents.
-     */
+    private function buildResume(string $emotion, int $stress, int $wellBeing): string
+    {
+        $moodText = match ($emotion) {
+            'joie' => 'un registre emotionnel plutot positif',
+            'tristesse' => 'une tonalite de tristesse recurrente',
+            'colere' => 'une tension de type colere/frustration',
+            'peur' => 'un axe anxieux et apprehensif',
+            default => 'un etat emotionnel mixte',
+        };
+
+        $riskText = $stress >= 7
+            ? 'Le stress est eleve et demande une action rapide de regulation.'
+            : ($stress >= 4
+                ? 'Le stress est modere et reste a surveiller.'
+                : 'Le stress reste contenu.');
+
+        $wellBeingText = $wellBeing < 45
+            ? 'Le bien-etre global est bas actuellement.'
+            : ($wellBeing < 70
+                ? 'Le bien-etre est moyen avec marge d amelioration.'
+                : 'Le bien-etre global est satisfaisant.');
+
+        return sprintf(
+            'L analyse detecte %s. %s %s',
+            $moodText,
+            $riskText,
+            $wellBeingText
+        );
+    }
+
+    private function hasCriticalSignal(string $normalized): bool
+    {
+        $patterns = [
+            '/\\b(je\\s+veux|envie\\s+de)\\s+mour/i',
+            '/\\b(me\\s+)?suicid/i',
+            '/\\b(me\\s+)?tu(er|e)\\b/i',
+            '/\\ben\\s+finir\\b/i',
+            '/\\bplus\\s+envie\\s+de\\s+vivre\\b/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $normalized) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function normalizeText(string $text): string
     {
         $text = mb_strtolower($text);
 
-        // Remplacement manuel des accents les plus courants (évite toute dépendance externe)
         $replacements = [
             'à' => 'a', 'á' => 'a', 'â' => 'a', 'ä' => 'a',
             'ç' => 'c',
@@ -219,4 +349,3 @@ class EmotionAnalysisService
         return strtr($text, $replacements);
     }
 }
-

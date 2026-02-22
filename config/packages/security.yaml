@@ -30,5 +30,5 @@ security:
 
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/psychologue, roles: ROLE_PSYCHOLOGUE }
-        - { path: ^/patient, roles: ROLE_PATIENT }
+        - { path: ^/psychologue, roles: [ROLE_PSYCHOLOGUE, ROLE_PSY, ROLE_ADMIN] }
+        - { path: ^/patient, roles: ROLE_USER }

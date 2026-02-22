@@ -17,9 +17,18 @@
         </div>
 
         <!-- Icon Journal & Analyses IA -->
-        <div class="icon-box" onclick="window.location='{{ path('app_journal_index') }}'">
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_journals') }}'">
             <i class="fas fa-book-open"></i>
             <span>Journal &amp; analyses IA</span>
+        </div>
+
+        <!-- Icon Vocaux Patients -->
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_voice_cases') }}'">
+            <i class="fas fa-headphones"></i>
+            <span>Vocaux patients</span>
+            {% if pendingVoiceCount|default(0) > 0 %}
+                <small class="text-danger fw-bold">{{ pendingVoiceCount }} nouveau(x)</small>
+            {% endif %}
         </div>
 
         <!-- Icon Profil -->
