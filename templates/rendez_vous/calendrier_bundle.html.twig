@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" />
+    <style>
+        #calendar-holder {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .fc-event {
+            cursor: pointer;
+        }
+        .legende-couleurs {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .legende-item {
+            display: flex;
+            align-items: center;
+            margin-right: 25px;
+            margin-bottom: 8px;
+        }
+        .couleur-pastille {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 1100px; margin: 0 auto;">
+        <h2 class="fw-bold">Mon Calendrier</h2>
+        <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+    
+    <div id="calendar-holder"></div>
+    
+    {# ✅ LÉGENDE DES COULEURS #}
+    {% if types is defined and types|length > 0 %}
+    <div class="legende-couleurs">
+        <h5 class="mb-3">📖 Légende des couleurs</h5>
+        <div class="d-flex flex-wrap">
+            {% for type in types %}
+                <div class="legende-item">
+                    <div class="couleur-pastille" style="background-color: {{ type.couleur }};"></div>
+                    <span>{{ type.libelle }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calendarEl = document.getElementById('calendar-holder');
+            
+            if (!calendarEl) {
+                console.error('❌ Élément #calendar-holder introuvable');
+                return;
+            }
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                firstDay: 1,
+                height: 'auto',
+                contentHeight: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                eventSources: [
+                    {
+                        url: '/fc-load-events',
+                        method: 'POST',
+                        extraParams: {
+                            filters: JSON.stringify({})
+                        },
+                        failure: (error) => {
+                            console.error('❌ Erreur de chargement des événements:', error);
+                        },
+                    },
+                ],
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                    } else {
+                        alert('Détails non disponibles pour ce rendez-vous');
+                    }
+                },
+                timeZone: 'UTC',
+            });
+            
+            calendar.render();
+            console.log('✅ Calendrier rendu avec succès');
+        });
+    </script>
+{% endblock %}

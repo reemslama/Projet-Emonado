@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\ReponseRepository;
 use App\Repository\DossierMedicalRepository;
+use App\Repository\RendezVousRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -85,6 +86,17 @@ class AdminController extends AbstractController
             'dossiersParPatient' => $dossiersParPatient,
         ]);
     }
+
+    // ==================== AJOUT STATISTIQUES RDV ====================
+    #[Route('/admin/statistiques/rdv', name: 'admin_stats_rdv')]
+public function statsRdv(RendezVousRepository $rdvRepo): Response
+{
+    $stats = $rdvRepo->getStatsParMois();
+
+    return $this->render('admin/stats_rdv.html.twig', [ // ✅ Template admin
+        'stats' => $stats
+    ]);
+}
 
     // ==================== AJOUT UTILISATEUR ====================
     #[Route('/admin/user/add', name: 'admin_user_add', methods: ['GET', 'POST'])]

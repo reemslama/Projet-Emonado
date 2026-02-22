@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Repository\RendezVousRepository;
 
 class PsychologueController extends AbstractController
 {
@@ -45,7 +46,7 @@ class PsychologueController extends AbstractController
 
         return $this->render('profil_psychologue/index.html.twig', [
             'user' => $user,
-            'error' => null, // <-- corrige l'erreur
+            'error' => null,
         ]);
     }
 
@@ -59,5 +60,15 @@ class PsychologueController extends AbstractController
             $this->addFlash('success', 'Votre profil a été supprimé avec succès !');
         }
         return $this->redirectToRoute('app_login');
+    }
+
+    #[Route('/psychologue/statistique/rdv', name: 'psychologue_stats_rdv')]
+    public function statsRdv(RendezVousRepository $rdvRepo): Response
+    {
+        $stats = $rdvRepo->getStatsParMois();
+
+        return $this->render('rendez_vous/stats_mois.html.twig', [
+            'stats' => $stats
+        ]);
     }
 }

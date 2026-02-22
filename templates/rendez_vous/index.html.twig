@@ -4,7 +4,26 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">Liste des Rendez-vous</h2>
-        <a href="{{ path('app_rendez_vous_new') }}" class="btn btn-primary">Nouveau</a>
+        <div>
+            {# Lien visible uniquement pour les psychologues et admins #}
+            {% if is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_rendez_vous_stats_mois') }}" class="btn btn-info me-2">
+                    <i class="fas fa-chart-bar"></i> Statistiques
+                </a>
+            {% endif %}
+            
+            {# ✅ Lien vers le nouveau calendrier bundle #}
+            <a href="{{ path('app_rendez_vous_calendrier_bundle') }}" class="btn btn-success me-2">
+                <i class="fas fa-calendar-alt"></i> Calendrier
+            </a>
+            
+            {# BOUTON "NOUVEAU" CACHÉ POUR LES PSYCHOLOGUES #}
+            {% if not is_granted('ROLE_PSYCHOLOGUE') %}
+                <a href="{{ path('app_rendez_vous_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouveau
+                </a>
+            {% endif %}
+        </div>
     </div>
 
     {# Formulaire de recherche #}
@@ -42,14 +61,12 @@
                 </tr>
             </thead>
             <tbody>
-                {# ✅ CORRECTION: utilisation de 'rendez_vous' au lieu de 'rendezvous' #}
-                {% for r in rendez_vous %}
+                {% for r in pagination %}
                     <tr>
                         <td class="fw-bold text-primary">{{ r.nomPatient|upper }}</td>
                         <td><code>{{ r.cin }}</code></td>
                         <td>Dr. {{ r.nomPsychologue }}</td>
                         <td>
-                            {# LIGNE 53 - Version corrigée avec commentaire pour VS Code #}
                             <span class="badge" 
                                   style="background-color: {{ r.type ? r.type.couleur|default('#0d6efd') : '#0d6efd' }}; color: white;">
                                 {{ r.type ? r.type.libelle : 'Non défini' }}
@@ -66,6 +83,11 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        {# Pagination #}
+        <div class="d-flex justify-content-center my-4">
+            {{ knp_pagination_render(pagination) }}
+        </div>
     </div>
 </div>
 {% endblock %}

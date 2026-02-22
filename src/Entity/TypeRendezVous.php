@@ -33,6 +33,10 @@ class TypeRendezVous
     )]
     private ?string $description = null;
 
+    // ✅ AJOUT : Champ couleur pour le calendrier
+    #[ORM\Column(length: 7, nullable: true)]
+    private ?string $couleur = '#0d6efd';
+
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: RendezVous::class)]
     private Collection $rendezVouses;
 
@@ -70,6 +74,19 @@ class TypeRendezVous
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+        return $this;
+    }
+
+    // ✅ AJOUT : Getter pour couleur
+    public function getCouleur(): ?string
+    {
+        return $this->couleur;
+    }
+
+    // ✅ AJOUT : Setter pour couleur
+    public function setCouleur(?string $couleur): self
+    {
+        $this->couleur = $couleur;
         return $this;
     }
 

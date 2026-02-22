@@ -16,10 +16,20 @@ class TypeRendezVousRepository extends ServiceEntityRepository
         parent::__construct($registry, TypeRendezVous::class);
     }
 
-    // Ajoutez vos méthodes personnalisées ici
+    // Méthode existante
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('t')
+            ->orderBy('t.libelle', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    // ✅ NOUVELLE MÉTHODE pour le calendrier
+    public function findAllWithColors(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.id', 't.libelle', 't.couleur')
             ->orderBy('t.libelle', 'ASC')
             ->getQuery()
             ->getResult();

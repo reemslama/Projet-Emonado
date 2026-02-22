@@ -24,3 +24,8 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always replace previous ones
+
+    # Service GeminiAssistant (AJOUTÉ ICI)
+    App\Service\GeminiAssistant:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
