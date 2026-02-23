@@ -48,6 +48,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $resetPasswordTokenExpiresAt = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $notesProchaineConsultation = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
     private Collection $journals;
 
@@ -109,6 +112,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getResetPasswordTokenExpiresAt(): ?\DateTimeImmutable { return $this->resetPasswordTokenExpiresAt; }
     public function setResetPasswordTokenExpiresAt(?\DateTimeImmutable $resetPasswordTokenExpiresAt): self { $this->resetPasswordTokenExpiresAt = $resetPasswordTokenExpiresAt; return $this; }
+
+    public function getNotesProchaineConsultation(): ?string { return $this->notesProchaineConsultation; }
+    public function setNotesProchaineConsultation(?string $notesProchaineConsultation): self { $this->notesProchaineConsultation = $notesProchaineConsultation; return $this; }
 
     /**
      * @return Collection<int, Journal>

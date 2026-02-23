@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Frise chronologique — {{ patient.nom }} {{ patient.prenom }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-stream"></i> Frise chronologique — {{ patient.nom }} {{ patient.prenom }}</h2>
+        <a href="{{ path('psy_dossier_view', {patientId: patient.id}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au dossier
+        </a>
+    </div>
+
+    {% if consultations|length > 0 %}
+        <div class="timeline">
+            {% for consultation in consultations %}
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="card shadow-sm">
+                        <div class="card-header py-2">
+                            <strong>{{ consultation.date|date('d/m/Y') }}</strong>
+                            {% if consultation.humeurPatient %}
+                                <span class="badge bg-secondary ms-2">{{ consultation.humeurPatient }}</span>
+                            {% endif %}
+                            {% if consultation.psychologue %}
+                                <small class="text-muted float-end">Par {{ consultation.psychologue.prenom }} {{ consultation.psychologue.nom }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="card-body py-3">
+                            {% if consultation.sujetAborde %}
+                                <p class="mb-1 small text-muted"><strong>Sujet:</strong> {{ consultation.sujetAborde }}</p>
+                            {% endif %}
+                            {% if consultation.observations %}
+                                <p class="mb-1 small"><strong>Observations:</strong> {{ consultation.observations }}</p>
+                            {% endif %}
+                            <p class="mb-0">{{ consultation.compteRendu|nl2br }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Aucune consultation pour afficher la frise.
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.timeline { position: relative; padding-left: 30px; border-left: 3px solid #0d6efd; margin-left: 10px; }
+.timeline-item { position: relative; padding-bottom: 25px; }
+.timeline-marker { position: absolute; left: -36px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: #0d6efd; border: 3px solid #fff; box-shadow: 0 0 0 2px #0d6efd; }
+.timeline .card { margin-left: 0; }
+</style>
+{% endblock %}

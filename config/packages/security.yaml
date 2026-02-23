@@ -25,13 +25,15 @@ security:
 
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800 
+                lifetime: 604800
                 path: /
 
     access_control:
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/mot-de-passe-oublie, roles: PUBLIC_ACCESS }
+        - { path: ^/reinitialiser-mot-de-passe, roles: PUBLIC_ACCESS }
         - { path: ^/test/pdf, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/psychologue, roles: [ROLE_PSYCHOLOGUE, ROLE_PSY, ROLE_ADMIN] }

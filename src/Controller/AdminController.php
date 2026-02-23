@@ -10,6 +10,8 @@ use App\Form\ReponseStandaloneType;
 use App\Repository\UserRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\ReponseRepository;
+use App\Repository\AuditLogRepository;
+use App\Repository\ConsultationRepository;
 use App\Repository\DossierMedicalRepository;
 use App\Repository\RendezVousRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,7 +29,7 @@ class AdminController extends AbstractController
 
     // ==================== DASHBOARD UNIFIÉ ====================
     #[Route('/admin', name: 'admin_dashboard')]
-    public function dashboard(Request $request, UserRepository $userRepo, QuestionRepository $questionRepo, DossierMedicalRepository $dossierRepo): Response
+    public function dashboard(Request $request, UserRepository $userRepo, QuestionRepository $questionRepo, DossierMedicalRepository $dossierRepo, ConsultationRepository $consultationRepo): Response
     {
         // Récupération des utilisateurs
         if (method_exists($userRepo, 'findByRole')) {
@@ -76,6 +78,26 @@ class AdminController extends AbstractController
             ];
         }
 
+        // Statistiques anonymisées (audit / conformité)
+        $nbDossiersActifs = $dossierRepo->count([]);
+        $debutSemaine = (new \DateTime())->setTimestamp(strtotime('monday this week'));
+        $finSemaine = (clone $debutSemaine)->modify('+7 days');
+        $nbConsultationsSemaine = $consultationRepo->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.createdAt >= :debut')
+            ->andWhere('c.createdAt < :fin')
+            ->setParameter('debut', $debutSemaine)
+            ->setParameter('fin', $finSemaine)
+            ->getQuery()
+            ->getSingleScalarResult();
+        $debutAujourdhui = (new \DateTime())->setTime(0, 0, 0);
+        $nbConsultationsAujourdhui = $consultationRepo->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.createdAt >= :debut')
+            ->setParameter('debut', $debutAujourdhui)
+            ->getQuery()
+            ->getSingleScalarResult();
+
         return $this->render('admin/index.html.twig', [
             'patients'           => $patients,
             'psychologues'       => $psychologues,
@@ -84,6 +106,20 @@ class AdminController extends AbstractController
             'categorieFilter'    => $categorieFilter,
             'searchKeyword'      => $searchKeyword,
             'dossiersParPatient' => $dossiersParPatient,
+            'stats'              => [
+                'dossiers_actifs' => $nbDossiersActifs,
+                'consultations_semaine' => $nbConsultationsSemaine,
+                'consultations_aujourdhui' => $nbConsultationsAujourdhui,
+            ],
+        ]);
+    }
+
+    #[Route('/admin/logs', name: 'admin_logs')]
+    public function logs(AuditLogRepository $auditLogRepo): Response
+    {
+        $logs = $auditLogRepo->findRecent(200);
+        return $this->render('admin/logs.html.twig', [
+            'logs' => $logs,
         ]);
     }
 

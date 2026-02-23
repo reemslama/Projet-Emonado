@@ -6,6 +6,41 @@
 
 {% block body %}
 <div class="container-fluid">
+    {# Statistiques anonymisées (audit / conformité) #}
+    {% if stats is defined %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h5 class="text-muted small">Dossiers actifs</h5>
+                    <h2 class="mb-0">{{ stats.dossiers_actifs }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h5 class="text-muted small">Consultations cette semaine</h5>
+                    <h2 class="mb-0">{{ stats.consultations_semaine }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h5 class="text-muted small">Consultations aujourd'hui</h5>
+                    <h2 class="mb-0">{{ stats.consultations_aujourdhui }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <a href="{{ path('admin_logs') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-journal-text"></i> Logs de connexion et modifications
+        </a>
+    </div>
+    {% endif %}
+
     <div class="row mb-4">
         <div class="col-auto">
             <a href="{{ path('admin_user_add') }}" class="btn btn-success">

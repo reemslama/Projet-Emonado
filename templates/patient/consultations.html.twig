@@ -47,12 +47,19 @@
                         <small class="form-text text-muted">La date doit être aujourd'hui ou dans le futur</small>
                     </div>
                     <div class="col-md-8 mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-sticky-note"></i> Compte rendu <span class="text-danger">*</span>
-                        </label>
-                        <textarea name="compte_rendu" class="form-control" rows="4" 
-                                  placeholder="Décrivez votre consultation (minimum 10 caractères)&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations"></textarea>
-                        <small class="form-text text-muted">Le compte rendu est obligatoire (minimum 10 caractères)</small>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label mb-0">
+                                <i class="fas fa-sticky-note"></i> Compte rendu <span class="text-danger">*</span>
+                                <span class="badge bg-secondary ms-2">Écrire ou parler</span>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnVoiceConsultation" title="Cliquer pour parler (saisie vocale)">
+                                <i class="fas fa-microphone"></i> Parler
+                            </button>
+                        </div>
+                        <textarea name="compte_rendu" id="compte_rendu_consultation" class="form-control" rows="4" 
+                                  placeholder="Décrivez votre consultation (minimum 10 caractères) — ou cliquez sur « Parler » et dictez.&#10;- Raison de la consultation&#10;- Symptômes observés&#10;- Questions ou préoccupations"></textarea>
+                        <small class="form-text text-muted">Le compte rendu est obligatoire (minimum 10 caractères). Vous pouvez écrire ou utiliser la saisie vocale.</small>
+                        <div id="voiceStatusConsultation" class="small mt-1 text-muted" style="display: none;"></div>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-success">
@@ -244,5 +251,70 @@ function filterConsultations() {
         }
     });
 }
+
+// Saisie vocale pour le compte rendu
+(function() {
+    const textarea = document.getElementById('compte_rendu_consultation');
+    const btn = document.getElementById('btnVoiceConsultation');
+    const statusEl = document.getElementById('voiceStatusConsultation');
+    if (!textarea || !btn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (statusEl) { statusEl.textContent = 'La saisie vocale n\'est pas supportée par ce navigateur (Chrome, Edge recommandés).'; statusEl.style.display = 'block'; }
+        btn.disabled = true;
+        btn.title = 'Saisie vocale non disponible';
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'fr-FR';
+
+    btn.addEventListener('click', function() {
+        if (btn.classList.contains('recording')) {
+            recognition.stop();
+            return;
+        }
+        btn.classList.add('recording');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-danger');
+        var icon = btn.querySelector('i');
+        if (icon) { icon.className = 'fas fa-stop'; }
+        btn.innerHTML = '<i class="fas fa-stop"></i> Arrêter';
+        if (statusEl) { statusEl.textContent = 'Écoute en cours… Parlez.'; statusEl.style.display = 'block'; }
+        recognition.start();
+    });
+
+    recognition.onresult = function(event) {
+        let final = '';
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                final += transcript;
+            } else {
+                interim += transcript;
+            }
+        }
+        const cursor = textarea.selectionStart;
+        const before = textarea.value.substring(0, cursor);
+        const after = textarea.value.substring(cursor);
+        textarea.value = before + (final || interim) + after;
+        textarea.selectionStart = textarea.selectionEnd = before.length + (final || interim).length;
+    };
+
+    recognition.onend = function() {
+        btn.classList.remove('recording', 'btn-danger');
+        btn.classList.add('btn-outline-primary');
+        btn.innerHTML = '<i class="fas fa-microphone"></i> Parler';
+        if (statusEl) { statusEl.textContent = 'Saisie vocale arrêtée.'; }
+    };
+
+    recognition.onerror = function(event) {
+        if (statusEl) { statusEl.textContent = 'Erreur: ' + (event.error || 'reconnaissance vocale'); }
+    };
+})();
 </script>
 {% endblock %}

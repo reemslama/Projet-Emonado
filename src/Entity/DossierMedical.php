@@ -33,6 +33,15 @@ class DossierMedical
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $diagnostic = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $traitementFond = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $objectifsLongTerme = null;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?User $patient = null;
@@ -92,6 +101,39 @@ class DossierMedical
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getDiagnostic(): ?string
+    {
+        return $this->diagnostic;
+    }
+
+    public function setDiagnostic(?string $diagnostic): self
+    {
+        $this->diagnostic = $diagnostic;
+        return $this;
+    }
+
+    public function getTraitementFond(): ?string
+    {
+        return $this->traitementFond;
+    }
+
+    public function setTraitementFond(?string $traitementFond): self
+    {
+        $this->traitementFond = $traitementFond;
+        return $this;
+    }
+
+    public function getObjectifsLongTerme(): ?string
+    {
+        return $this->objectifsLongTerme;
+    }
+
+    public function setObjectifsLongTerme(?string $objectifsLongTerme): self
+    {
+        $this->objectifsLongTerme = $objectifsLongTerme;
         return $this;
     }
 
