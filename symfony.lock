@@ -50,6 +50,15 @@
     "knplabs/knp-paginator-bundle": {
         "version": "v6.10.0"
     },
+    "knplabs/knp-snappy-bundle": {
+        "version": "1.10",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.5",
+            "ref": "c81bdcf4a9d4e7b1959071457f9608631865d381"
+        }
+    },
     "php-http/discovery": {
         "version": "1.20",
         "recipe": {
@@ -320,10 +329,7 @@
             "branch": "main",
             "version": "1.1",
             "ref": "0c643e17b5340747b35c2c75e11727fa31bfa9bb"
-        },
-        "files": [
-            "./config/routes/calendar.yaml"
-        ]
+        }
     },
     "twig/extra-bundle": {
         "version": "v3.23.0"

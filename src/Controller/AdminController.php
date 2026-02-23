@@ -476,4 +476,54 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
             'reponse' => $reponse,
         ]);
     }
+
+    // ==================== RECHERCHE AJAX QUESTIONS ====================
+    #[Route('/admin/questions/search', name: 'admin_questions_search_ajax', methods: ['GET'])]
+    public function searchQuestionsAjax(Request $request, QuestionRepository $questionRepo): Response
+    {
+        $categorieFilter = $request->query->get('categorie', 'all');
+        $searchKeyword   = trim($request->query->get('search', ''));
+        $sortBy          = $request->query->get('sortBy', 'ordre');
+        $sortOrder       = $request->query->get('sortOrder', 'ASC');
+
+        // Validation du tri
+        $allowedSortFields = ['ordre', 'texte', 'categorie', 'id'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'ordre';
+        }
+        $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+
+        // Construction de la requête avec QueryBuilder
+        $qb = $questionRepo->createQueryBuilder('q');
+
+        // Filtre par recherche
+        if (!empty($searchKeyword)) {
+            $qb->where('q.texte LIKE :keyword')
+               ->orWhere('q.categorie LIKE :keyword')
+               ->setParameter('keyword', '%' . $searchKeyword . '%');
+        }
+
+        // Filtre par catégorie
+        if ($categorieFilter !== 'all') {
+            if (!empty($searchKeyword)) {
+                $qb->andWhere('q.categorie = :categorie');
+            } else {
+                $qb->where('q.categorie = :categorie');
+            }
+            $qb->setParameter('categorie', $categorieFilter);
+        }
+
+        // Tri
+        $qb->orderBy('q.' . $sortBy, $sortOrder);
+
+        $questions = $qb->getQuery()->getResult();
+
+        return $this->render('admin/_questions_list.html.twig', [
+            'questions' => $questions,
+            'searchKeyword' => $searchKeyword,
+            'categorieFilter' => $categorieFilter,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+        ]);
+    }
 }
