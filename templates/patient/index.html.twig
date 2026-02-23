@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="patient-container">
-
   <h2>Bienvenue {{ app.user.nom }} {{ app.user.prenom }}</h2>
 
   <div class="icons-grid">
@@ -36,9 +35,10 @@
       <i class="fas fa-tags"></i>
       <span>Types RDV</span>
     </a>
+
     <a href="{{ path('app_rendez_vous_historique') }}" class="icon-box">
-        <i class="fas fa-history"></i>
-        <span>Historique RDV</span>
+      <i class="fas fa-history"></i>
+      <span>Historique RDV</span>
     </a>
 
     {# Icône Test #}
@@ -47,15 +47,24 @@
       <span>Test</span>
     </a>
 
-    <div class="icon-box">
+    {# Icône Chat IA (nouveau lien vers le chatbot Gemini) #}
+    <a href="{{ path('patient_chatbot') }}" class="icon-box">
       <i class="fas fa-comments"></i>
-      <span>Chat</span>
-    </div>
+      <span>Chat IA</span>
+    </a>
 
-    <div class="icon-box">
-      <i class="fas fa-envelope"></i>
-      <span>Messagerie</span>
-    </div>
+    {# Icône Messagerie - vérifie si contact existe #}
+    {% if contact %}
+      <a href="{{ path('chat', {'id': contact.id}) }}" class="icon-box">
+        <i class="fas fa-envelope"></i>
+        <span>Messagerie</span>
+      </a>
+    {% else %}
+      <div class="icon-box disabled">
+        <i class="fas fa-envelope"></i>
+        <span>Aucun psychologue</span>
+      </div>
+    {% endif %}
 
     <a href="{{ path('app_journal_index') }}" class="icon-box">
       <i class="fas fa-pen"></i>
@@ -66,16 +75,16 @@
 
 <style>
 .patient-container {
-    background-color: rgba(221, 245, 131, 0.27);
-    border-radius: 25px;
-    padding: 30px 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 auto;
+  background-color: rgba(221, 245, 131, 0.27);
+  border-radius: 25px;
+  padding: 30px 20px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
 }
 
 .icons-grid {
@@ -113,6 +122,12 @@
 
 .icon-box span {
   font-weight: 600;
+  text-align: center;
+}
+
+.icon-box.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
 {% endblock %}

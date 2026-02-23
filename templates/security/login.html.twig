@@ -20,28 +20,27 @@
       <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
     {% endif %}
 
-    <p class="text-muted small text-center mb-3">Connexion <strong>Patient</strong> ou <strong>Psychologue</strong></p>
-
     <form method="post" class="login-form">
-      <div class="mb-3">
-        <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ last_username }}" autocomplete="email">
+      <div class="options">
+        <button type="submit" name="role" value="patient" class="option">Patient</button>
+        <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
+        <button type="submit" name="role" value="admin" class="option">Admin</button>
       </div>
-      <div class="mb-3">
-        <input type="password" name="password" class="form-control" placeholder="Mot de passe" required autocomplete="current-password">
-      </div>
-      <button type="submit" class="btn btn-success w-100 py-2">Se connecter</button>
 
-      <div class="mb-3 text-center mt-2">
+      <div class="mb-3 mt-3">
+        <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ last_username }}">
+      </div>
+      <div class="mb-3">
+        <input type="password" name="password" class="form-control" placeholder="Mot de passe" required>
+      </div>
+
+      <div class="mb-3 text-center">
         <a href="{{ path('app_forgot_password') }}" class="small text-muted">Mot de passe oublié ?</a>
       </div>
 
       <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-    </form>
 
-    <hr class="my-3">
-    <p class="small text-center mb-0">
-      <a href="{{ path('admin_login') }}" class="text-muted">Espace administrateur</a>
-    </p>
+    </form>
   </section>
 </main>
 
@@ -73,6 +72,29 @@ body {
     gap: 20px;
     width: 100%;
 }
-.btn-success { border-radius: 22px; font-weight: 600; }
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.option {
+    background: white;
+    border: 2px solid #c5df43;
+    padding: 14px;
+    border-radius: 22px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #333;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.option:hover {
+    background-color: #f4fbe4;
+}
+.option.selected {
+    background-color: #c5df43;
+    color: white;
+}
 </style>
 {% endblock %}

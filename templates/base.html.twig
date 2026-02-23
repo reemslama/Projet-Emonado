@@ -26,28 +26,15 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ path('app_home') }}">EmoNado</a>
+            <a class="navbar-brand" href="{{ path('home') }}">EmoNado</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ path('app_home') }}">Accueil</a></li>
-                    {% if app.user %}
-                        {% if is_granted('ROLE_PATIENT') %}
-                            <li class="nav-item"><a class="nav-link" href="{{ path('patient_index') }}"><i class="fas fa-user"></i> Mon espace</a></li>
-                        {% elseif is_granted('ROLE_PSYCHOLOGUE') %}
-                            <li class="nav-item"><a class="nav-link" href="{{ path('psychologue_index') }}"><i class="fas fa-user-md"></i> Tableau de bord</a></li>
-                        {% elseif is_granted('ROLE_ADMIN') %}
-                            <li class="nav-item"><a class="nav-link" href="{{ path('admin_dashboard') }}"><i class="fas fa-cog"></i> Administration</a></li>
-                        {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Connexion</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a></li>
-                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="{{ path('home') }}">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Connexion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a></li>
                 </ul>
             </div>
         </div>
