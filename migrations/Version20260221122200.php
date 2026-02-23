@@ -20,6 +20,18 @@ final class Version20260221122200 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        // Drop existing tables if they exist (to recreate with current schema)
+        $this->addSql('DROP TABLE IF EXISTS analyse_emotionnelle');
+        $this->addSql('DROP TABLE IF EXISTS consultation');
+        $this->addSql('DROP TABLE IF EXISTS reponse');
+        $this->addSql('DROP TABLE IF EXISTS rendez_vous');
+        $this->addSql('DROP TABLE IF EXISTS journal');
+        $this->addSql('DROP TABLE IF EXISTS dossier_medical');
+        $this->addSql('DROP TABLE IF EXISTS question');
+        $this->addSql('DROP TABLE IF EXISTS type_rendez_vous');
+        $this->addSql('DROP TABLE IF EXISTS `user`');
+        $this->addSql('DROP TABLE IF EXISTS messenger_messages');
+        // Now create tables with new schema
         $this->addSql('CREATE TABLE analyse_emotionnelle (id INT AUTO_INCREMENT NOT NULL, emotion_principale VARCHAR(255) NOT NULL, niveau_stress INT NOT NULL, score_bien_etre INT NOT NULL, resume_ia LONGTEXT DEFAULT NULL, date_analyse DATETIME NOT NULL, journal_id INT NOT NULL, UNIQUE INDEX UNIQ_DE8A3A10478E8802 (journal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE consultation (id INT AUTO_INCREMENT NOT NULL, date DATE NOT NULL, compte_rendu LONGTEXT NOT NULL, created_at DATETIME NOT NULL, dossier_id INT NOT NULL, psychologue_id INT DEFAULT NULL, INDEX IDX_964685A6611C0C56 (dossier_id), INDEX IDX_964685A6465459D3 (psychologue_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE dossier_medical (id INT AUTO_INCREMENT NOT NULL, historique_medical LONGTEXT DEFAULT NULL, notes_psychologiques LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, patient_id INT NOT NULL, INDEX IDX_3581EE626B899279 (patient_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');

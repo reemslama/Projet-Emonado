@@ -5,8 +5,8 @@ namespace App\Controller;
 use App\Entity\TestAdaptatif;
 use App\Repository\TestAdaptatifRepository;
 use App\Service\ScoreCalculatorService;
-use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Knp\Snappy\Pdf;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,15 +14,38 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/test/pdf')]
 class TestPdfController extends AbstractController
 {
-    private Pdf $knpSnappyPdf;
     private ScoreCalculatorService $scoreCalculator;
 
     public function __construct(
-        Pdf $knpSnappyPdf,
         ScoreCalculatorService $scoreCalculator
     ) {
-        $this->knpSnappyPdf = $knpSnappyPdf;
         $this->scoreCalculator = $scoreCalculator;
+    }
+
+    /**
+     * Générer un PDF avec Dompdf
+     */
+    private function generatePdfFromHtml(string $html, string $filename): Response
+    {
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isPhpEnabled', true);
+        $options->set('defaultFont', 'Helvetica');
+        $options->set('dpi', 150);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return new Response(
+            $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]
+        );
     }
 
     /**
@@ -65,17 +88,7 @@ class TestPdfController extends AbstractController
             $test->getDateDebut()->format('Y-m-d')
         );
 
-        return new PdfResponse(
-            $this->knpSnappyPdf->getOutputFromHtml($html, [
-                'encoding' => 'UTF-8',
-                'enable-local-file-access' => true,
-                'margin-top' => 10,
-                'margin-right' => 10,
-                'margin-bottom' => 10,
-                'margin-left' => 10,
-            ]),
-            $filename
-        );
+        return $this->generatePdfFromHtml($html, $filename);
     }
 
     /**
@@ -162,18 +175,6 @@ class TestPdfController extends AbstractController
             (new \DateTimeImmutable())->format('Y-m-d')
         );
 
-        return new PdfResponse(
-            $this->knpSnappyPdf->getOutputFromHtml($html, [
-                'encoding' => 'UTF-8',
-                'enable-local-file-access' => true,
-                'margin-top' => 10,
-                'margin-right' => 10,
-                'margin-bottom' => 10,
-                'margin-left' => 10,
-                'orientation' => 'Portrait',
-                'page-size' => 'A4',
-            ]),
-            $filename
-        );
+        return $this->generatePdfFromHtml($html, $filename);
     }
 }
