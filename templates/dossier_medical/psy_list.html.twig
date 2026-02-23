@@ -20,18 +20,24 @@
         </div>
     {% endfor %}
 
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle"></i>
+        Les statistiques sont calculées à partir du <strong>journal du patient</strong> (humeurs). Les cas <strong>urgents</strong> (humeur SOS ou plusieurs « en colère ») sont affichés en premier et en rouge.
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body">
             {% if patients|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>Patient</th>
+                                <th>État / Statistiques</th>
+                                <th>Dernière consultation</th>
+                                <th>Niveau de risque</th>
                                 <th>Email</th>
                                 <th>Téléphone</th>
-                                <th>Date de création</th>
-                                <th>Dernière mise à jour</th>
                                 <th>Consultations</th>
                                 <th>Actions</th>
                             </tr>
@@ -39,14 +45,59 @@
                         <tbody>
                             {% for patient in patients %}
                                 {% set dossier = dossiers[patient.id] ?? null %}
-                                <tr>
+                                {% set stats = stats_par_patient[patient.id] ?? null %}
+                                {% set is_urgent = stats and stats.urgent %}
+                                <tr class="{{ is_urgent ? 'table-danger urgent-row' : '' }}">
                                     <td>
+                                        {% if is_urgent %}
+                                            <span class="badge bg-danger me-1"><i class="fas fa-exclamation-triangle"></i> Urgent</span>
+                                        {% endif %}
                                         <strong>{{ patient.nom }} {{ patient.prenom }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if stats %}
+                                            <small class="d-block mb-1">
+                                                <span class="text-muted">Entrées journal:</span>
+                                                <strong>{{ stats.nb_journaux }}</strong>
+                                            </small>
+                                            <small class="d-block">
+                                                <span class="text-muted">Humeurs:</span>
+                                                {% for humeur, count in stats.stats_humeurs %}
+                                                    {% if count > 0 %}
+                                                        <span class="badge
+                                                            {% if humeur == 'heureux' %}bg-success
+                                                            {% elseif humeur == 'calme' %}bg-info
+                                                            {% elseif humeur == 'SOS' %}bg-danger
+                                                            {% else %}bg-warning text-dark{% endif %}">
+                                                            {{ humeur }}: {{ count }}
+                                                        </span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </small>
+                                            {% if stats.nb_journaux == 0 %}
+                                                <small class="text-muted">Aucune entrée de journal</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <small class="text-muted">—</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set derniere = derniere_consultation_par_patient[patient.id] ?? null %}
+                                        {% if derniere and derniere.date %}
+                                            {{ derniere.date|date('d/m/Y') }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if is_urgent %}
+                                            <span class="badge bg-danger">Élevé</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Normal</span>
+                                        {% endif %}
                                     </td>
                                     <td>{{ patient.email }}</td>
                                     <td>{{ patient.telephone ?? 'N/A' }}</td>
-                                    <td>{% if dossier %}{{ dossier.createdAt|date('d/m/Y H:i') }}{% else %}-{% endif %}</td>
-                                    <td>{% if dossier %}{{ dossier.updatedAt ? dossier.updatedAt|date('d/m/Y H:i') : 'Jamais' }}{% else %}-{% endif %}</td>
                                     <td>
                                         {% if dossier %}
                                             <span class="badge bg-info">{{ dossier.consultations|length }}</span>
@@ -93,6 +144,13 @@
     .badge {
         font-size: 0.9em;
         padding: 0.4em 0.6em;
+    }
+    .urgent-row {
+        background-color: #f8d7da !important;
+        border-left: 4px solid #dc3545;
+    }
+    .urgent-row:hover {
+        background-color: #f5c2c7 !important;
     }
 </style>
 {% endblock %}

@@ -72,4 +72,31 @@ class JournalRepository extends ServiceEntityRepository
 
         return $stats;
     }
+
+    /**
+     * Données pour graphique d'évolution des humeurs (journal) sur les N derniers jours.
+     * Retourne une liste [ ['date' => 'Y-m-d', 'score' => 1-4, 'humeur' => string], ... ] triée par date.
+     * Score: SOS=1, en colere=2, calme=3, heureux=4.
+     */
+    public function getEvolutionForUser(User $user, int $days = 90): array
+    {
+        $since = (new \DateTime())->modify("-{$days} days");
+        $qb = $this->createQueryBuilder('j')
+            ->andWhere('j.user = :user')
+            ->andWhere('j.dateCreation >= :since')
+            ->setParameter('user', $user)
+            ->setParameter('since', $since)
+            ->orderBy('j.dateCreation', 'ASC');
+        $journals = $qb->getQuery()->getResult();
+        $scores = ['SOS' => 1, 'en colere' => 2, 'calme' => 3, 'heureux' => 4];
+        $out = [];
+        foreach ($journals as $j) {
+            $out[] = [
+                'date' => $j->getDateCreation()->format('Y-m-d'),
+                'score' => $scores[$j->getHumeur()] ?? 2,
+                'humeur' => $j->getHumeur(),
+            ];
+        }
+        return $out;
+    }
 }

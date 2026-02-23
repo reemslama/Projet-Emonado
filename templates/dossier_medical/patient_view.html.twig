@@ -25,6 +25,33 @@
         </div>
     {% endfor %}
 
+    {% if evolution_message %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-chart-line"></i> {{ evolution_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    {# Rappel et préparation prochaine consultation #}
+    <div class="card shadow-sm mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-bell"></i> Rappel et préparation de ma prochaine consultation</h5>
+        </div>
+        <div class="card-body">
+            {% if derniere_consultation and derniere_consultation.date %}
+                <p class="mb-2"><strong>Dernière consultation :</strong> {{ derniere_consultation.date|date('d/m/Y') }}
+                    {% if derniere_consultation.psychologue %} avec {{ derniere_consultation.psychologue.prenom }} {{ derniere_consultation.psychologue.nom }}{% endif %}.</p>
+            {% else %}
+                <p class="mb-2 text-muted">Aucune consultation enregistrée pour le moment.</p>
+            {% endif %}
+            <form method="post" action="{{ path('patient_save_notes_consultation') }}">
+                <label class="form-label">Points que je souhaite aborder à ma prochaine consultation</label>
+                <textarea name="notes_prochaine_consultation" class="form-control" rows="3" placeholder="Notez ici les sujets ou questions que vous voulez aborder...">{{ notes_prochaine_consultation|default('') }}</textarea>
+                <button type="submit" class="btn btn-primary mt-2"><i class="fas fa-save"></i> Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Statistiques Rapides -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
@@ -70,6 +97,22 @@
             </div>
         </div>
     </div>
+
+    {% if chart_evolution|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Mon évolution (journal personnel)</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Évolution de votre humeur (1 = SOS, 2 = en colère, 3 = calme, 4 = heureux) sur les 3 derniers mois.</p>
+                    <canvas id="chartEvolutionPatient" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="row">
         <!-- Informations Personnelles -->
@@ -192,12 +235,19 @@
                             <small class="form-text text-muted">La date doit être aujourd'hui ou dans le futur</small>
                         </div>
                         <div class="col-md-8 mb-3">
-                            <label class="form-label">
-                                <i class="fas fa-sticky-note"></i> Compte rendu <span class="text-danger">*</span>
-                            </label>
-                            <textarea name="compte_rendu" class="form-control" rows="4"
-                                      placeholder="Compte rendu (minimum 10 caractères)&#10;- Raison de la consultation&#10;- Symptômes observés"></textarea>
-                            <small class="form-text text-muted">Le compte rendu est obligatoire (minimum 10 caractères)</small>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label mb-0">
+                                    <i class="fas fa-sticky-note"></i> Compte rendu <span class="text-danger">*</span>
+                                    <span class="badge bg-secondary ms-2">Écrire ou parler</span>
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnVoiceDossier" title="Cliquer pour parler (saisie vocale)">
+                                    <i class="fas fa-microphone"></i> Parler
+                                </button>
+                            </div>
+                            <textarea name="compte_rendu" id="compte_rendu_dossier" class="form-control" rows="4"
+                                      placeholder="Compte rendu (minimum 10 caractères) — ou cliquez sur « Parler » et dictez.&#10;- Raison de la consultation&#10;- Symptômes observés"></textarea>
+                            <small class="form-text text-muted">Le compte rendu est obligatoire (minimum 10 caractères). Vous pouvez écrire ou utiliser la saisie vocale.</small>
+                            <div id="voiceStatusDossier" class="small mt-1 text-muted" style="display: none;"></div>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-success">
@@ -272,13 +322,31 @@
                             </div>
                             {% if consultation.compteRendu %}
                                 <div class="mt-2 p-2 bg-light rounded">
-                                    <strong><i class="fas fa-sticky-note"></i> Notes de consultation:</strong>
+                                    <strong><i class="fas fa-sticky-note"></i> Compte rendu:</strong>
                                     <p class="mb-0 mt-1">{{ consultation.compteRendu|nl2br }}</p>
                                 </div>
                             {% else %}
                                 <p class="mb-1 mt-2 text-muted">
                                     <i class="fas fa-info-circle"></i> Aucune note disponible pour cette consultation.
                                 </p>
+                            {% endif %}
+                            {% if consultation.prescriptions|length > 0 %}
+                                <div class="mt-2 p-2 bg-white border rounded">
+                                    <strong class="small"><i class="fas fa-pills"></i> Ordonnance(s)</strong>
+                                    {% for p in consultation.prescriptions %}
+                                        <div class="small mt-1">{{ p.contenu|nl2br }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if consultation.documents|length > 0 %}
+                                <div class="mt-2 p-2 bg-white border rounded">
+                                    <strong class="small"><i class="fas fa-paperclip"></i> Documents</strong>
+                                    <ul class="mb-0 small">
+                                        {% for doc in consultation.documents %}
+                                            <li><a href="{{ doc.pathOrUrl }}" target="_blank" rel="noopener"><i class="fas fa-download"></i> {{ doc.nom }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             {% endif %}
                             <small class="text-muted d-block mt-2">
                                 <i class="fas fa-clock"></i> Consultation enregistrée le {{ consultation.createdAt|date('d/m/Y à H:i') }}
@@ -398,5 +466,111 @@ function filterConsultations() {
         }
     });
 }
+
+// Saisie vocale pour le compte rendu (dossier médical)
+(function() {
+    const textarea = document.getElementById('compte_rendu_dossier');
+    const btn = document.getElementById('btnVoiceDossier');
+    const statusEl = document.getElementById('voiceStatusDossier');
+    if (!textarea || !btn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (statusEl) { statusEl.textContent = 'La saisie vocale n\'est pas supportée par ce navigateur (Chrome, Edge recommandés).'; statusEl.style.display = 'block'; }
+        btn.disabled = true;
+        btn.title = 'Saisie vocale non disponible';
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'fr-FR';
+
+    btn.addEventListener('click', function() {
+        if (btn.classList.contains('recording')) {
+            recognition.stop();
+            return;
+        }
+        btn.classList.add('recording');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = '<i class="fas fa-stop"></i> Arrêter';
+        if (statusEl) { statusEl.textContent = 'Écoute en cours… Parlez.'; statusEl.style.display = 'block'; }
+        recognition.start();
+    });
+
+    recognition.onresult = function(event) {
+        let final = '';
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                final += transcript;
+            } else {
+                interim += transcript;
+            }
+        }
+        const cursor = textarea.selectionStart;
+        const before = textarea.value.substring(0, cursor);
+        const after = textarea.value.substring(cursor);
+        textarea.value = before + (final || interim) + after;
+        textarea.selectionStart = textarea.selectionEnd = before.length + (final || interim).length;
+    };
+
+    recognition.onend = function() {
+        btn.classList.remove('recording', 'btn-danger');
+        btn.classList.add('btn-outline-primary');
+        btn.innerHTML = '<i class="fas fa-microphone"></i> Parler';
+        if (statusEl) { statusEl.textContent = 'Saisie vocale arrêtée.'; }
+    };
+
+    recognition.onerror = function(event) {
+        if (statusEl) { statusEl.textContent = 'Erreur: ' + (event.error || 'reconnaissance vocale'); }
+    };
+})();
 </script>
+
+{% if chart_evolution|length > 0 %}
+<script type="application/json" id="chartEvolutionPatientData">{{ chart_evolution|json_encode|raw }}</script>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if chart_evolution|length > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function() {
+    var dataEl = document.getElementById('chartEvolutionPatientData');
+    var canvas = document.getElementById('chartEvolutionPatient');
+    if (!dataEl || !canvas) return;
+    var chartData = JSON.parse(dataEl.textContent);
+    var labels = chartData.map(function(d) { return d.date; });
+    var scores = chartData.map(function(d) { return d.score; });
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Humeur (1-4)',
+                data: scores,
+                borderColor: 'rgb(23, 162, 184)',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                fill: true,
+                tension: 0.2,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { min: 0.5, max: 4.5, ticks: { stepSize: 1, callback: function(v) { var L = {'1':'SOS','2':'Colère','3':'Calme','4':'Heureux'}; return L[v] || v; } } },
+                x: { ticks: { maxRotation: 45, maxTicksLimit: 15 } }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

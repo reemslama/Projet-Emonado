@@ -25,6 +25,14 @@
         </div>
     {% endfor %}
 
+    {% if dossier and (stats_humeurs['SOS'] ?? 0) > 0 %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Alerte détresse :</strong> Le journal du patient contient au moins une entrée « SOS ». Privilégier un contact ou une consultation.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
     {% if not dossier %}
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-success text-white">
@@ -49,6 +57,97 @@
             </div>
         </div>
     {% else %}
+    <!-- Statistiques synthèse de l'état du patient -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Statistiques - État du patient</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-book fa-2x text-primary mb-2"></i>
+                                    <h4 class="mb-0">{{ journals|length }}</h4>
+                                    <small class="text-muted">Entrées de journal</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-brain fa-2x text-info mb-2"></i>
+                                    <h4 class="mb-0">{{ analyses|length }}</h4>
+                                    <small class="text-muted">Analyses émotionnelles</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-heartbeat fa-2x text-danger mb-2"></i>
+                                    <h4 class="mb-0">{{ stats_analyses.moyenne_stress|default('-') }}</h4>
+                                    <small class="text-muted">Stress moyen (0-10)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-smile fa-2x text-success mb-2"></i>
+                                    <h4 class="mb-0">{{ stats_analyses.moyenne_bien_etre|default('-') }}</h4>
+                                    <small class="text-muted">Bien-être moyen (0-10)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% set total_humeurs = (stats_humeurs.heureux ?? 0) + (stats_humeurs.calme ?? 0) + (stats_humeurs.SOS ?? 0) + (stats_humeurs['en colere'] ?? 0) %}
+                    {% if total_humeurs > 0 %}
+                    <hr class="my-3">
+                    <h6 class="mb-2"><i class="fas fa-pie-chart"></i> Répartition des humeurs</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for humeur, count in stats_humeurs %}
+                            {% if count > 0 %}
+                                <span class="badge 
+                                    {% if humeur == 'heureux' %}bg-success
+                                    {% elseif humeur == 'calme' %}bg-info
+                                    {% elseif humeur == 'SOS' %}bg-danger
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ humeur }}: {{ count }}
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if stats_analyses.emotions_frequentes|length > 0 %}
+                    <hr class="my-3">
+                    <h6 class="mb-2"><i class="fas fa-heart"></i> Émotions les plus fréquentes</h6>
+                    <p class="mb-0 text-muted">{{ stats_analyses.emotions_frequentes|join(', ') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Graphique d'évolution des émotions (journal) avec dates de consultations #}
+    {% if chart_evolution|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution des émotions (journal) et dates des consultations</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Score d'humeur (1 = SOS, 2 = en colère, 3 = calme, 4 = heureux). Les traits verticaux indiquent les consultations.</p>
+                    <canvas id="chartEvolutionPsy" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
         <!-- Informations Patient -->
         <div class="col-md-4 mb-4">
@@ -64,6 +163,9 @@
                     <p><strong>Sexe:</strong> {{ patient.sexe ?? 'N/A' }}</p>
                     {% if patient.dateNaissance %}
                         <p><strong>Date de naissance:</strong> {{ patient.dateNaissance|date('d/m/Y') }}</p>
+                        {% if age is defined and age is not null %}
+                            <p><strong>Âge:</strong> {{ age }} ans</p>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -80,12 +182,27 @@
                         <input type="hidden" name="action" value="update_dossier">
                         <div class="mb-3">
                             <label class="form-label">Historique médical <span class="text-danger">*</span></label>
-                            <textarea name="historique_medical" class="form-control" rows="6" 
+                            <textarea name="historique_medical" class="form-control" rows="4" 
                                       placeholder="Historique médical (minimum 10 caractères)...">{{ dossier.historiqueMedical ?? '' }}</textarea>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Diagnostic</label>
+                            <textarea name="diagnostic" class="form-control" rows="2" 
+                                      placeholder="Diagnostic...">{{ dossier.diagnostic ?? '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Traitement de fond</label>
+                            <textarea name="traitement_fond" class="form-control" rows="2" 
+                                      placeholder="Traitement de fond...">{{ dossier.traitementFond ?? '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Objectifs à long terme</label>
+                            <textarea name="objectifs_long_terme" class="form-control" rows="2" 
+                                      placeholder="Objectifs à long terme...">{{ dossier.objectifsLongTerme ?? '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Notes psychologiques <span class="text-danger">*</span></label>
-                            <textarea name="notes_psychologiques" class="form-control" rows="8" 
+                            <textarea name="notes_psychologiques" class="form-control" rows="4" 
                                       placeholder="Notes psychologiques (minimum 10 caractères)...">{{ dossier.notesPsychologiques ?? '' }}</textarea>
                         </div>
                         <button type="submit" class="btn btn-info">
@@ -101,11 +218,14 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Consultations ({{ dossier.consultations|length }})</h5>
+            <a href="{{ path('psy_dossier_timeline', {patientId: patient.id}) }}" class="btn btn-sm btn-light">
+                <i class="fas fa-stream"></i> Frise chronologique
+            </a>
         </div>
         <div class="card-body">
             <!-- Formulaire d'ajout de consultation -->
             <div class="mb-4 p-3 bg-light rounded">
-                <h6 class="mb-3">Ajouter une nouvelle consultation</h6>
+                <h6 class="mb-3"><i class="fas fa-file-medical-alt"></i> Nouveau compte-rendu (template pré-rempli)</h6>
                 <form method="post" action="{{ path('psy_dossier_update', {patientId: patient.id}) }}">
                     <input type="hidden" name="action" value="add_consultation">
                     <div class="row">
@@ -113,16 +233,46 @@
                             <label class="form-label">Date de consultation <span class="text-danger">*</span></label>
                             <input type="date" name="date_consult" class="form-control"
                                    value="{{ "now"|date("Y-m-d") }}">
-                            <small class="text-muted">La date doit être aujourd'hui ou dans le futur</small>
                         </div>
-                        <div class="col-md-8 mb-3">
-                            <label class="form-label">Compte rendu <span class="text-danger">*</span></label>
-                            <textarea name="compte_rendu" class="form-control" rows="4"
-                                      placeholder="Compte rendu de la consultation (minimum 10 caractères)..."></textarea>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Humeur du patient</label>
+                            <select name="humeur_patient" class="form-select" id="humeur_patient_select">
+                                <option value="">— Choisir —</option>
+                                <option value="heureux">Heureux</option>
+                                <option value="calme">Calme</option>
+                                <option value="en colere">En colère</option>
+                                <option value="SOS">SOS</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sujet abordé</label>
+                        <input type="text" name="sujet_aborde" class="form-control" id="sujet_aborde_input"
+                               placeholder="Ex: anxiété, sommeil, travail...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observations</label>
+                        <textarea name="observations" class="form-control" rows="2" id="observations_input"
+                                  placeholder="Observations cliniques..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label mb-0">Compte rendu <span class="text-danger">*</span>
+                                <span class="badge bg-secondary ms-2">Écrire ou parler</span>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnTemplateCR" title="Remplir avec le template">
+                                <i class="fas fa-magic"></i> Template
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnVoicePsy" title="Saisie vocale">
+                                <i class="fas fa-microphone"></i> Parler
+                            </button>
+                        </div>
+                        <textarea name="compte_rendu" id="compte_rendu_psy" class="form-control" rows="5"
+                                  placeholder="Compte rendu (minimum 10 caractères). Utilisez « Template » pour pré-remplir avec humeur, sujet et observations."></textarea>
+                        <div id="voiceStatusPsy" class="small mt-1 text-muted" style="display: none;"></div>
+                    </div>
                     <button type="submit" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Ajouter la consultation
+                        <i class="fas fa-plus"></i> Enregistrer la consultation
                     </button>
                 </form>
             </div>
@@ -147,12 +297,60 @@
                                     {% endif %}
                                 </small>
                             </div>
+                            {% if consultation.humeurPatient or consultation.sujetAborde or consultation.observations %}
+                                <div class="small mb-2">
+                                    {% if consultation.humeurPatient %}
+                                        <span class="badge bg-secondary me-1">Humeur: {{ consultation.humeurPatient }}</span>
+                                    {% endif %}
+                                    {% if consultation.sujetAborde %}
+                                        <span class="text-muted">Sujet: {{ consultation.sujetAborde }}</span>
+                                    {% endif %}
+                                    {% if consultation.observations %}
+                                        <div class="mt-1 text-muted">Observations: {{ consultation.observations }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                             {% if consultation.compteRendu %}
-                                <p class="mb-1 mt-2">{{ consultation.compteRendu }}</p>
+                                <p class="mb-1 mt-2">{{ consultation.compteRendu|nl2br }}</p>
                             {% else %}
                                 <p class="mb-1 mt-2 text-muted">Aucun compte rendu.</p>
                             {% endif %}
-                            <small class="text-muted">
+                            {% if consultation.prescriptions|length > 0 %}
+                                <div class="mt-2 p-2 bg-white border rounded">
+                                    <strong class="small"><i class="fas fa-pills"></i> Prescriptions</strong>
+                                    {% for p in consultation.prescriptions %}
+                                        <div class="small mt-1">{{ p.contenu|nl2br }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if consultation.documents|length > 0 %}
+                                <div class="mt-2 p-2 bg-white border rounded">
+                                    <strong class="small"><i class="fas fa-paperclip"></i> Documents</strong>
+                                    <ul class="mb-0 small">
+                                        {% for doc in consultation.documents %}
+                                            <li><a href="{{ doc.pathOrUrl }}" target="_blank" rel="noopener">{{ doc.nom }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#presc-{{ consultation.id }}">Prescrire</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#doc-{{ consultation.id }}">Lier un document</button>
+                            </div>
+                            <div class="collapse mt-2" id="presc-{{ consultation.id }}">
+                                <form method="post" action="{{ path('psy_consultation_prescription', {id: consultation.id}) }}" class="mb-2">
+                                    <textarea name="contenu_prescription" class="form-control form-control-sm" rows="2" placeholder="Contenu de la prescription..."></textarea>
+                                    <button type="submit" class="btn btn-sm btn-success mt-1">Enregistrer</button>
+                                </form>
+                            </div>
+                            <div class="collapse mt-2" id="doc-{{ consultation.id }}">
+                                <form method="post" action="{{ path('psy_consultation_document', {id: consultation.id}) }}">
+                                    <input type="text" name="nom_document" class="form-control form-control-sm mb-1" placeholder="Ex: Compte-rendu test - 15/10/2023">
+                                    <input type="url" name="url_document" class="form-control form-control-sm mb-1" placeholder="URL du document">
+                                    <button type="submit" class="btn btn-sm btn-primary">Lier</button>
+                                </form>
+                            </div>
+                            <small class="text-muted d-block mt-2">
                                 Créée le {{ consultation.createdAt|date('d/m/Y à H:i') }}
                             </small>
                         </div>
@@ -161,6 +359,98 @@
             {% else %}
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i> Aucune consultation enregistrée pour ce patient.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Journaux intimes (tests / écriture) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-book-open"></i> Journaux intimes ({{ journals|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if journals|length > 0 %}
+                <div class="list-group">
+                    {% for journal in journals %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <span class="badge 
+                                        {% if journal.humeur == 'heureux' %}bg-success
+                                        {% elseif journal.humeur == 'calme' %}bg-info
+                                        {% elseif journal.humeur == 'SOS' %}bg-danger
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {{ journal.humeur }}
+                                    </span>
+                                    {{ journal.dateCreation|date('d/m/Y à H:i') }}
+                                </h6>
+                            </div>
+                            <p class="mb-1 mt-2">{{ journal.contenu }}</p>
+                            {% if journal.analysisEmotionnelle %}
+                                <div class="mt-2 p-2 bg-light rounded small">
+                                    <strong><i class="fas fa-brain"></i> Analyse associée:</strong>
+                                    Stress: {{ journal.analysisEmotionnelle.niveauStress }}/10 |
+                                    Bien-être: {{ journal.analysisEmotionnelle.scoreBienEtre }}/10 |
+                                    Émotion: {{ journal.analysisEmotionnelle.emotionPrincipale }}
+                                    {% if journal.analysisEmotionnelle.resumeIA %}
+                                        — {{ journal.analysisEmotionnelle.resumeIA }}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune entrée de journal pour ce patient.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analyses émotionnelles / Tests -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-brain"></i> Analyses émotionnelles / Tests ({{ analyses|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if analyses|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Émotion principale</th>
+                                <th>Stress</th>
+                                <th>Bien-être</th>
+                                <th>Résumé IA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for analyse in analyses %}
+                                <tr>
+                                    <td>{{ analyse.dateAnalyse|date('d/m/Y H:i') }}</td>
+                                    <td><span class="badge bg-primary">{{ analyse.emotionPrincipale }}</span></td>
+                                    <td>
+                                        <span class="badge {% if analyse.niveauStress >= 7 %}bg-danger{% elseif analyse.niveauStress >= 4 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                            {{ analyse.niveauStress }}/10
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if analyse.scoreBienEtre >= 7 %}bg-success{% elseif analyse.scoreBienEtre >= 4 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                            {{ analyse.scoreBienEtre }}/10
+                                        </span>
+                                    </td>
+                                    <td>{{ (analyse.resumeIA ?? '-')|slice(0, 80) }}{% if (analyse.resumeIA ?? '')|length > 80 %}...{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune analyse émotionnelle enregistrée pour ce patient.
                 </div>
             {% endif %}
         </div>
@@ -192,4 +482,137 @@
         background-color: #f8f9fa !important;
     }
 </style>
+<script>
+// Saisie vocale pour le compte rendu (psychologue)
+(function() {
+    const textarea = document.getElementById('compte_rendu_psy');
+    const btn = document.getElementById('btnVoicePsy');
+    const statusEl = document.getElementById('voiceStatusPsy');
+    if (!textarea || !btn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (statusEl) { statusEl.textContent = 'Saisie vocale non supportée (Chrome, Edge).'; statusEl.style.display = 'block'; }
+        btn.disabled = true;
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'fr-FR';
+
+    btn.addEventListener('click', function() {
+        if (btn.classList.contains('recording')) {
+            recognition.stop();
+            return;
+        }
+        btn.classList.add('recording');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = '<i class="fas fa-stop"></i> Arrêter';
+        if (statusEl) { statusEl.textContent = 'Écoute… Parlez.'; statusEl.style.display = 'block'; }
+        recognition.start();
+    });
+
+    recognition.onresult = function(event) {
+        let final = '', interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const t = event.results[i][0].transcript;
+            if (event.results[i].isFinal) final += t; else interim += t;
+        }
+        const cur = textarea.selectionStart;
+        textarea.value = textarea.value.substring(0, cur) + (final || interim) + textarea.value.substring(cur);
+        textarea.selectionStart = textarea.selectionEnd = cur + (final || interim).length;
+    };
+
+    recognition.onend = function() {
+        btn.classList.remove('recording', 'btn-danger');
+        btn.classList.add('btn-outline-primary');
+        btn.innerHTML = '<i class="fas fa-microphone"></i> Parler';
+        if (statusEl) statusEl.textContent = 'Saisie vocale arrêtée.';
+    };
+
+    recognition.onerror = function(e) {
+        if (statusEl) statusEl.textContent = 'Erreur: ' + (e.error || '');
+    };
+
+    // Bouton Template : pré-remplit le compte rendu avec humeur, sujet, observations
+    var btnTemplate = document.getElementById('btnTemplateCR');
+    var humeurSelect = document.getElementById('humeur_patient_select');
+    var sujetInput = document.getElementById('sujet_aborde_input');
+    var observationsInput = document.getElementById('observations_input');
+    if (btnTemplate && textarea) {
+        btnTemplate.addEventListener('click', function() {
+            var humeur = (humeurSelect && humeurSelect.value) ? humeurSelect.value : '';
+            var sujet = (sujetInput && sujetInput.value) ? sujetInput.value.trim() : '';
+            var obs = (observationsInput && observationsInput.value) ? observationsInput.value.trim() : '';
+            var parts = [];
+            if (humeur) parts.push('Humeur du patient: ' + humeur);
+            if (sujet) parts.push('Sujet abordé: ' + sujet);
+            if (obs) parts.push('Observations: ' + obs);
+            parts.push('Compte rendu:');
+            var template = parts.join('\n') + (parts.length > 1 ? '\n\n' : ' ');
+            textarea.value = template;
+        });
+    }
+})();
+</script>
+
+{% if chart_evolution|length > 0 %}
+<script type="application/json" id="chartEvolutionData">{{ chart_evolution|json_encode|raw }}</script>
+<script type="application/json" id="consultationDatesData">{{ consultation_dates|json_encode|raw }}</script>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if chart_evolution|length > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function() {
+    var dataEl = document.getElementById('chartEvolutionData');
+    var datesEl = document.getElementById('consultationDatesData');
+    var canvas = document.getElementById('chartEvolutionPsy');
+    if (!dataEl || !datesEl || !canvas) return;
+    var chartData = JSON.parse(dataEl.textContent);
+    var consultationDates = JSON.parse(datesEl.textContent);
+    var labels = chartData.map(function(d) { return d.date; });
+    var scores = chartData.map(function(d) { return d.score; });
+    var consultSet = new Set(consultationDates);
+    var lineColors = scores.map(function(_, i) {
+        var d = labels[i];
+        return consultSet.has(d) ? 'rgba(220, 53, 69, 0.8)' : 'rgba(13, 110, 253, 0.8)';
+    });
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Score humeur (1-4)',
+                data: scores,
+                borderColor: 'rgb(13, 110, 253)',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.2,
+                pointBackgroundColor: lineColors,
+                pointBorderColor: lineColors,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { min: 0.5, max: 4.5, ticks: { stepSize: 1, callback: function(v) { var L = {'1':'SOS','2':'Colère','3':'Calme','4':'Heureux'}; return L[v] || v; } } },
+                x: { ticks: { maxRotation: 45, maxTicksLimit: 15 } }
+            },
+            plugins: {
+                legend: { display: true },
+                tooltip: { callbacks: { label: function(ctx) { return (ctx.raw + ' – ' + (chartData[ctx.dataIndex] && chartData[ctx.dataIndex].humeur ? chartData[ctx.dataIndex].humeur : '')); } } }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}
