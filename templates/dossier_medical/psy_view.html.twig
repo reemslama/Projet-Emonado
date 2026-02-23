@@ -131,6 +131,44 @@
         </div>
     </div>
 
+    {# Prédiction d'évolution IA #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-2 {% if prediction.tendance == 'amelioration' %}border-success{% elseif prediction.tendance == 'deterioration' %}border-danger{% else %}border-secondary{% endif %}">
+                <div class="card-header {% if prediction.tendance == 'amelioration' %}bg-success text-white{% elseif prediction.tendance == 'deterioration' %}bg-danger text-white{% else %}bg-secondary text-white{% endif %}">
+                    <h5 class="mb-0"><i class="fas fa-robot"></i> Prédiction d'évolution de l'état du patient</h5>
+                </div>
+                <div class="card-body">
+                    {% if prediction.message %}
+                        {% if prediction.score_predicted is not null and chart_evolution|length >= 3 %}
+                            <div class="mb-4">
+                                <p class="small text-muted mb-2">Évolution réelle (trait plein) et prédiction à 2 semaines (trait pointillé).</p>
+                                <canvas id="chartPrediction" height="180"></canvas>
+                            </div>
+                        {% endif %}
+                        <div class="mb-3">
+                            <p class="mb-2">{{ prediction.message }}</p>
+                            {% if prediction.score_predicted is not null %}
+                                <p class="mb-0 small text-muted">
+                                    <strong>Score prédit (2 semaines):</strong> {{ prediction.score_predicted }}
+                                    ({{ prediction.tendance == 'amelioration' ? 'Amélioration' : (prediction.tendance == 'deterioration' ? 'Détérioration' : 'Stable') }})
+                                    — Confiance du modèle : {{ prediction.confiance }}%
+                                </p>
+                            {% endif %}
+                        </div>
+                        {% if prediction.message_ia %}
+                            <div class="alert alert-light border">
+                                <i class="fas fa-magic text-primary"></i> <strong>Synthèse IA :</strong> {{ prediction.message_ia }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted mb-0">Aucune prédiction disponible.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     {# Graphique d'évolution des émotions (journal) avec dates de consultations #}
     {% if chart_evolution|length > 0 %}
     <div class="row mb-4">
@@ -563,11 +601,15 @@
 <script type="application/json" id="chartEvolutionData">{{ chart_evolution|json_encode|raw }}</script>
 <script type="application/json" id="consultationDatesData">{{ consultation_dates|json_encode|raw }}</script>
 {% endif %}
+{% if prediction.score_predicted is not null and chart_evolution|length >= 3 %}
+<script type="application/json" id="chartPredictionData">{{ chart_evolution|json_encode|raw }}</script>
+<script type="application/json" id="chartPredictionParams">{{ { score_predicted: prediction.score_predicted, tendance: prediction.tendance }|json_encode|raw }}</script>
+{% endif %}
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
-{% if chart_evolution|length > 0 %}
+{% if chart_evolution|length > 0 or (prediction.score_predicted is not null and chart_evolution|length >= 3) %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 (function() {
@@ -609,6 +651,76 @@
             plugins: {
                 legend: { display: true },
                 tooltip: { callbacks: { label: function(ctx) { return (ctx.raw + ' – ' + (chartData[ctx.dataIndex] && chartData[ctx.dataIndex].humeur ? chartData[ctx.dataIndex].humeur : '')); } } }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% if prediction.score_predicted is not null and chart_evolution|length >= 3 %}
+<script>
+(function() {
+    var dataEl = document.getElementById('chartPredictionData');
+    var paramsEl = document.getElementById('chartPredictionParams');
+    var canvas = document.getElementById('chartPrediction');
+    if (!dataEl || !paramsEl || !canvas) return;
+    var chartData = JSON.parse(dataEl.textContent);
+    var params = JSON.parse(paramsEl.textContent);
+    var realLen = chartData.length;
+    var labels = chartData.map(function(d) { return d.date; });
+    labels.push('+2 sem.');
+    var realScores = chartData.map(function(d) { return d.score; });
+    var lastScore = realScores[realLen - 1];
+    var predData = [];
+    for (var i = 0; i < realLen - 1; i++) predData.push(null);
+    predData.push(lastScore);
+    predData.push(params.score_predicted);
+    var lineColor = params.tendance === 'amelioration' ? 'rgb(25, 135, 84)' : (params.tendance === 'deterioration' ? 'rgb(220, 53, 69)' : 'rgb(108, 117, 125)');
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Historique',
+                    data: realScores.concat([null]),
+                    borderColor: 'rgb(13, 110, 253)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.08)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Prédiction (2 sem.)',
+                    data: predData,
+                    borderColor: lineColor,
+                    borderDash: [6, 4],
+                    tension: 0.2,
+                    pointRadius: function(ctx) { return ctx.dataIndex >= realLen - 1 ? 6 : 0; },
+                    pointBackgroundColor: lineColor,
+                    pointBorderColor: lineColor,
+                    pointStyle: function(ctx) { return ctx.dataIndex === realLen ? 'triangle' : 'circle'; }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { intersect: false, mode: 'index' },
+            scales: {
+                y: { min: 0.5, max: 4.5, ticks: { stepSize: 1, callback: function(v) { var L = {'1':'SOS','2':'Colère','3':'Calme','4':'Heureux'}; return L[v] || v; } } },
+                x: { ticks: { maxRotation: 45, maxTicksLimit: 12 } }
+            },
+            plugins: {
+                legend: { display: true },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.datasetIndex === 1 && ctx.dataIndex === realLen) return 'Prédiction: ' + ctx.raw;
+                            if (ctx.datasetIndex === 0 && chartData[ctx.dataIndex]) return ctx.raw + ' – ' + (chartData[ctx.dataIndex].humeur || '');
+                            return ctx.raw;
+                        }
+                    }
+                }
             }
         }
     });

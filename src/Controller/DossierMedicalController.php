@@ -10,6 +10,7 @@ use App\Entity\Prescription;
 use App\Repository\DossierMedicalRepository;
 use App\Repository\JournalRepository;
 use App\Repository\UserRepository;
+use App\Service\PredictionEvolutionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -153,7 +154,7 @@ class DossierMedicalController extends AbstractController
     }
 
     #[Route('/psychologue/dossier/{patientId}', name: 'psy_dossier_view')]
-    public function psyView(int $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo, JournalRepository $journalRepo): Response
+    public function psyView(int $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo, JournalRepository $journalRepo, PredictionEvolutionService $predictionService): Response
     {
         if (!$this->isGranted('ROLE_PSYCHOLOGUE')) {
             throw $this->createAccessDeniedException();
@@ -211,13 +212,18 @@ class DossierMedicalController extends AbstractController
         // Données pour graphique d'évolution des émotions (journal) + dates des consultations
         $chartEvolution = $journalRepo->getEvolutionForUser($patient, 90);
         $consultationDates = [];
+        $nbConsultations = 0;
         if ($dossier) {
+            $nbConsultations = $dossier->getConsultations()->count();
             foreach ($dossier->getConsultations() as $c) {
                 if ($c->getDate()) {
                     $consultationDates[] = $c->getDate()->format('Y-m-d');
                 }
             }
         }
+
+        // Prédiction IA d'évolution de l'état du patient
+        $prediction = $predictionService->predict($chartEvolution, $statsHumeurs, $statsAnalyses, $nbConsultations);
 
         return $this->render('dossier_medical/psy_view.html.twig', [
             'dossier' => $dossier,
@@ -229,6 +235,7 @@ class DossierMedicalController extends AbstractController
             'age' => $age,
             'chart_evolution' => $chartEvolution,
             'consultation_dates' => $consultationDates,
+            'prediction' => $prediction,
         ]);
     }
 

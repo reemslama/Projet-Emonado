@@ -6,6 +6,8 @@
 parameters:
     # Utiliser l'adresse Gmail configurée pour éviter les blocages "From" côté SMTP
     mailer_from: 'reemslama21@gmail.com'
+    # Clé API OpenAI (optionnelle) pour la prédiction IA enrichie des dossiers psychologue
+    openai_api_key: ''
 
 services:
     # default configuration for services in this file
@@ -22,5 +24,9 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
+    App\Service\PredictionEvolutionService:
+        arguments:
+            $openaiApiKey: '%env(default:openai_api_key:OPENAI_API_KEY)%'
+
+    # add more service definitions when explicit configuration is needed when explicit configuration is needed
     # please note that last definitions always replace previous ones
