@@ -16,6 +16,13 @@
     </div>
 </div>
 
-<button class="btn btn-primary">Enregistrer</button>
+{% if journal is defined and journal.dateCreation %}
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <input type="text" class="form-control" value="{{ journal.dateCreation|date('d/m/Y H:i') }}" readonly>
+    </div>
+{% endif %}
+
+<button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
 
 {{ form_end(form) }}

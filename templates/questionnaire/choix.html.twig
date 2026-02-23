@@ -1,149 +1,765 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Choisir un type de test{% endblock %}
+{% block title %}Test Adaptatif Intelligent{% endblock %}
 
 {% block body %}
-{# En-tête simple sans image de fond #}
-<div class="text-center mb-5">
-    <h1 class="text-success fw-bold">Choisissez votre test</h1>
-    <hr class="divider mx-auto" style="width: 100px; height: 3px; background-color: #198754;" />
-    <p class="text-muted lead mt-3">
-        Sélectionnez le type de questionnaire que vous souhaitez passer
-    </p>
-</div>
-
-{# Cartes de tests #}
-<div class="row gx-4 gx-lg-5 justify-content-center mb-5">
+{# Container principal avec ambiance relaxante #}
+<div class="relaxed-container">
     
-    {# Test Stress #}
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100 shadow-lg border-0 fade-in-up">
-            <div class="card-body text-center p-5">
-                <div class="mb-4">
-                    <i class="fa-solid fa-face-frown fs-1 text-danger"></i>
-                </div>
-                <h3 class="h4 mb-3">Test de Stress</h3>
-                <p class="text-muted mb-4">
-                    Évaluez votre niveau de stress et identifiez les facteurs déclencheurs
-                </p>
-                <div class="mb-3">
-                    <span class="badge bg-danger">6 questions</span>
-                </div>
-                <a href="{{ path('app_test', {categorie: 'stress'}) }}" class="btn btn-danger btn-lg w-100 btn-custom">
-                    <i class="fa-solid fa-play-circle"></i> Commencer
-                </a>
+    {# Header minimaliste et zen #}
+    <div class="zen-header">
+        <div class="header-content">
+            <div class="floating-elements">
+                <div class="floating-circle circle-1"></div>
+                <div class="floating-circle circle-2"></div>
+                <div class="floating-circle circle-3"></div>
             </div>
+            <h1 class="zen-title">Test Adaptatif</h1>
+            <p class="zen-subtitle">Une expérience paisible guidée par l'intelligence artificielle</p>
+            <div class="zen-divider"></div>
         </div>
     </div>
 
-    {# Test Dépression #}
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.2s;">
-            <div class="card-body text-center p-5">
-                <div class="mb-4">
-                    <i class="fa-solid fa-heart-pulse fs-1 text-primary"></i>
-                </div>
-                <h3 class="h4 mb-3">Test de Dépression</h3>
-                <p class="text-muted mb-4">
-                    Identifiez les signes de dépression et évaluez votre bien-être mental
-                </p>
-                <div class="mb-3">
-                    <span class="badge bg-primary">5 questions</span>
-                </div>
-                <a href="{{ path('app_test', {categorie: 'depression'}) }}" class="btn btn-primary btn-lg w-100 btn-custom">
-                    <i class="fa-solid fa-play-circle"></i> Commencer
-                </a>
-            </div>
-        </div>
-    </div>
-
-    {# Test IQ #}
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card h-100 shadow-lg border-0 fade-in-up" style="animation-delay: 0.4s;">
-            <div class="card-body text-center p-5">
-                <div class="mb-4">
-                    <i class="fa-solid fa-lightbulb fs-1 text-warning"></i>
-                </div>
-                <h3 class="h4 mb-3">Test de QI</h3>
-                <p class="text-muted mb-4">
-                    Mesurez vos capacités intellectuelles et votre raisonnement logique
-                </p>
-                <div class="mb-3">
-                    <span class="badge bg-warning text-dark">5 questions</span>
-                </div>
-                <a href="{{ path('app_test', {categorie: 'iq'}) }}" class="btn btn-warning btn-lg w-100 btn-custom">
-                    <i class="fa-solid fa-play-circle"></i> Commencer
-                </a>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-{# Section informations #}
-<div class="bg-success text-white p-5 rounded mb-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-        <div class="col-lg-10 text-center">
-            <h2 class="text-white mt-0">Comment ça marche ?</h2>
-            <hr class="divider mx-auto bg-white" style="width: 100px; height: 2px;" />
-            <div class="row mt-5">
-                <div class="col-md-4 mb-4">
-                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <span class="fs-2 fw-bold">1</span>
+    {# Section des tests avec design moderne #}
+    <div class="tests-section">
+        <div class="container-fluid">
+            <div class="row g-4 justify-content-center">
+                
+                {# Test Stress - Design relaxant #}
+                <div class="col-xl-4 col-lg-5 col-md-6">
+                    <div class="test-card-modern stress-card-modern">
+                        <div class="card-glow"></div>
+                        <div class="card-content-modern">
+                            <div class="card-header-modern">
+                                <div class="icon-container stress-icon">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </div>
+                                <div class="category-badge">Bien-être émotionnel</div>
+                            </div>
+                            <h3 class="card-title-modern">Évaluation du Stress</h3>
+                            <p class="card-description-modern">
+                                Découvrez votre niveau de stress et apprenez des techniques de relaxation personnalisées
+                            </p>
+                            <div class="card-features">
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>IA adaptative</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>3-10 questions</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Analyse complète</span>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_test_adaptatif_start', {categorie: 'stress'}) }}" class="btn-modern btn-stress-modern">
+                                <span class="btn-text">Commencer l'évaluation</span>
+                                <i class="fa-solid fa-arrow-right btn-icon"></i>
+                            </a>
+                        </div>
                     </div>
-                    <h5 class="text-white">Choisissez</h5>
-                    <p class="text-white-75">Sélectionnez le type de test qui vous intéresse</p>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <span class="fs-2 fw-bold">2</span>
+
+                {# Test Dépression - Design relaxant #}
+                <div class="col-xl-4 col-lg-5 col-md-6">
+                    <div class="test-card-modern depression-card-modern">
+                        <div class="card-glow"></div>
+                        <div class="card-content-modern">
+                            <div class="card-header-modern">
+                                <div class="icon-container depression-icon">
+                                    <i class="fa-solid fa-sun"></i>
+                                </div>
+                                <div class="category-badge">Équilibre mental</div>
+                            </div>
+                            <h3 class="card-title-modern">Évaluation de la Dépression</h3>
+                            <p class="card-description-modern">
+                                Explorez votre bien-être émotionnel dans un environnement sécurisant et bienveillant
+                            </p>
+                            <div class="card-features">
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>IA empathique</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>3-10 questions</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Graphiques d'évolution</span>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_test_adaptatif_start', {categorie: 'depression'}) }}" class="btn-modern btn-depression-modern">
+                                <span class="btn-text">Commencer l'évaluation</span>
+                                <i class="fa-solid fa-arrow-right btn-icon"></i>
+                            </a>
+                        </div>
                     </div>
-                    <h5 class="text-white">Répondez</h5>
-                    <p class="text-white-75">Répondez honnêtement à toutes les questions</p>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="bg-white text-success rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <span class="fs-2 fw-bold">3</span>
+
+                {# Test QI - Design relaxant #}
+                <div class="col-xl-4 col-lg-5 col-md-6">
+                    <div class="test-card-modern iq-card-modern">
+                        <div class="card-glow"></div>
+                        <div class="card-content-modern">
+                            <div class="card-header-modern">
+                                <div class="icon-container iq-icon">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                </div>
+                                <div class="category-badge">Performance cognitive</div>
+                            </div>
+                            <h3 class="card-title-modern">Évaluation Cognitive</h3>
+                            <p class="card-description-modern">
+                                Mesurez vos capacités intellectuelles dans une atmosphère détendue et stimulante
+                            </p>
+                            <div class="card-features">
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>IA pédagogique</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>3-10 questions</span>
+                                </div>
+                                <div class="feature-item-modern">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Score détaillé</span>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_test_adaptatif_start', {categorie: 'iq'}) }}" class="btn-modern btn-iq-modern">
+                                <span class="btn-text">Commencer l'évaluation</span>
+                                <i class="fa-solid fa-arrow-right btn-icon"></i>
+                            </a>
+                        </div>
                     </div>
-                    <h5 class="text-white">Résultat</h5>
-                    <p class="text-white-75">Découvrez votre score et des conseils personnalisés</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# Bloc Tests classiques (questionnaires non adaptatifs) #}
+    <div class="classic-section">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="classic-title">Tests classiques</h2>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="classic-card stress-classic">
+                        <div class="classic-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <h4>Stress</h4>
+                        <p>Questionnaire fixe pour mesurer votre niveau de stress.</p>
+                        <a href="{{ path('app_test', {categorie: 'stress'}) }}" class="classic-btn">Lancer le test</a>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="classic-card depression-classic">
+                        <div class="classic-icon"><i class="fa-solid fa-sun"></i></div>
+                        <h4>Dépression</h4>
+                        <p>Série standardisée pour suivre votre humeur.</p>
+                        <a href="{{ path('app_test', {categorie: 'depression'}) }}" class="classic-btn">Lancer le test</a>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="classic-card iq-classic">
+                        <div class="classic-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                        <h4>Cognition</h4>
+                        <p>Évaluez vos capacités logiques avec une série fixe.</p>
+                        <a href="{{ path('app_test', {categorie: 'iq'}) }}" class="classic-btn">Lancer le test</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-{# Disclaimer #}
-<div class="row justify-content-center mb-5">
-    <div class="col-lg-8">
-        <div class="alert alert-info" role="alert">
-            <h5 class="alert-heading"><i class="fa-solid fa-info-circle"></i> Information importante</h5>
-            <p class="mb-0">
-                Ces tests sont à but informatif uniquement et ne remplacent pas un diagnostic médical professionnel. 
-                Si vous ressentez des difficultés persistantes, consultez un professionnel de santé.
-            </p>
+    {# Section processus avec design zen #}
+    <div class="process-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="process-title">Un processus simple et bienveillant</h2>
+                <p class="process-subtitle">Trois étapes pour mieux vous connaître</p>
+            </div>
+            
+            <div class="process-steps">
+                <div class="process-step step-1">
+                    <div class="step-circle">
+                        <span class="step-number">1</span>
+                        <div class="step-glow"></div>
+                    </div>
+                    <h4 class="step-title">Choisissez</h4>
+                    <p class="step-description">Sélectionnez l'évaluation qui résonne avec vous</p>
+                </div>
+                
+                <div class="process-connector">
+                    <div class="connector-line"></div>
+                    <div class="connector-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="process-step step-2">
+                    <div class="step-circle">
+                        <span class="step-number">2</span>
+                        <div class="step-glow"></div>
+                    </div>
+                    <h4 class="step-title">Répondez</h4>
+                    <p class="step-description">Laissez-vous guider par les questions adaptatives de l'IA</p>
+                </div>
+                
+                <div class="process-connector">
+                    <div class="connector-line"></div>
+                    <div class="connector-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+                
+                <div class="process-step step-3">
+                    <div class="step-circle">
+                        <span class="step-number">3</span>
+                        <div class="step-glow"></div>
+                    </div>
+                    <h4 class="step-title">Découvrez</h4>
+                    <p class="step-description">Recevez une analyse personnalisée et bienveillante</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    {# Section disclaimer zen #}
+    <div class="disclaimer-section-modern">
+        <div class="container">
+            <div class="disclaimer-card-modern">
+                <div class="disclaimer-icon-modern">
+                    <i class="fa-solid fa-shield-heart"></i>
+                </div>
+                <div class="disclaimer-content-modern">
+                    <h5 class="disclaimer-title">Votre bien-être avant tout</h5>
+                    <p class="disclaimer-text">
+                        Ces évaluations sont conçues pour vous accompagner dans votre cheminement personnel. 
+                        Elles ne remplacent en aucun cas un accompagnement professionnel. 
+                        Prenez le temps nécessaire et consultez un spécialiste si vous en ressentez le besoin.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 
 {% block stylesheets %}
 <style>
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 15px;
+/* ==================== MODERN & RELAXING DESIGN ==================== */
+
+/* Variables de couleurs relaxantes */
+:root {
+    --sage-green: #84a98c;
+    --soft-mint: #a8dadc;
+    --warm-beige: #f4f1de;
+    --gentle-blue: #8ecae6;
+    --calm-teal: #219ebc;
+    --soft-lavender: #e0b1cb;
+    --relaxed-gray: #6c757d;
+    --pure-white: #ffffff;
+    --soft-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --gentle-glow: 0 0 20px rgba(132, 169, 140, 0.3);
 }
 
-.card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+/* Container principal relaxant */
+.relaxed-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, 
+        rgba(132, 169, 140, 0.05) 0%, 
+        rgba(168, 218, 220, 0.03) 50%, 
+        rgba(244, 241, 222, 0.08) 100%);
+    position: relative;
+    overflow-x: hidden;
 }
 
-.fade-in-up {
-    animation: fadeInUp 0.8s ease forwards;
-    opacity: 0;
+/* Header zen avec éléments flottants */
+.zen-header {
+    position: relative;
+    padding: 80px 0 60px;
+    text-align: center;
+    overflow: hidden;
 }
 
+.header-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--soft-mint), var(--sage-green));
+    opacity: 0.1;
+    animation: gentle-float 6s ease-in-out infinite;
+}
+
+.circle-1 {
+    width: 120px;
+    height: 120px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.circle-2 {
+    width: 80px;
+    height: 80px;
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+.circle-3 {
+    width: 60px;
+    height: 60px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+@keyframes gentle-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.zen-title {
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: var(--calm-teal);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.zen-subtitle {
+    font-size: 1.2rem;
+    color: var(--relaxed-gray);
+    margin-bottom: 2rem;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.zen-divider {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sage-green), var(--soft-mint));
+    margin: 0 auto;
+    border-radius: 2px;
+}
+
+/* Section des tests */
+.tests-section {
+    padding: 60px 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+}
+
+/* Cartes modernes et relaxantes */
+.test-card-modern {
+    position: relative;
+    background: var(--pure-white);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--soft-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    height: 100%;
+    min-height: 480px;
+}
+
+.test-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--gentle-glow);
+}
+
+.card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sage-green), var(--soft-mint), var(--gentle-blue));
+}
+
+.card-content-modern {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-header-modern {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.icon-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    transition: all 0.3s ease;
+}
+
+.stress-icon {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    color: #d63384;
+}
+
+.depression-icon {
+    background: linear-gradient(135deg, #a8dadc, #e0fbfc);
+    color: #219ebc;
+}
+
+.iq-icon {
+    background: linear-gradient(135deg, #ffd166, #ffecb3);
+    color: #fb8500;
+}
+
+.category-badge {
+    display: inline-block;
+    background: rgba(108, 117, 125, 0.1);
+    color: var(--relaxed-gray);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.card-title-modern {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--calm-teal);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.card-description-modern {
+    color: var(--relaxed-gray);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.card-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.feature-item-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--relaxed-gray);
+    font-size: 0.9rem;
+}
+
+.feature-item-modern i {
+    color: var(--sage-green);
+    width: 16px;
+}
+
+/* Boutons modernes */
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-top: auto;
+}
+
+.btn-stress-modern {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    color: #d63384;
+    box-shadow: 0 4px 16px rgba(255, 154, 158, 0.3);
+}
+
+.btn-stress-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 154, 158, 0.4);
+}
+
+.btn-depression-modern {
+    background: linear-gradient(135deg, #a8dadc, #e0fbfc);
+    color: #219ebc;
+    box-shadow: 0 4px 16px rgba(168, 218, 220, 0.3);
+}
+
+.btn-depression-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 218, 220, 0.4);
+}
+
+.btn-iq-modern {
+    background: linear-gradient(135deg, #ffd166, #ffecb3);
+    color: #fb8500;
+    box-shadow: 0 4px 16px rgba(255, 209, 102, 0.3);
+}
+
+.btn-iq-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 209, 102, 0.4);
+}
+
+.btn-icon {
+    transition: transform 0.3s ease;
+}
+
+.btn-modern:hover .btn-icon {
+    transform: translateX(4px);
+}
+
+/* Section processus zen */
+.process-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, 
+        rgba(244, 241, 222, 0.6) 0%, 
+        rgba(255, 255, 255, 0.8) 50%, 
+        rgba(168, 218, 220, 0.4) 100%);
+}
+
+.process-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--calm-teal);
+    margin-bottom: 0.5rem;
+}
+
+.process-subtitle {
+    color: var(--relaxed-gray);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+}
+
+.process-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.process-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 200px;
+}
+
+.step-circle {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sage-green), var(--soft-mint));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--soft-shadow);
+    transition: all 0.3s ease;
+}
+
+.step-circle:hover {
+    transform: scale(1.05);
+}
+
+.step-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--pure-white);
+}
+
+.step-glow {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sage-green), var(--soft-mint));
+    opacity: 0.3;
+    z-index: -1;
+}
+
+.step-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--calm-teal);
+    margin-bottom: 0.5rem;
+}
+
+.step-description {
+    color: var(--relaxed-gray);
+    line-height: 1.5;
+}
+
+.process-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.connector-line {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--sage-green), var(--soft-mint));
+    border-radius: 1px;
+}
+
+.connector-arrow {
+    color: var(--sage-green);
+    font-size: 1.2rem;
+}
+
+/* Section disclaimer moderne */
+.disclaimer-section-modern {
+    padding: 60px 0 80px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.disclaimer-card-modern {
+    background: var(--pure-white);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: var(--soft-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.disclaimer-icon-modern {
+    font-size: 2.5rem;
+    color: var(--sage-green);
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+}
+
+.disclaimer-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--calm-teal);
+    margin-bottom: 1rem;
+}
+
+.disclaimer-text {
+    color: var(--relaxed-gray);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Bloc tests classiques */
+.classic-section {
+    padding: 50px 0;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.classic-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--calm-teal);
+}
+
+.classic-card {
+    background: var(--pure-white);
+    border-radius: 18px;
+    padding: 1.8rem;
+    box-shadow: var(--soft-shadow);
+    border: 1px solid rgba(0,0,0,0.03);
+    text-align: center;
+    height: 100%;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.classic-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.classic-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.stress-classic .classic-icon { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: #d63384; }
+.depression-classic .classic-icon { background: linear-gradient(135deg, #a8dadc, #e0fbfc); color: #219ebc; }
+.iq-classic .classic-icon { background: linear-gradient(135deg, #ffd166, #ffecb3); color: #fb8500; }
+
+.classic-card h4 {
+    color: var(--calm-teal);
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+}
+
+.classic-card p {
+    color: var(--relaxed-gray);
+    min-height: 60px;
+}
+
+.classic-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #84a98c, #8ecae6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.classic-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+/* Animations fluides */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -155,16 +771,69 @@
     }
 }
 
-.btn-custom {
-    transition: all 0.3s ease;
+.test-card-modern {
+    animation: fadeInUp 0.8s ease-out forwards;
 }
 
-.btn-custom:hover {
-    transform: scale(1.05);
+.test-card-modern:nth-child(1) { animation-delay: 0.1s; }
+.test-card-modern:nth-child(2) { animation-delay: 0.3s; }
+.test-card-modern:nth-child(3) { animation-delay: 0.5s; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .zen-title {
+        font-size: 2.5rem;
+    }
+    
+    .test-card-modern {
+        min-height: 420px;
+        margin-bottom: 2rem;
+    }
+    
+    .card-content-modern {
+        padding: 2rem;
+    }
+    
+    .process-steps {
+        flex-direction: column;
+        gap: 3rem;
+    }
+    
+    .process-connector {
+        transform: rotate(90deg);
+    }
+    
+    .disclaimer-card-modern {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .disclaimer-icon-modern {
+        margin: 0 auto 1rem;
+    }
 }
 
-.divider {
-    border: none;
+@media (max-width: 576px) {
+    .zen-header {
+        padding: 60px 0 40px;
+    }
+    
+    .floating-circle {
+        display: none;
+    }
+    
+    .process-title {
+        font-size: 2rem;
+    }
+    
+    .step-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .step-number {
+        font-size: 1.4rem;
+    }
 }
 </style>
 {% endblock %}

@@ -6,6 +6,7 @@
 parameters:
     # Utiliser l'adresse Gmail configurée pour éviter les blocages "From" côté SMTP
     mailer_from: 'reemslama21@gmail.com'
+    groq_api_key: '%env(GROQ_API_KEY)%'
 
 services:
     # default configuration for services in this file
@@ -22,5 +23,15 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # Configuration du service Groq AI
+    App\Service\GroqAiService:
+        arguments:
+            $groqApiKey: '%groq_api_key%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always replace previous ones
+
+    # Service GeminiAssistant (AJOUTÉ ICI)
+    App\Service\GeminiAssistant:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'

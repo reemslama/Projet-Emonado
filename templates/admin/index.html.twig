@@ -244,7 +244,7 @@
                         <label for="categorie" class="me-2 mb-0 text-nowrap">
                             <i class="bi bi-funnel"></i> Catégorie :
                         </label>
-                        <select name="categorie" id="categorie" class="form-select" onchange="this.form.submit()">
+                        <select name="categorie" id="categorie" class="form-select">
                             <option value="all" {% if categorieFilter == 'all' %}selected{% endif %}>
                                 Toutes
                             </option>
@@ -281,16 +281,23 @@
                 {% endif %}
             </div>
 
+            {# Indicateur de chargement #}
+            <div id="loadingSpinner" class="d-none text-center my-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+            </div>
+
             {# Tableau des questions #}
             <div class="table-responsive">
                 <table class="table table-hover table-striped align-middle" id="questionsTable">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 50px;">#</th>
-                            <th>Texte de la question</th>
-                            <th style="width: 120px;">Catégorie</th>
+                            <th style="width: 50px;" data-sort="id" title="Cliquer pour trier">#</th>
+                            <th data-sort="texte" title="Cliquer pour trier">Texte de la question</th>
+                            <th style="width: 120px;" data-sort="categorie" title="Cliquer pour trier">Catégorie</th>
                             <th style="width: 100px;">Type</th>
-                            <th style="width: 80px;">Ordre</th>
+                            <th style="width: 80px;" data-sort="ordre" title="Cliquer pour trier">Ordre</th>
                             <th style="width: 100px;">Réponses</th>
                             <th style="width: 280px;">Actions</th>
                         </tr>
@@ -372,7 +379,7 @@
             <div class="mt-3">
                 <p class="text-muted mb-0">
                     <i class="bi bi-file-earmark-text"></i>
-                    <strong>{{ questions|length }}</strong> question(s) affichée(s)
+                    <span id="resultsCount"><strong>{{ questions|length }}</strong> question(s) affichée(s)</span>
                     {% if searchKeyword %}
                         pour "<strong>{{ searchKeyword }}</strong>"
                     {% endif %}
@@ -422,38 +429,28 @@
         padding: 0.5rem 1rem;
         margin-bottom: 0;
     }
-</style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Bouton pour effacer la recherche
-    const clearSearchBtn = document.getElementById('clearSearch');
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', function() {
-            const searchInput = document.getElementById('searchQuestion');
-            searchInput.value = '';
-            document.getElementById('searchForm').submit();
-        });
+    /* Style pour les en-têtes de tableau cliquables (tri) */
+    #questionsTable thead th[data-sort] {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
     }
 
-    // Soumettre automatiquement le formulaire de recherche après un délai
-    const searchInput = document.getElementById('searchQuestion');
-    let searchTimeout;
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-            document.getElementById('searchForm').submit();
-        }, 800); // Délai de 800ms pour éviter trop de soumissions
-    });
+    #questionsTable thead th[data-sort]:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
 
-    // Effacer la recherche avec Escape
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            this.value = '';
-            document.getElementById('searchForm').submit();
-        }
-    });
-});
-</script>
+    #questionsTable thead th[data-sort] .sort-icon {
+        font-size: 0.8em;
+        opacity: 0.8;
+    }
+
+    /* Style pour le spinner de chargement */
+    #loadingSpinner {
+        padding: 2rem;
+    }
+</style>
+
+<script src="{{ asset('js/admin-questions-ajax.js') }}"></script>
 {% endblock %}

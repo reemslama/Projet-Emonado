@@ -3,17 +3,99 @@
 {% block title %}Mes Journaux{% endblock %}
 
 {% block body %}
+<style>
+    .notif-bell {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #e8f3ff;
+        color: #0d6efd;
+        animation: bell-pulse 1.2s ease-in-out infinite;
+    }
+
+    .notif-bell .notif-dot {
+        position: absolute;
+        top: -4px;
+        right: -3px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #dc3545;
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        animation: dot-ping 1.2s ease-out infinite;
+    }
+
+    .advice-arrow {
+        display: inline-block;
+        color: #d97706;
+        font-size: 1rem;
+        font-weight: 700;
+        animation: advice-bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes advice-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(4px); }
+    }
+
+    @keyframes bell-pulse {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+    }
+
+    @keyframes dot-ping {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        100% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    }
+
+    .actions-panel {
+        width: 100%;
+        max-width: 430px;
+        margin: 0 auto;
+    }
+
+    .action-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+    }
+
+    .action-row form {
+        margin: 0;
+    }
+
+    .action-item {
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .action-placeholder {
+        visibility: hidden;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-success fw-bold">Mes Journaux</h2>
     <div class="d-flex gap-2">
         <a href="{{ path('app_journal_stat') }}" class="btn btn-outline-success">
             <i class="fa-solid fa-chart-pie"></i> Statistiques
         </a>
+        <a href="{{ path('app_journal_new_voice') }}" class="btn btn-outline-primary btn-custom">
+            <i class="fa-solid fa-microphone-lines"></i> Journal vocal
+        </a>
         <a href="{{ path('app_journal_new') }}" class="btn btn-success btn-custom">
             <i class="fa-solid fa-plus"></i> Nouveau journal
         </a>
     </div>
 </div>
+
+{{ include('components/_flash_messages.html.twig') }}
 
 <div class="row mb-4">
     <div class="col-md-3">
@@ -39,12 +121,11 @@
 
     <div class="col-md-3">
         <div class="alert alert-danger text-center">
-            😡 En colère<br>
+            😡 En colere<br>
             <strong>{{ stats['en colere'] ?? 0 }}</strong>
         </div>
     </div>
 </div>
-
 
 <form method="get" class="row g-2 mb-4">
     <div class="col-md-5">
@@ -58,7 +139,7 @@
     <div class="col-md-4">
         <select name="sort" class="form-select">
             <option value="recent" {{ sort != 'old' ? 'selected' : '' }}>
-                Plus récent
+                Plus recent
             </option>
             <option value="old" {{ sort == 'old' ? 'selected' : '' }}>
                 Plus ancien
@@ -68,11 +149,10 @@
 
     <div class="col-md-3">
         <button class="btn btn-primary w-100">
-            🔍 Rechercher / Tri 
+            Rechercher / Tri
         </button>
     </div>
 </form>
-
 
 <div class="table-responsive">
     <table class="table table-bordered table-hover align-middle bg-white shadow-sm">
@@ -81,17 +161,26 @@
                 <th>Humeur</th>
                 <th>Contenu</th>
                 <th>Date</th>
+                <th>Analyse IA</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for journal in journals %}
+            {% set is_owner = app.user and journal.user and journal.user.id == app.user.id %}
+            {% set can_manage = is_owner or is_granted('ROLE_ADMIN') %}
+            {% set music_pack = journal.musicPrescriptionData %}
+            {% set music_has_tracks = music_pack.tracks is defined and music_pack.tracks|length > 0 %}
+            {% set music_is_open = openMusicId is defined and openMusicId == journal.id %}
             <tr>
                 <td class="fw-bold text-success">
                     {{ journal.humeur }}
                 </td>
 
                 <td>
+                    {% if journal.inputMode == 'voice' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">Vocal</span>
+                    {% endif %}
                     {{ journal.contenu|slice(0, 80) }}{% if journal.contenu|length > 80 %}...{% endif %}
                 </td>
 
@@ -100,29 +189,142 @@
                 </td>
 
                 <td class="text-center">
-    <a href="{{ path('app_journal_edit', {'id': journal.id}) }}"
-       class="btn btn-sm btn-primary me-2 action-btn">
-        <i class="fa-solid fa-pen"></i>
-        <span class="ms-1">Update</span>
-    </a>
+                    {% if journal.analysisEmotionnelle is defined and journal.analysisEmotionnelle %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            <i class="fa-solid fa-brain me-1"></i> Disponible
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                            Aucune
+                        </span>
+                    {% endif %}
+                </td>
 
-    <form method="post"
-          action="{{ path('app_journal_delete', {'id': journal.id}) }}"
-          onsubmit="return confirm('Voulez-vous vraiment supprimer ce journal ?');"
-          style="display:inline">
-        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ journal.id) }}">
-        <button class="btn btn-sm btn-outline-primary action-btn">
-            <i class="fa-solid fa-trash"></i>
-            <span class="ms-1">Delete</span>
-        </button>
-    </form>
-</td>
+                <td class="text-center">
+                    <div class="actions-panel">
+                    {% if can_manage %}
+                        <div class="action-row">
+                            <a href="{{ path('app_journal_edit', {'id': journal.id}) }}"
+                               class="btn btn-sm btn-primary action-item">
+                                <i class="fa-solid fa-pen"></i> Update
+                            </a>
+
+                            <form method="post"
+                                  action="{{ path('app_journal_delete', {'id': journal.id}) }}"
+                                  onsubmit="return confirm('Voulez-vous vraiment supprimer ce journal ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ journal.id) }}">
+                                <button class="btn btn-sm btn-outline-primary action-item">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                            <span class="action-placeholder">.</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="action-row">
+                        {% if (can_manage or is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY')) and journal.inputMode != 'voice' %}
+                            <form method="post"
+                                  action="{{ path('app_analyse_emotionnelle_from_journal', {'id': journal.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('analyze' ~ journal.id) }}">
+                                <button class="btn btn-sm btn-outline-success action-item">
+                                    <i class="fa-solid fa-brain"></i> Analyser IA
+                                </button>
+                            </form>
+                        {% elseif journal.inputMode == 'voice' and is_owner and journal.psychologueReviewedAt and journal.psychologueCaseDescription %}
+                            {% set advice_is_new = journal.patientAdviceSeenAt is null %}
+                            {% set advice_is_open = openAdviceId is defined and openAdviceId == journal.id %}
+                            {% if advice_is_new %}
+                                <form method="post" action="{{ path('app_journal_advice_seen', {'id': journal.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('advice_seen' ~ journal.id) }}">
+                                    <button class="btn btn-sm btn-outline-info action-item" type="submit">
+                                        Voir conseil <i class="fa-solid fa-arrow-down ms-1 advice-arrow"></i>
+                                    </button>
+                                </form>
+                                <span class="notif-bell ms-2" title="Conseil non lu">
+                                    <i class="fa-solid fa-bell"></i>
+                                    <span class="notif-dot"></span>
+                                </span>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-info action-item" type="button" data-bs-toggle="collapse" data-bs-target="#psyAdvice{{ journal.id }}" aria-expanded="{{ advice_is_open ? 'true' : 'false' }}" aria-controls="psyAdvice{{ journal.id }}">
+                                    Voir conseil
+                                </button>
+                            {% endif %}
+                        {% elseif journal.inputMode == 'voice' %}
+                            <div class="d-flex align-items-center justify-content-center">
+                                <button class="btn btn-sm btn-outline-secondary action-item" type="button" disabled>
+                                    Voir conseil
+                                </button>
+                                <i class="fa-solid fa-arrow-down ms-2 advice-arrow"></i>
+                            </div>
+                        {% else %}
+                            <span class="action-placeholder">.</span>
+                        {% endif %}
+                        <span class="action-placeholder">.</span>
+                        <span class="action-placeholder">.</span>
+                    </div>
+
+                    {% if journal.inputMode == 'voice' and is_owner and journal.psychologueReviewedAt and journal.psychologueCaseDescription %}
+                        {% set advice_is_open = openAdviceId is defined and openAdviceId == journal.id %}
+                        <div class="collapse mt-2 text-start {{ advice_is_open ? 'show' : '' }}" id="psyAdvice{{ journal.id }}">
+                            <div class="alert alert-info py-2 mb-0">
+                                {{ journal.psychologueCaseDescription }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if is_owner %}
+                        <div class="action-row">
+                            {% if music_has_tracks %}
+                                <button class="btn btn-sm btn-outline-primary action-item" type="button" data-bs-toggle="collapse" data-bs-target="#musicPack{{ journal.id }}" aria-expanded="{{ music_is_open ? 'true' : 'false' }}" aria-controls="musicPack{{ journal.id }}">
+                                    Consulter musique
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-primary action-item" type="button" disabled>
+                                    Consulter musique
+                                </button>
+                            {% endif %}
+
+                            <button class="btn btn-sm btn-outline-info action-item" type="button" data-bs-toggle="collapse" data-bs-target="#musicPack{{ journal.id }}" aria-expanded="{{ music_is_open ? 'true' : 'false' }}" aria-controls="musicPack{{ journal.id }}">
+                                Voir
+                            </button>
+
+                            <form method="post" action="{{ path('app_journal_music_generate', {'id': journal.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('music_generate' ~ journal.id) }}">
+                                <button class="btn btn-sm btn-outline-success action-item" type="submit">
+                                    Regenerer
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="collapse mt-2 text-start {{ music_is_open ? 'show' : '' }}" id="musicPack{{ journal.id }}">
+                            <div class="alert alert-primary py-2 mb-0">
+                                <div class="fw-semibold mb-2">{{ journal.musicPrescriptionObjective ?: 'Objectif de regulation emotionnelle personnalise.' }}</div>
+                                {% if music_has_tracks %}
+                                    <ul class="mb-2 ps-3">
+                                        {% for track in music_pack.tracks %}
+                                            {% set youtube_query = (track.title ~ ' ' ~ track.artist)|url_encode %}
+                                            <li>
+                                                <a href="https://www.youtube.com/results?search_query={{ youtube_query }}" target="_blank" rel="noopener noreferrer">{{ track.title }}</a> - {{ track.artist }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="small">Clique sur "Regenerer" pour creer ta playlist therapeutique.</div>
+                                {% endif %}
+                                {% if journal.musicPrescriptionGeneratedAt %}
+                                    <div class="small text-muted">Genere le {{ journal.musicPrescriptionGeneratedAt|date('d/m/Y H:i') }} ({{ journal.musicPrescriptionSource ?: 'fallback' }})</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    </div>
+                </td>
 
             </tr>
         {% else %}
             <tr>
-                <td colspan="4" class="text-center text-muted">
-                    Aucun journal trouvé
+                <td colspan="5" class="text-center text-muted">
+                    Aucun journal trouve
                 </td>
             </tr>
         {% endfor %}

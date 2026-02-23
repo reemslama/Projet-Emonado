@@ -16,6 +16,42 @@
         </div>
     </div>
 
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            {% set trendTone = insights.trend.tone ?? 'stable' %}
+            {% set trendClass = trendTone == 'positive' ? 'text-bg-success' : (trendTone == 'negative' ? 'text-bg-danger' : 'text-bg-secondary') %}
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="m-0 fw-bold">Tendance 7 jours</h6>
+                        <span class="badge {{ trendClass }}">{{ insights.trend.icon }} {{ insights.trend.label }}</span>
+                    </div>
+                    <div class="small text-muted mb-1">
+                        Periode recente: {{ insights.windows.recentLabel }} | Periode precedente: {{ insights.windows.previousLabel }}
+                    </div>
+                    <div class="fw-semibold">
+                        Charge recente: {{ insights.trend.recentRate|number_format(1, '.', ' ') }}%
+                        | Avant: {{ insights.trend.previousRate|number_format(1, '.', ' ') }}%
+                        | Delta: {{ insights.trend.delta|number_format(1, '.', ' ') }} pts
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            {% set pTone = insights.priority.tone ?? 'normal' %}
+            {% set pClass = pTone == 'urgent' ? 'text-bg-danger' : (pTone == 'watch' ? 'text-bg-warning' : 'text-bg-success') %}
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="m-0 fw-bold">Priorite clinique</h6>
+                        <span class="badge {{ pClass }}">{{ insights.priority.label }}</span>
+                    </div>
+                    <div class="small text-muted">{{ insights.priority.reason }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
         {% set total = (stats['heureux'] ?? 0) + (stats['calme'] ?? 0) + (stats['SOS'] ?? 0) + (stats['en colere'] ?? 0) %}
 

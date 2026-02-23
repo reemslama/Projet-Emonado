@@ -27,22 +27,22 @@ class UserFixtures extends Fixture
         $admin->setPassword($this->passwordHasher->hashPassword($admin, 'adminpass'));
         $manager->persist($admin);
 
-        // Psychologue user (role naming may vary: ROLE_PSY or ROLE_PSYCHOLOGUE)
+        // Psychologue user
         $psy = new User();
         $psy->setEmail('psy@example.com')
             ->setNom('Dupont')
             ->setPrenom('Psy')
-            ->setRoles(['ROLE_PSY'])
+            ->setRoles(['ROLE_PSYCHOLOGUE'])
             ->setSpecialite('Thérapie cognitive');
         $psy->setPassword($this->passwordHasher->hashPassword($psy, 'psypass'));
         $manager->persist($psy);
 
-        // Regular patient/user
+        // Patient user
         $user = new User();
         $user->setEmail('user@example.com')
             ->setNom('Doe')
             ->setPrenom('User')
-            ->setRoles(['ROLE_USER']);
+            ->setRoles(['ROLE_PATIENT']);
         $user->setPassword($this->passwordHasher->hashPassword($user, 'userpass'));
         $manager->persist($user);
 
