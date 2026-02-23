@@ -16,6 +16,21 @@
             <span>Dossiers médicaux</span>
         </div>
 
+        <!-- Icon Journal & Analyses IA -->
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_journals') }}'">
+            <i class="fas fa-book-open"></i>
+            <span>Journal &amp; analyses IA</span>
+        </div>
+
+        <!-- Icon Vocaux Patients -->
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_voice_cases') }}'">
+            <i class="fas fa-headphones"></i>
+            <span>Vocaux patients</span>
+            {% if pendingVoiceCount|default(0) > 0 %}
+                <small class="text-danger fw-bold">{{ pendingVoiceCount }} nouveau(x)</small>
+            {% endif %}
+        </div>
+
         <!-- Icon Profil -->
         <div class="icon-box" onclick="window.location='{{ path('psychologue_profil') }}'">
             <i class="fas fa-user-circle"></i>
@@ -27,9 +42,19 @@
             <i class="fas fa-envelope"></i>
             <span>Messagerie</span>
         </div>
-    </div>
 
-   
+        <!-- Icon Statistiques -->
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_stats_rdv') }}'">
+            <i class="fas fa-chart-bar"></i>
+            <span>Statistiques</span>
+        </div>
+
+        <!-- ✅ NOUVEAU : Icon Calendrier Bundle -->
+        <div class="icon-box" onclick="window.location='{{ path('app_rendez_vous_calendrier_bundle') }}'">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Mon calendrier</span>
+        </div>
+    </div>
 
 </div>
 

@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Consultation;
 use App\Entity\DossierMedical;
+use App\Repository\AnalyseEmotionnelleRepository;
 use App\Repository\DossierMedicalRepository;
+use App\Service\TherapeuticCompanionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +38,6 @@ class PatientController extends AbstractController
 
         $dossier = $dossierRepo->findOneBy(['patient' => $patient]);
 
-        // Créer un dossier s'il n'existe pas
         if (!$dossier) {
             $dossier = new DossierMedical();
             $dossier->setPatient($patient);
@@ -45,7 +46,6 @@ class PatientController extends AbstractController
             $em->refresh($dossier);
         }
 
-        // Ajouter une consultation
         if ($request->isMethod('POST') && $request->request->get('action') === 'add_consultation') {
             $dateConsult = $request->request->get('date_consult');
             $compteRendu = trim((string) $request->request->get('compte_rendu', ''));
@@ -53,7 +53,8 @@ class PatientController extends AbstractController
             if ($dateConsult === null || $dateConsult === '' || $compteRendu === '') {
                 $this->addFlash('error', 'La date de consultation et le compte rendu sont obligatoires.');
                 $consultations = $dossier->getConsultations()->toArray();
-                usort($consultations, fn($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+                usort($consultations, fn ($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+
                 return $this->render('patient/consultations.html.twig', [
                     'dossier' => $dossier,
                     'consultations' => $consultations,
@@ -72,7 +73,8 @@ class PatientController extends AbstractController
                     $this->addFlash('error', $error->getMessage());
                 }
                 $consultations = $dossier->getConsultations()->toArray();
-                usort($consultations, fn($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+                usort($consultations, fn ($a, $b) => ($b->getDate() <=> $a->getDate()) ?: 0);
+
                 return $this->render('patient/consultations.html.twig', [
                     'dossier' => $dossier,
                     'consultations' => $consultations,
@@ -82,11 +84,11 @@ class PatientController extends AbstractController
             $em->persist($consultation);
             $em->flush();
 
-            $this->addFlash('success', 'Votre consultation a été ajoutée avec succès !');
+            $this->addFlash('success', 'Votre consultation a ete ajoutee avec succes !');
+
             return $this->redirectToRoute('patient_consultations');
         }
 
-        // Tri des consultations par date (plus récentes en premier)
         $consultations = $dossier->getConsultations()->toArray();
         usort($consultations, function ($a, $b) {
             $dateA = $a->getDate();
@@ -94,12 +96,33 @@ class PatientController extends AbstractController
             if (!$dateA && !$dateB) return 0;
             if (!$dateA) return 1;
             if (!$dateB) return -1;
+
             return $dateB <=> $dateA;
         });
 
         return $this->render('patient/consultations.html.twig', [
             'dossier' => $dossier,
             'consultations' => $consultations,
+        ]);
+    }
+
+    #[Route('/patient/conseils-ia', name: 'patient_ai_conseils', methods: ['GET'])]
+    public function aiConseils(
+        AnalyseEmotionnelleRepository $analyseEmotionnelleRepository,
+        TherapeuticCompanionService $therapeuticCompanionService
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $patient = $this->getUser();
+        if (!$patient) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $analyses = $analyseEmotionnelleRepository->findRecentForUser($patient, 7);
+        $pack = $therapeuticCompanionService->buildPack($analyses);
+
+        return $this->render('patient/ia_conseils.html.twig', [
+            'pack' => $pack,
         ]);
     }
 }

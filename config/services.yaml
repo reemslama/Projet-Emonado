@@ -6,8 +6,8 @@
 parameters:
     # Utiliser l'adresse Gmail configurée pour éviter les blocages "From" côté SMTP
     mailer_from: 'reemslama21@gmail.com'
-    # Clé API OpenAI (optionnelle) pour la prédiction IA enrichie des dossiers psychologue
-    openai_api_key: ''
+    groq_api_key: '%env(GROQ_API_KEY)%'
+    openai_api_key: ''  # fallback si OPENAI_API_KEY non défini
 
 services:
     # default configuration for services in this file
@@ -24,9 +24,20 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # Configuration du service Groq AI (collègue)
+    App\Service\GroqAiService:
+        arguments:
+            $groqApiKey: '%groq_api_key%'
+
+    # Service GeminiAssistant (collègue)
+    App\Service\GeminiAssistant:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
+
+    # Prédiction évolution patient (Yassine)
     App\Service\PredictionEvolutionService:
         arguments:
             $openaiApiKey: '%env(default:openai_api_key:OPENAI_API_KEY)%'
 
-    # add more service definitions when explicit configuration is needed when explicit configuration is needed
+    # add more service definitions when explicit configuration is needed
     # please note that last definitions always replace previous ones

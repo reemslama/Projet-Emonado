@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-robot"></i> Assistant IA pour vos rendez-vous</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Posez votre question en langage naturel, je vous aiderai à trouver des créneaux.
+                    </p>
+                    
+                    <div class="mb-3">
+                        <label for="question" class="form-label">Votre demande :</label>
+                        <textarea class="form-control" id="question" rows="3" 
+                                  placeholder=""></textarea>  <!-- ✅ placeholder vide -->
+                    </div>
+                    
+                    <button class="btn btn-primary" id="askBtn">
+                        <i class="fas fa-magic"></i> Demander à l'IA
+                    </button>
+                    
+                    <div id="loading" class="text-center my-3 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p>L'IA réfléchit...</p>
+                    </div>
+                    
+                    <div id="resultat" class="mt-4 d-none">
+                        <h5>Réponse :</h5>
+                        <div class="alert alert-info" id="message"></div>
+                        
+                        <h6 class="mt-3">Créneaux disponibles :</h6>
+                        <div class="list-group" id="creneauxList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('askBtn').addEventListener('click', async () => {
+    const question = document.getElementById('question').value.trim();
+    if (!question) {
+        alert('Veuillez entrer une question');
+        return;
+    }
+    
+    document.getElementById('loading').classList.remove('d-none');
+    document.getElementById('resultat').classList.add('d-none');
+    
+    const formData = new FormData();
+    formData.append('question', question);
+    
+    try {
+        const response = await fetch('{{ path('app_assistant_ask') }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        document.getElementById('loading').classList.add('d-none');
+        document.getElementById('resultat').classList.remove('d-none');
+        
+        if (data.message) {
+            document.getElementById('message').innerText = data.message;
+        }
+        
+        const list = document.getElementById('creneauxList');
+        list.innerHTML = '';
+        
+        if (data.creneaux && data.creneaux.length > 0) {
+            data.creneaux.forEach(creneau => {
+                list.innerHTML += `
+                    <a href="/rendez-vous/${creneau.id}" class="list-group-item list-group-item-action">
+                        <strong>${creneau.psychologue}</strong> - 
+                        ${creneau.date} à ${creneau.heure}
+                        <br><small class="text-muted">${creneau.patient}</small>
+                    </a>
+                `;
+            });
+        } else {
+            list.innerHTML = '<div class="list-group-item">Aucun créneau trouvé</div>';
+        }
+        
+    } catch (error) {
+        document.getElementById('loading').classList.add('d-none');
+        alert('Erreur: ' + error);
+    }
+});
+</script>
+{% endblock %}

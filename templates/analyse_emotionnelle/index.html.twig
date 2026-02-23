@@ -1,43 +1,69 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}AnalyseEmotionnelle index{% endblock %}
+{% block title %}Analyses émotionnelles{% endblock %}
 
 {% block body %}
-    <h1>AnalyseEmotionnelle index</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-success fw-bold mb-0">
+            Analyses émotionnelles
+        </h2>
+        <a href="{{ path('app_journal_index') }}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-book-open"></i> Retour aux journaux
+        </a>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>EmotionPrincipale</th>
-                <th>NiveauStress</th>
-                <th>ScoreBienEtre</th>
-                <th>ResumeIA</th>
-                <th>DateAnalyse</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for analyse_emotionnelle in analyse_emotionnelles %}
-            <tr>
-                <td>{{ analyse_emotionnelle.id }}</td>
-                <td>{{ analyse_emotionnelle.emotionPrincipale }}</td>
-                <td>{{ analyse_emotionnelle.niveauStress }}</td>
-                <td>{{ analyse_emotionnelle.scoreBienEtre }}</td>
-                <td>{{ analyse_emotionnelle.resumeIA }}</td>
-                <td>{{ analyse_emotionnelle.dateAnalyse ? analyse_emotionnelle.dateAnalyse|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_analyse_emotionnelle_show', {'id': analyse_emotionnelle.id}) }}">show</a>
-                    <a href="{{ path('app_analyse_emotionnelle_edit', {'id': analyse_emotionnelle.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_analyse_emotionnelle_new') }}">Create new</a>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-success">
+                <tr>
+                    <th>#</th>
+                    <th>Émotion principale</th>
+                    <th>Stress</th>
+                    <th>Bien‑être</th>
+                    <th>Résumé IA</th>
+                    <th>Analysé le</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for analyse_emotionnelle in analyse_emotionnelles %}
+                <tr>
+                    <td>{{ analyse_emotionnelle.id }}</td>
+                    <td class="fw-semibold text-capitalize">
+                        {{ analyse_emotionnelle.emotionPrincipale|default('—') }}
+                    </td>
+                    <td>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">
+                            {{ analyse_emotionnelle.niveauStress }}/10
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2">
+                            {{ analyse_emotionnelle.scoreBienEtre }}/100
+                        </span>
+                    </td>
+                    <td>
+                        {% set resume = analyse_emotionnelle.resumeIA|default('') %}
+                        {{ resume|length > 60 ? resume|slice(0, 60) ~ '…' : resume }}
+                    </td>
+                    <td>
+                        {{ analyse_emotionnelle.dateAnalyse ? analyse_emotionnelle.dateAnalyse|date('d/m/Y H:i') : '—' }}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ path('app_analyse_emotionnelle_show', {'id': analyse_emotionnelle.id}) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        Aucune analyse émotionnelle n'a encore été générée.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

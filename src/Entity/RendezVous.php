@@ -35,6 +35,10 @@ class RendezVous
     #[Assert\NotBlank(message: "Le type de rendez-vous est obligatoire")]
     private ?TypeRendezVous $type = null;
 
+    #[ORM\ManyToOne(inversedBy: 'rendezVouses')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $patient = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -92,6 +96,18 @@ class RendezVous
     public function setType(?TypeRendezVous $type): self
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function getPatient(): ?User
+    {
+        return $this->patient;
+    }
+
+    public function setPatient(?User $patient): static
+    {
+        $this->patient = $patient;
+
         return $this;
     }
 }

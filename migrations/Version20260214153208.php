@@ -19,7 +19,21 @@ final class Version20260214153208 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
+        // Si les tables principales (par exemple `journal`) existent déjà,
+        // on considère que le schéma initial a été créé en dehors de cette migration
+        // (ancien dump SQL, ancien jeu de migrations, etc.)
+        // Pour ne pas casser le travail existant, on rend cette migration idempotente.
+        $schemaManager = method_exists($this->connection, 'createSchemaManager')
+            ? $this->connection->createSchemaManager()
+            : $this->connection->getSchemaManager();
+
+        if ($schemaManager->tablesExist(['journal'])) {
+            // Le schéma de base (dont la table `journal`) existe déjà :
+            // on ne refait pas les CREATE TABLE / FOREIGN KEY.
+            return;
+        }
+
+        // Schéma initial sur une base neuve
         $this->addSql('CREATE TABLE analyse_emotionnelle (id INT AUTO_INCREMENT NOT NULL, emotion_principale VARCHAR(255) NOT NULL, niveau_stress INT NOT NULL, score_bien_etre INT NOT NULL, resume_ia LONGTEXT DEFAULT NULL, date_analyse DATETIME NOT NULL, journal_id INT NOT NULL, UNIQUE INDEX UNIQ_DE8A3A10478E8802 (journal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE consultation (id INT AUTO_INCREMENT NOT NULL, date_consultation DATETIME NOT NULL, notes LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, psychologue_id INT DEFAULT NULL, dossier_id INT NOT NULL, INDEX IDX_964685A6465459D3 (psychologue_id), INDEX IDX_964685A6611C0C56 (dossier_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE dossier_medical (id INT AUTO_INCREMENT NOT NULL, historique_medical LONGTEXT DEFAULT NULL, notes_psychologiques LONGTEXT DEFAULT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, patient_id INT NOT NULL, INDEX IDX_3581EE626B899279 (patient_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4');

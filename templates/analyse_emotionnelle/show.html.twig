@@ -1,42 +1,146 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}AnalyseEmotionnelle{% endblock %}
+{% block title %}Analyse emotionnelle{% endblock %}
 
 {% block body %}
-    <h1>AnalyseEmotionnelle</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-success fw-bold mb-0">
+            Analyse emotionnelle
+        </h2>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_analyse_emotionnelle_index') }}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-list"></i> Toutes les analyses
+            </a>
+        </div>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ analyse_emotionnelle.id }}</td>
-            </tr>
-            <tr>
-                <th>EmotionPrincipale</th>
-                <td>{{ analyse_emotionnelle.emotionPrincipale }}</td>
-            </tr>
-            <tr>
-                <th>NiveauStress</th>
-                <td>{{ analyse_emotionnelle.niveauStress }}</td>
-            </tr>
-            <tr>
-                <th>ScoreBienEtre</th>
-                <td>{{ analyse_emotionnelle.scoreBienEtre }}</td>
-            </tr>
-            <tr>
-                <th>ResumeIA</th>
-                <td>{{ analyse_emotionnelle.resumeIA }}</td>
-            </tr>
-            <tr>
-                <th>DateAnalyse</th>
-                <td>{{ analyse_emotionnelle.dateAnalyse ? analyse_emotionnelle.dateAnalyse|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fa-solid fa-face-smile text-warning me-2"></i>
+                        Emotion principale
+                    </h5>
+                    <p class="fs-4 fw-bold text-capitalize">
+                        {{ analyse_emotionnelle.emotionPrincipale|default('Non determinee') }}
+                    </p>
+                    <p class="text-muted mb-0">
+                        Detectee le
+                        {{ analyse_emotionnelle.dateAnalyse ? analyse_emotionnelle.dateAnalyse|date('d/m/Y H:i') : '-' }}
+                    </p>
+                </div>
+            </div>
+        </div>
 
-    <a href="{{ path('app_analyse_emotionnelle_index') }}">back to list</a>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fa-solid fa-heart-pulse text-danger me-2"></i>
+                        Niveau de stress
+                    </h5>
+                    <p class="mb-2">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">
+                            {{ analyse_emotionnelle.niveauStress }}/10
+                        </span>
+                    </p>
+                    <small class="text-muted">
+                        0 = aucun stress, 10 = stress tres eleve.
+                    </small>
+                </div>
+            </div>
+        </div>
 
-    <a href="{{ path('app_analyse_emotionnelle_edit', {'id': analyse_emotionnelle.id}) }}">edit</a>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fa-solid fa-leaf text-success me-2"></i>
+                        Score de bien-etre
+                    </h5>
+                    <div class="mb-2">
+                        <div class="progress" style="height: 12px;">
+                            {% set score = analyse_emotionnelle.scoreBienEtre ?? 0 %}
+                            <div class="progress-bar bg-success"
+                                 role="progressbar"
+                                 style="width: {{ score }}%;"
+                                 aria-valuenow="{{ score }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mb-0">
+                        <strong>{{ score }}/100</strong>
+                        <span class="text-muted ms-1">(plus le score est eleve, meilleur est le bien-etre global)</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    {{ include('analyse_emotionnelle/_delete_form.html.twig') }}
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="fa-solid fa-brain text-primary me-2"></i>
+                Synthese de l'IA
+            </h5>
+            <p class="mb-0">
+                {{ analyse_emotionnelle.resumeIA|default('Aucun resume IA disponible.') }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="fa-solid fa-wand-magic-sparkles text-success me-2"></i>
+                Coach IA Personnel
+            </h5>
+            <p class="mb-3">{{ coach.reformulation }}</p>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <h6 class="mb-2">Maintenant (2 min)</h6>
+                        <p class="mb-0">{{ coach.now }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <h6 class="mb-2">Aujourd'hui</h6>
+                        <p class="mb-0">{{ coach.today }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                        <h6 class="mb-2">Ce soir</h6>
+                        <p class="mb-0">{{ coach.tonight }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info mt-3 mb-0">
+                <strong>Question guidee pour ton prochain journal:</strong><br>
+                {{ coach.question }}
+            </div>
+        </div>
+    </div>
+
+    {% if analyse_emotionnelle.journal is defined and analyse_emotionnelle.journal %}
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">
+                    Extrait du journal analyse
+                </span>
+                <span class="badge bg-outline-success text-success">
+                    {{ analyse_emotionnelle.journal.dateCreation ? analyse_emotionnelle.journal.dateCreation|date('d/m/Y') : '' }}
+                </span>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">
+                    {{ analyse_emotionnelle.journal.contenu|slice(0, 400) }}{% if analyse_emotionnelle.journal.contenu|length > 400 %}...{% endif %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

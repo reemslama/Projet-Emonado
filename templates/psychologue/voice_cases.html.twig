@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vocaux Patients{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 text-success">Nouveaux vocaux patients</h2>
+    <a href="{{ path('psychologue_index') }}" class="btn btn-outline-secondary">Retour dashboard</a>
+</div>
+
+{{ include('components/_flash_messages.html.twig') }}
+
+{% for row in rows %}
+    {% set c = row.case %}
+    <div class="card shadow-sm mb-3 border-0">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="mb-1">{{ c.user ? c.user.nom ~ ' ' ~ c.user.prenom : 'Patient inconnu' }}</h5>
+                    <div class="text-muted small">
+                        Envoye le {{ c.dateCreation ? c.dateCreation|date('d/m/Y H:i') : '' }} · il y a {{ row.minutes }} min
+                    </div>
+                </div>
+                <div class="text-end">
+                    {% if row.priority == 'haute' %}
+                        <span class="badge text-bg-danger">Priorite haute</span>
+                    {% elseif row.priority == 'moyenne' %}
+                        <span class="badge text-bg-warning">Priorite moyenne</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">Priorite normale</span>
+                    {% endif %}
+                    <div class="small text-muted mt-1">Nouveau vocal</div>
+                </div>
+            </div>
+
+            {% if c.audioFileName %}
+                <audio controls class="w-100 mb-3">
+                    <source src="{{ asset('uploads/voice_journals/' ~ c.audioFileName) }}">
+                    Votre navigateur ne supporte pas l'audio.
+                </audio>
+            {% else %}
+                <div class="alert alert-warning py-2">Fichier audio manquant pour ce journal.</div>
+            {% endif %}
+
+            <form method="post" action="{{ path('psychologue_voice_case_advise', {'id': c.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('advise_voice_case_' ~ c.id) }}">
+                <label class="form-label fw-semibold">Conseil coach pour le patient</label>
+                <textarea name="patient_advice" class="form-control mb-2" rows="4" required minlength="15"
+                          placeholder="Ex: Commence par 3 respirations lentes, puis note une seule pensee qui t a pese aujourd hui et ce dont tu as besoin demain."></textarea>
+                <button type="submit" class="btn btn-success">Envoyer le conseil</button>
+            </form>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">Aucun vocal en attente pour le moment.</div>
+{% endfor %}
+{% endblock %}
