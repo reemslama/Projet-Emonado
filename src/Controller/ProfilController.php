@@ -15,26 +15,27 @@ class ProfilController extends AbstractController
     public function profil(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = $this->getUser();
-
-        if (!$user) {
+        if (!$user instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
         $error = null;
 
         if ($request->isMethod('POST')) {
-            $user->setNom($request->request->get('nom'));
-            $user->setPrenom($request->request->get('prenom'));
-            $user->setTelephone($request->request->get('telephone'));
-            $user->setSexe($request->request->get('sexe'));
+            $user->setNom((string) $request->request->get('nom'));
+            $user->setPrenom((string) $request->request->get('prenom'));
+            $tel = $request->request->get('telephone');
+            $user->setTelephone(is_string($tel) && $tel !== '' ? $tel : null);
+            $sexe = $request->request->get('sexe');
+            $user->setSexe(is_string($sexe) && $sexe !== '' ? $sexe : null);
 
             $dateNaissance = $request->request->get('date_naissance');
-            if ($dateNaissance) {
+            if (is_string($dateNaissance) && $dateNaissance !== '') {
                 $user->setDateNaissance(new \DateTime($dateNaissance));
             }
 
             $password = $request->request->get('password');
-            if ($password) {
+            if (is_string($password) && $password !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
             }
 

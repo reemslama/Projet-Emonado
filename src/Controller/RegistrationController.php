@@ -27,11 +27,28 @@ class RegistrationController extends AbstractController
         $errors = [];
 
         if ($request->isMethod('POST')) {
+<<<<<<< HEAD
 
             $submittedToken = $request->request->get('_csrf_token');
             if (!$csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {
                 throw $this->createAccessDeniedException('Invalid CSRF token');
             }
+=======
+            $submittedToken = (string) $request->request->get('_csrf_token', '');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {
+                $errors[] = 'Session invalide. Veuillez réessayer.';
+            } else {
+                $nom = trim((string) $request->request->get('nom', ''));
+                $prenom = trim((string) $request->request->get('prenom', ''));
+                $emailRaw = (string) $request->request->get('email', '');
+                // Normalize email: trim, lowercase, and remove any stray whitespace characters
+                $email = mb_strtolower(trim($emailRaw));
+                $email = (string) preg_replace('/\s+/', '', $email);
+                $password = (string) $request->request->get('password', '');
+                $telephone = trim((string) $request->request->get('telephone', ''));
+                $sexe = trim((string) $request->request->get('sexe', ''));
+                $dateNaissance = trim((string) $request->request->get('date_naissance', ''));
+>>>>>>> d9465e5 (finalVersionByTeam)
 
             $nom = trim((string) $request->request->get('nom', ''));
             $prenom = trim((string) $request->request->get('prenom', ''));
