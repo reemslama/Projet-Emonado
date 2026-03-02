@@ -5,23 +5,29 @@ namespace App\Entity;
 use App\Repository\AuditLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\TimestampableTrait;
+use App\Entity\Traits\BlameableTrait;
 
 #[ORM\Entity(repositoryClass: AuditLogRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class AuditLog
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $action = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $entityType = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $entityId = null;
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $entityId = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $details = null;
@@ -29,16 +35,12 @@ class AuditLog
     #[ORM\Column(length: 45, nullable: true)]
     private ?string $ip = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
-
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -68,14 +70,14 @@ class AuditLog
         return $this;
     }
 
-    public function getEntityId(): ?int
+    public function getEntityId(): ?string
     {
         return $this->entityId;
     }
 
-    public function setEntityId(?int $entityId): self
+    public function setEntityId(int|string|null $entityId): self
     {
-        $this->entityId = $entityId;
+        $this->entityId = $entityId !== null ? (string) $entityId : null;
         return $this;
     }
 
@@ -98,17 +100,6 @@ class AuditLog
     public function setIp(?string $ip): self
     {
         $this->ip = $ip;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
-        $this->createdAt = $createdAt;
         return $this;
     }
 

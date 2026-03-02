@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TypeRendezVousRepository::class)]
+#[ORM\Table(name: 'appointment_type')]
 class TypeRendezVous
 {
     #[ORM\Id]
@@ -16,14 +17,7 @@ class TypeRendezVous
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Le libellé est obligatoire")]
-    #[Assert\Length(
-        min: 2,
-        max: 255,
-        minMessage: "Le libellé doit contenir au moins {{ limit }} caractères",
-        maxMessage: "Le libellé ne peut pas dépasser {{ limit }} caractères"
-    )]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -60,7 +54,7 @@ class TypeRendezVous
         return $this->libelle;
     }
 
-    public function setLibelle(string $libelle): self
+    public function setLibelle(?string $libelle): self
     {
         $this->libelle = $libelle;
         return $this;

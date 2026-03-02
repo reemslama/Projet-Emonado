@@ -23,7 +23,7 @@ class ChatBotController extends AbstractController
     #[IsGranted('ROLE_PATIENT')]
     public function ask(Request $request, GeminiService $gemini, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
     {
-        $token = $request->request->get('_token', '');
+        $token = (string) $request->request->get('_token', '');
         if (!$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('_csrf', $token))) {
             return $this->json(['ok' => false, 'error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
         }
@@ -34,9 +34,9 @@ class ChatBotController extends AbstractController
         }
 
         $result = $gemini->ask($message);
-        $ok = (bool) ($result['ok'] ?? false);
+        $ok = (bool) $result['ok'];
         $defaultStatus = $ok ? Response::HTTP_OK : Response::HTTP_BAD_GATEWAY;
-        $status = (int) ($result['status'] ?? $defaultStatus);
+        $status = isset($result['status']) ? (int) $result['status'] : $defaultStatus;
 
         if ($ok && ($status < 200 || $status > 299)) {
             $status = Response::HTTP_OK;

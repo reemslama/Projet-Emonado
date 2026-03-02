@@ -15,7 +15,7 @@ class Question
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $texte = null;
 
     #[ORM\Column(nullable: true)]  // ✅ CHANGÉ ICI
@@ -48,7 +48,7 @@ class Question
         return $this->texte;
     }
 
-    public function setTexte(string $texte): self
+    public function setTexte(?string $texte): self
     {
         $this->texte = $texte;
         return $this;

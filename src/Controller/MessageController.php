@@ -26,6 +26,9 @@ class MessageController extends AbstractController
         HubInterface $hub
     ): Response {
         $sender = $this->getUser();
+        if (!$sender instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         if ($sender === $receiver) {
             throw $this->createAccessDeniedException("Vous ne pouvez pas discuter avec vous-même.");
@@ -36,7 +39,7 @@ class MessageController extends AbstractController
 
         // Envoi du message
         if ($request->isMethod('POST')) {
-            $content = trim($request->request->get('content', ''));
+            $content = trim((string) $request->request->get('content', ''));
 
             if ($content !== '') {
                 $message = new Message();
@@ -48,17 +51,19 @@ class MessageController extends AbstractController
                 $em->flush();
 
                 // Publication Mercure pour les deux participants
+                $createdAt = $message->getCreatedAt();
+                $payload = [
+                    'id'        => $message->getId(),
+                    'content'   => $message->getContent(),
+                    'senderId'  => $sender->getId(),
+                    'createdAt' => $createdAt ? $createdAt->format(\DateTime::ATOM) : null,
+                ];
                 $update = new Update(
                     topics: [
                         "chat/{$sender->getId()}/{$receiver->getId()}",
                         "chat/{$receiver->getId()}/{$sender->getId()}"
                     ],
-                    data: json_encode([
-                        'id'        => $message->getId(),
-                        'content'   => $message->getContent(),
-                        'senderId'  => $sender->getId(),
-                        'createdAt' => $message->getCreatedAt()->format(\DateTime::ATOM),
-                    ]),
+                    data: json_encode($payload, JSON_THROW_ON_ERROR),
                     private: false
                 );
 
@@ -66,12 +71,7 @@ class MessageController extends AbstractController
 
                 // ✅ Réponse AJAX complète
                 if ($request->isXmlHttpRequest()) {
-                    return $this->json([
-                        'id'        => $message->getId(),
-                        'content'   => $message->getContent(),
-                        'senderId'  => $sender->getId(),
-                        'createdAt' => $message->getCreatedAt()->format(\DateTime::ATOM),
-                    ]);
+                    return $this->json($payload);
                 }
 
                 $this->addFlash('success', 'Message envoyé !');

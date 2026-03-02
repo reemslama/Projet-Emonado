@@ -64,9 +64,11 @@ class TestPdfController extends AbstractController
         $this->denyAccessUnlessGranted('view', $test);
 
         // Calculer les statistiques
+        $score = (int) ($test->getScoreActuel() ?? 0);
+        $categorie = (string) ($test->getCategorie() ?? '');
         $interpretation = $this->scoreCalculator->interpretScore(
-            $test->getScoreActuel(),
-            $test->getCategorie()
+            $score,
+            $categorie
         );
 
         $scoreParCategorie = $this->scoreCalculator->analyzeQuestionsReponses(
@@ -82,10 +84,11 @@ class TestPdfController extends AbstractController
         ]);
 
         // Générer le PDF
+        $dateDebut = $test->getDateDebut();
         $filename = sprintf(
             'test_%s_%s.pdf',
-            $test->getCategorie(),
-            $test->getDateDebut()->format('Y-m-d')
+            $categorie,
+            ($dateDebut ? $dateDebut->format('Y-m-d') : (new \DateTimeImmutable())->format('Y-m-d'))
         );
 
         return $this->generatePdfFromHtml($html, $filename);
@@ -106,9 +109,11 @@ class TestPdfController extends AbstractController
         $this->denyAccessUnlessGranted('view', $test);
 
         // Calculer les statistiques
+        $score = (int) ($test->getScoreActuel() ?? 0);
+        $categorie = (string) ($test->getCategorie() ?? '');
         $interpretation = $this->scoreCalculator->interpretScore(
-            $test->getScoreActuel(),
-            $test->getCategorie()
+            $score,
+            $categorie
         );
 
         $scoreParCategorie = $this->scoreCalculator->analyzeQuestionsReponses(
@@ -129,7 +134,7 @@ class TestPdfController extends AbstractController
      */
     #[Route('/patient/{patientId}/rapport', name: 'test_pdf_rapport_patient', methods: ['GET'])]
     public function rapportPatient(
-        int $patientId,
+        string $patientId,
         TestAdaptatifRepository $repository
     ): Response {
         $tests = $repository->findBy(
@@ -149,10 +154,12 @@ class TestPdfController extends AbstractController
         // Calculer les statistiques pour chaque test
         $statistiques = [];
         foreach ($tests as $test) {
+            $score = (int) ($test->getScoreActuel() ?? 0);
+            $categorie = (string) ($test->getCategorie() ?? '');
             $statistiques[$test->getId()] = [
                 'interpretation' => $this->scoreCalculator->interpretScore(
-                    $test->getScoreActuel(),
-                    $test->getCategorie()
+                    $score,
+                    $categorie
                 ),
                 'scoreParCategorie' => $this->scoreCalculator->analyzeQuestionsReponses(
                     $test->getQuestionsReponses()
@@ -170,7 +177,7 @@ class TestPdfController extends AbstractController
 
         // Générer le PDF
         $filename = sprintf(
-            'rapport_patient_%d_%s.pdf',
+            'rapport_patient_%s_%s.pdf',
             $patientId,
             (new \DateTimeImmutable())->format('Y-m-d')
         );

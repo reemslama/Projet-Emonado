@@ -16,8 +16,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class SendRappelsSmsCommand extends Command
 {
-    private $rdvRepo;
-    private $smsService;
+    private RendezVousRepository $rdvRepo;
+    private MailjetSmsService $smsService;
 
     public function __construct(RendezVousRepository $rdvRepo, MailjetSmsService $smsService)
     {

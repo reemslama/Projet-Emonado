@@ -17,7 +17,7 @@ class DossierMedicalRepository extends ServiceEntityRepository
     }
 
     // Méthode personnalisée pour trouver le dossier d'un patient
-    public function findByPatient(int $patientId): ?DossierMedical
+    public function findByPatient(string $patientId): ?DossierMedical
     {
         return $this->findOneBy(['patient' => $patientId]);
     }

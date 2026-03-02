@@ -19,7 +19,7 @@ class AssistantController extends AbstractController
     #[Route('/assistant/ask', name: 'app_assistant_ask', methods: ['POST'])]
     public function ask(Request $request, GeminiAssistant $assistant): Response
     {
-        $question = $request->request->get('question', '');
+        $question = (string) $request->request->get('question', '');
         
         if (empty($question)) {
             return $this->json(['erreur' => 'Veuillez poser une question']);

@@ -42,7 +42,7 @@ class PatientController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_PATIENT');
 
         $patient = $this->getUser();
-        if (!$patient) {
+        if (!$patient instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
@@ -63,7 +63,7 @@ class PatientController extends AbstractController
             } else {
                 $consultation = new Consultation();
                 $consultation->setDossier($dossier);
-                $consultation->setDate(new \DateTime($dateConsult));
+                $consultation->setDate(new \DateTime((string) $dateConsult));
                 $consultation->setCompteRendu($compteRendu);
                 $consultation->setPsychologue(null);
 
@@ -98,7 +98,7 @@ class PatientController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $patient = $this->getUser();
-        if (!$patient) {
+        if (!$patient instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 

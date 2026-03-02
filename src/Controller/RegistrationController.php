@@ -34,7 +34,7 @@ class RegistrationController extends AbstractController
         ];
 
         if ($request->isMethod('POST')) {
-            $submittedToken = $request->request->get('_csrf_token');
+            $submittedToken = (string) $request->request->get('_csrf_token', '');
             if (!$csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {
                 $errors[] = 'Session invalide. Veuillez réessayer.';
             } else {
@@ -43,7 +43,7 @@ class RegistrationController extends AbstractController
                 $emailRaw = (string) $request->request->get('email', '');
                 // Normalize email: trim, lowercase, and remove any stray whitespace characters
                 $email = mb_strtolower(trim($emailRaw));
-                $email = preg_replace('/\s+/', '', $email);
+                $email = (string) preg_replace('/\s+/', '', $email);
                 $password = (string) $request->request->get('password', '');
                 $telephone = trim((string) $request->request->get('telephone', ''));
                 $sexe = trim((string) $request->request->get('sexe', ''));

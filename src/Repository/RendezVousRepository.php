@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\RendezVous;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,6 +18,9 @@ class RendezVousRepository extends ServiceEntityRepository
         parent::__construct($registry, RendezVous::class);
     }
 
+    /**
+     * @return RendezVous[]
+     */
     public function findBySearchAndSort(?string $search, ?string $sort): array
     {
         $qb = $this->createQueryBuilder('r')
@@ -33,17 +38,26 @@ class RendezVousRepository extends ServiceEntityRepository
             $qb->orderBy('r.date', 'DESC');
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var list<RendezVous> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
-    public function findHistoriqueByPatient($patient)
+    /**
+     * @return RendezVous[]
+     */
+    public function findHistoriqueByPatient(User $patient): array
     {
-        return $this->createQueryBuilder('r')
+        /** @var list<RendezVous> $result */
+        $result = $this->createQueryBuilder('r')
             ->where('r.patient = :patient')
             ->setParameter('patient', $patient)
             ->orderBy('r.date', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     public function getStatsParMois(): array
@@ -62,23 +76,23 @@ class RendezVousRepository extends ServiceEntityRepository
 
         return $result->fetchAllAssociative();
     }
-    public function findBySearchAndSortQueryBuilder(?string $search, ?string $sort)
-{
-    $qb = $this->createQueryBuilder('r')
-        ->leftJoin('r.type', 't')
-        ->addSelect('t');
+    public function findBySearchAndSortQueryBuilder(?string $search, ?string $sort): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('r')
+            ->leftJoin('r.type', 't')
+            ->addSelect('t');
 
-    if ($search) {
-        $qb->andWhere('r.nomPatient LIKE :q OR r.cin LIKE :q')
-           ->setParameter('q', '%' . $search . '%');
+        if ($search) {
+            $qb->andWhere('r.nomPatient LIKE :q OR r.cin LIKE :q')
+               ->setParameter('q', '%' . $search . '%');
+        }
+
+        if ($sort === 'nom') {
+            $qb->orderBy('r.nomPatient', 'ASC');
+        } else {
+            $qb->orderBy('r.date', 'DESC');
+        }
+
+        return $qb;
     }
-
-    if ($sort === 'nom') {
-        $qb->orderBy('r.nomPatient', 'ASC');
-    } else {
-        $qb->orderBy('r.date', 'DESC');
-    }
-
-    return $qb;
-}
 }

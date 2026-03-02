@@ -6,31 +6,34 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Embeddable\Email as EmailValue;
 use Symfony\Component\Security\Core\User\UserInterface;
-
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\UuidV7;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
+#[ORM\Table(name: 'users')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private ?UuidV7 $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    #[ORM\Embedded(class: EmailValue::class, columnPrefix: false)]
+    private EmailValue $email;
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
+    #[Ignore]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -43,58 +46,55 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $specialite = null; // Pour les psychologues
+    private ?string $specialite = null;
 
     #[ORM\Column(length: 64, nullable: true)]
+    #[Ignore]
     private ?string $resetPasswordToken = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Ignore]
     private ?\DateTimeImmutable $resetPasswordTokenExpiresAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $notesProchaineConsultation = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $journals;
 
-    // ────────────────────────────────────────────────
-    // RELATION : un patient → un psychologue (nullable)
-    // un psychologue → plusieurs patients
-    // ────────────────────────────────────────────────
+    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: RendezVous::class)]
+    private Collection $rendezVouses;
 
+    // Relation Psychologue ↔ Patients
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'patients')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $psychologue = null;
 
-    /**
-     * @var Collection<int, User>
-     */
     #[ORM\OneToMany(mappedBy: 'psychologue', targetEntity: self::class)]
     private Collection $patients;
 
     public function __construct()
     {
+        $this->id = Uuid::v7();
+        $this->email = new EmailValue();
         $this->journals = new ArrayCollection();
+        $this->rendezVouses = new ArrayCollection();
         $this->patients = new ArrayCollection();
     }
 
-    // ────────────────────────────────────────────────
-    // SECURITY
-    // ────────────────────────────────────────────────
+    // ================= SECURITY =================
 
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->email->getAddress();
     }
 
-    public function eraseCredentials(): void
-    {
-        // Si vous stockez des données temporaires sensibles, les effacer ici
-    }
+    public function eraseCredentials(): void {}
 
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
@@ -104,155 +104,65 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // ────────────────────────────────────────────────
-    // GETTERS & SETTERS
-    // ────────────────────────────────────────────────
+    // ================= GETTERS & SETTERS =================
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?UuidV7 { return $this->id; }
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+    public function getEmail(): ?string { return $this->email->getAddress(); }
+    public function setEmail(?string $email): self { $this->email->setAddress($email); return $this; }
 
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
-        return $this;
-    }
+    #[Ignore]
+    public function getPassword(): ?string { return $this->password; }
+    public function setPassword(#[\SensitiveParameter] ?string $password): self { $this->password = $password; return $this; }
 
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
+    public function getNom(): ?string { return $this->nom; }
+    public function setNom(?string $nom): self { $this->nom = $nom; return $this; }
 
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
-        return $this;
-    }
+    public function getPrenom(): ?string { return $this->prenom; }
+    public function setPrenom(?string $prenom): self { $this->prenom = $prenom; return $this; }
 
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
+    public function getTelephone(): ?string { return $this->telephone; }
+    public function setTelephone(?string $telephone): self { $this->telephone = $telephone; return $this; }
 
-    public function setNom(string $nom): self
-    {
-        $this->nom = $nom;
-        return $this;
-    }
+    public function getSexe(): ?string { return $this->sexe; }
+    public function setSexe(?string $sexe): self { $this->sexe = $sexe; return $this; }
 
-    public function getPrenom(): ?string
-    {
-        return $this->prenom;
-    }
+    public function getDateNaissance(): ?\DateTimeInterface { return $this->dateNaissance; }
+    public function setDateNaissance(?\DateTimeInterface $dateNaissance): self { $this->dateNaissance = $dateNaissance; return $this; }
 
-    public function setPrenom(string $prenom): self
-    {
-        $this->prenom = $prenom;
-        return $this;
-    }
+    public function getSpecialite(): ?string { return $this->specialite; }
+    public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
 
-    public function getTelephone(): ?string
-    {
-        return $this->telephone;
-    }
-
-    public function setTelephone(?string $telephone): self
-    {
-        $this->telephone = $telephone;
-        return $this;
-    }
-
-    public function getSexe(): ?string
-    {
-        return $this->sexe;
-    }
-
-    public function setSexe(?string $sexe): self
-    {
-        $this->sexe = $sexe;
-        return $this;
-    }
-
-    public function getDateNaissance(): ?\DateTimeInterface
-    {
-        return $this->dateNaissance;
-    }
-
-    public function setDateNaissance(?\DateTimeInterface $dateNaissance): self
-    {
-        $this->dateNaissance = $dateNaissance;
-        return $this;
-    }
-
-    public function getSpecialite(): ?string
-    {
-        return $this->specialite;
-    }
-
-    public function setSpecialite(?string $specialite): self
-    {
-        $this->specialite = $specialite;
-        return $this;
-    }
-
-    public function getResetPasswordToken(): ?string
-    {
-        return $this->resetPasswordToken;
-    }
-
-    public function setResetPasswordToken(?string $resetPasswordToken): self
+    #[Ignore]
+    public function getResetPasswordToken(): ?string { return $this->resetPasswordToken; }
+    public function setResetPasswordToken(#[\SensitiveParameter] ?string $resetPasswordToken, ?\DateTimeImmutable $expiresAt = null): self
     {
         $this->resetPasswordToken = $resetPasswordToken;
+        $this->resetPasswordTokenExpiresAt = $expiresAt;
         return $this;
     }
 
-    public function getResetPasswordTokenExpiresAt(): ?\DateTimeImmutable
+    #[Ignore]
+    public function getResetPasswordTokenExpiresAt(): ?\DateTimeImmutable { return $this->resetPasswordTokenExpiresAt; }
+    public function clearResetPasswordToken(): self
     {
-        return $this->resetPasswordTokenExpiresAt;
-    }
-
-    public function setResetPasswordTokenExpiresAt(?\DateTimeImmutable $resetPasswordTokenExpiresAt): self
-    {
-        $this->resetPasswordTokenExpiresAt = $resetPasswordTokenExpiresAt;
+        $this->resetPasswordToken = null;
+        $this->resetPasswordTokenExpiresAt = null;
         return $this;
     }
 
-    /**
-     * @return Collection<int, Journal>
-     */
-    public function getJournals(): Collection
+    public function getNotesProchaineConsultation(): ?string
     {
-        return $this->journals;
+        return $this->notesProchaineConsultation;
     }
 
-    public function addJournal(Journal $journal): self
+    public function setNotesProchaineConsultation(?string $notesProchaineConsultation): self
     {
-        if (!$this->journals->contains($journal)) {
-            $this->journals->add($journal);
-            $journal->setUser($this);
-        }
+        $this->notesProchaineConsultation = $notesProchaineConsultation;
         return $this;
     }
 
-    public function removeJournal(Journal $journal): self
-    {
-        if ($this->journals->removeElement($journal)) {
-            if ($journal->getUser() === $this) {
-                $journal->setUser(null);
-            }
-        }
-        return $this;
-    }
-
-    // ────────────────────────────────────────────────
-    // RELATION PSYCHOLOGUE ↔ PATIENTS
-    // ────────────────────────────────────────────────
+    // ================= RELATION PSYCHOLOGUE =================
 
     public function getPsychologue(): ?self
     {
@@ -265,9 +175,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
     public function getPatients(): Collection
     {
         return $this->patients;

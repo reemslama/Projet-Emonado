@@ -11,18 +11,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class CalendarSubscriber implements EventSubscriberInterface
 {
-    private $rdvRepository;
-    private $router;
-
     public function __construct(
-        RendezVousRepository $rdvRepository,
-        UrlGeneratorInterface $router
+        private RendezVousRepository $rdvRepository,
+        private UrlGeneratorInterface $router
     ) {
-        $this->rdvRepository = $rdvRepository;
-        $this->router = $router;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             CalendarEvents::SET_DATA => 'onCalendarSetData',
@@ -36,20 +31,25 @@ class CalendarSubscriber implements EventSubscriberInterface
         $end = $calendar->getEnd();
         
         // Requête pour récupérer les RDV de la période
+        /** @var list<RendezVous> $rdvs */
         $rdvs = $this->rdvRepository->createQueryBuilder('r')
             ->where('r.date BETWEEN :start AND :end')
-            ->setParameter('start', $start->format('Y-m-d H:i:s'))
-            ->setParameter('end', $end->format('Y-m-d H:i:s'))
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
             ->getQuery()
             ->getResult();
 
         // Transformer chaque RDV en événement pour le calendrier
         foreach ($rdvs as $rdv) {
+            $date = $rdv->getDate();
+            if ($date === null) {
+                continue;
+            }
             // Créer l'événement (titre, date début, date fin)
             $event = new Event(
                 $rdv->getNomPatient() . ' (Dr. ' . $rdv->getNomPsychologue() . ')',
-                $rdv->getDate(),
-                (clone $rdv->getDate())->modify('+1 hour') // Durée par défaut
+                $date,
+                (clone $date)->modify('+1 hour') // Durée par défaut
             );
 
             // ✅ Vérifier que l'ID existe avant de générer l'URL

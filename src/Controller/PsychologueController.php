@@ -56,15 +56,20 @@ class PsychologueController extends AbstractController
         $this->assertPsyArea();
 
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         if ($request->isMethod('POST')) {
-            $user->setNom($request->request->get('nom'));
-            $user->setPrenom($request->request->get('prenom'));
-            $user->setTelephone($request->request->get('telephone'));
-            $user->setSpecialite($request->request->get('specialite'));
+            $user->setNom((string) $request->request->get('nom'));
+            $user->setPrenom((string) $request->request->get('prenom'));
+            $tel = $request->request->get('telephone');
+            $user->setTelephone(is_string($tel) && $tel !== '' ? $tel : null);
+            $spec = $request->request->get('specialite');
+            $user->setSpecialite(is_string($spec) && $spec !== '' ? $spec : null);
 
             $password = $request->request->get('password');
-            if ($password) {
+            if (is_string($password) && $password !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
             }
 
@@ -99,8 +104,8 @@ class PsychologueController extends AbstractController
     {
         $this->assertPsyArea();
 
-        $keyword = $request->query->get('q', '');
-        $sort = $request->query->get('sort', 'recent');
+        $keyword = (string) $request->query->get('q', '');
+        $sort = (string) $request->query->get('sort', 'recent');
         $journals = $journalRepository->searchAndSortAll($keyword, $sort);
 
         return $this->render('psychologue/journals.html.twig', [

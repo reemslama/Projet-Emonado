@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\AnalyseEmotionnelle;
+use App\Entity\User;
 use App\Entity\Journal;
 use App\Form\AnalyseEmotionnelleType;
 use App\Repository\AnalyseEmotionnelleRepository;
@@ -23,6 +24,9 @@ final class AnalyseEmotionnelleController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
         $canViewAll = $this->isGranted('ROLE_ADMIN')
             || $this->isGranted('ROLE_PSYCHOLOGUE')
             || $this->isGranted('ROLE_PSY');
@@ -174,7 +178,7 @@ final class AnalyseEmotionnelleController extends AbstractController
             ->setNiveauStress($result['niveauStress'] ?? 0)
             ->setScoreBienEtre($result['scoreBienEtre'] ?? 50)
             ->setResumeIA($result['resumeIA'] ?? 'Analyse non disponible.')
-            ->setDateAnalyse(new \DateTime());
+            ->markAnalyzedAt(new \DateTimeImmutable());
 
         try {
             $entityManager->persist($analyse);

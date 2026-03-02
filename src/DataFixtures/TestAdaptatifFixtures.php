@@ -27,8 +27,8 @@ class TestAdaptatifFixtures extends Fixture implements DependentFixtureInterface
         $test1->setPatient($patient)
             ->setCategorie('stress')
             ->setTermine(true)
-            ->setDateDebut(new \DateTimeImmutable('-7 days'))
-            ->setDateFin(new \DateTimeImmutable('-7 days +15 minutes'));
+            ->startAt(new \DateTimeImmutable('-7 days'))
+            ->finishAt(new \DateTimeImmutable('-7 days +15 minutes'));
 
         // Ajouter des questions/réponses
         $test1->ajouterQuestionReponse(
@@ -66,8 +66,8 @@ class TestAdaptatifFixtures extends Fixture implements DependentFixtureInterface
         $test2->setPatient($patient)
             ->setCategorie('depression')
             ->setTermine(true)
-            ->setDateDebut(new \DateTimeImmutable('-5 days'))
-            ->setDateFin(new \DateTimeImmutable('-5 days +20 minutes'));
+            ->startAt(new \DateTimeImmutable('-5 days'))
+            ->finishAt(new \DateTimeImmutable('-5 days +20 minutes'));
 
         $test2->ajouterQuestionReponse(
             'Comment vous sentez-vous ces derniers jours ?',
@@ -109,8 +109,8 @@ class TestAdaptatifFixtures extends Fixture implements DependentFixtureInterface
         $test3->setPatient($patient)
             ->setCategorie('iq')
             ->setTermine(true)
-            ->setDateDebut(new \DateTimeImmutable('-3 days'))
-            ->setDateFin(new \DateTimeImmutable('-3 days +30 minutes'));
+            ->startAt(new \DateTimeImmutable('-3 days'))
+            ->finishAt(new \DateTimeImmutable('-3 days +30 minutes'));
 
         $test3->ajouterQuestionReponse(
             'Quel nombre vient après 2, 4, 8, 16 ?',
@@ -157,8 +157,8 @@ class TestAdaptatifFixtures extends Fixture implements DependentFixtureInterface
         $test4->setPatient($patient)
             ->setCategorie('anxiete')
             ->setTermine(true)
-            ->setDateDebut(new \DateTimeImmutable('-1 days'))
-            ->setDateFin(new \DateTimeImmutable('-1 days +12 minutes'));
+            ->startAt(new \DateTimeImmutable('-1 days'))
+            ->finishAt(new \DateTimeImmutable('-1 days +12 minutes'));
 
         $test4->ajouterQuestionReponse(
             'Ressentez-vous de l\'inquiétude excessive ?',
@@ -195,7 +195,7 @@ class TestAdaptatifFixtures extends Fixture implements DependentFixtureInterface
         $test5->setPatient($patient)
             ->setCategorie('stress')
             ->setTermine(false)
-            ->setDateDebut(new \DateTimeImmutable('now'));
+            ->startAt(new \DateTimeImmutable('now'));
 
         $test5->ajouterQuestionReponse(
             'Comment vous sentez-vous aujourd\'hui ?',

@@ -15,7 +15,7 @@ class VoiceTranscriptionService
      */
     public function transcribe(string $filePath): array
     {
-        $apiKey = (string) ($_ENV['OPENAI_API_KEY'] ?? '');
+        $apiKey = getenv('OPENAI_API_KEY') ?: '';
         if ($apiKey === '') {
             throw new \RuntimeException('Service vocal non configure. Merci de contacter l administrateur.');
         }
@@ -35,6 +35,7 @@ class VoiceTranscriptionService
                 'timeout' => 60,
             ]);
 
+            /** @var array{text?: string} $data */
             $data = $response->toArray(false);
             $text = trim((string) ($data['text'] ?? ''));
 

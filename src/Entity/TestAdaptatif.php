@@ -18,22 +18,22 @@ class TestAdaptatif
     #[ORM\JoinColumn(nullable: true)]
     private ?User $patient = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $categorie = null;
 
     #[ORM\Column(type: Types::JSON)]
     private array $questionsReponses = [];
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $scoreActuel = 0;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $nombreQuestions = 0;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?bool $termine = false;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $dateDebut = null;
 
     #[ORM\Column(nullable: true)]
@@ -75,7 +75,7 @@ class TestAdaptatif
         return $this->categorie;
     }
 
-    public function setCategorie(string $categorie): self
+    public function setCategorie(?string $categorie): self
     {
         $this->categorie = $categorie;
         return $this;
@@ -110,7 +110,7 @@ class TestAdaptatif
         return $this->scoreActuel;
     }
 
-    public function setScoreActuel(int $scoreActuel): self
+    public function setScoreActuel(?int $scoreActuel): self
     {
         $this->scoreActuel = $scoreActuel;
         return $this;
@@ -121,7 +121,7 @@ class TestAdaptatif
         return $this->nombreQuestions;
     }
 
-    public function setNombreQuestions(int $nombreQuestions): self
+    public function setNombreQuestions(?int $nombreQuestions): self
     {
         $this->nombreQuestions = $nombreQuestions;
         return $this;
@@ -132,7 +132,7 @@ class TestAdaptatif
         return $this->termine;
     }
 
-    public function setTermine(bool $termine): self
+    public function setTermine(?bool $termine): self
     {
         $this->termine = $termine;
         if ($termine && !$this->dateFin) {
@@ -146,7 +146,7 @@ class TestAdaptatif
         return $this->dateDebut;
     }
 
-    public function setDateDebut(\DateTimeImmutable $dateDebut): self
+    public function startAt(\DateTimeImmutable $dateDebut): self
     {
         $this->dateDebut = $dateDebut;
         return $this;
@@ -157,9 +157,9 @@ class TestAdaptatif
         return $this->dateFin;
     }
 
-    public function setDateFin(?\DateTimeImmutable $dateFin): self
+    public function finishAt(?\DateTimeImmutable $dateFin = null): self
     {
-        $this->dateFin = $dateFin;
+        $this->dateFin = $dateFin ?? new \DateTimeImmutable();
         return $this;
     }
 

@@ -20,7 +20,8 @@ class ReponseStandaloneType extends AbstractType
             ->add('question', EntityType::class, [
                 'class' => Question::class,
                 'choice_label' => function(Question $question) {
-                    return '#' . $question->getId() . ' - ' . substr($question->getTexte(), 0, 50) . '...';
+                    $texte = $question->getTexte() ?? '';
+                    return '#' . $question->getId() . ' - ' . substr($texte, 0, 50) . '...';
                 },
                 'label' => 'Question associée',
                 'attr' => [

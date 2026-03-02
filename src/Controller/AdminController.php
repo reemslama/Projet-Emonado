@@ -32,17 +32,11 @@ class AdminController extends AbstractController
     public function dashboard(Request $request, UserRepository $userRepo, QuestionRepository $questionRepo, DossierMedicalRepository $dossierRepo, ConsultationRepository $consultationRepo): Response
     {
         // Récupération des utilisateurs
-        if (method_exists($userRepo, 'findByRole')) {
-            $patients     = $userRepo->findByRole('ROLE_PATIENT');
-            $psychologues = $userRepo->findByRole('ROLE_PSYCHOLOGUE');
-        } else {
-            $all          = $userRepo->findAll();
-            $patients     = array_filter($all, fn(User $u) => in_array('ROLE_PATIENT', $u->getRoles(), true));
-            $psychologues = array_filter($all, fn(User $u) => in_array('ROLE_PSYCHOLOGUE', $u->getRoles(), true) || in_array('ROLE_PSY', $u->getRoles(), true));
-        }
+        $patients     = $userRepo->findByRole('ROLE_PATIENT');
+        $psychologues = $userRepo->findByRole('ROLE_PSYCHOLOGUE');
 
-        $categorieFilter = $request->query->get('categorie', 'all');
-        $searchKeyword   = trim($request->query->get('search', ''));
+        $categorieFilter = (string) $request->query->get('categorie', 'all');
+        $searchKeyword   = trim((string) $request->query->get('search', ''));
 
         // ✅ FIX : Récupérer les questions SANS cache
         if (!empty($searchKeyword)) {
@@ -71,8 +65,16 @@ class AdminController extends AbstractController
 
         $dossiersParPatient = [];
         foreach ($dossierRepo->findAll() as $dossier) {
-            $patientId = $dossier->getPatient()->getId();
-            $dossiersParPatient[$patientId] = [
+            $patient = $dossier->getPatient();
+            if ($patient === null) {
+                continue;
+            }
+            $patientId = $patient->getId();
+            if ($patientId === null) {
+                continue;
+            }
+            $patientKey = (string) $patientId;
+            $dossiersParPatient[$patientKey] = [
                 'dossier' => $dossier,
                 'consultations' => $dossier->getConsultations()->toArray(),
             ];
@@ -225,7 +227,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
 
             if ($email !== $user->getEmail()) {
                 $existing = $userRepo->findOneBy(['email' => $email]);
-                if ($existing && $existing->getId() !== $user->getId()) {
+                if ($existing && (string) $existing->getId() !== (string) $user->getId()) {
                     $this->addFlash('error', 'Cet email est déjà utilisé par un autre utilisateur.');
                     return $this->render('admin/edit.html.twig', [
                         'user'     => $user,
@@ -237,8 +239,10 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
 
             $user->setNom((string) $request->request->get('nom'));
             $user->setPrenom((string) $request->request->get('prenom'));
-            $user->setTelephone($request->request->get('telephone') ?: null);
-            $user->setSpecialite($request->request->get('specialite') ?: null);
+            $telephone = $request->request->get('telephone');
+            $user->setTelephone(is_string($telephone) && $telephone !== '' ? $telephone : null);
+            $specialite = $request->request->get('specialite');
+            $user->setSpecialite(is_string($specialite) && $specialite !== '' ? $specialite : null);
 
             $role = (string) $request->request->get('role');
             if ($role && in_array($role, ['ROLE_PATIENT', 'ROLE_PSYCHOLOGUE'])) {
@@ -275,7 +279,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
         Request $request,
         EntityManagerInterface $em
     ): Response {
-        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), (string) $request->request->get('_token'))) {
             try {
                 $em->remove($user);
                 $em->flush();
@@ -313,7 +317,8 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
                             ->select('MAX(q.ordre)')
                             ->getQuery()
                             ->getSingleScalarResult();
-                        $question->setOrdre(($maxOrdre ?? 0) + 1);
+                        $maxOrdre = is_numeric($maxOrdre) ? (int) $maxOrdre : 0;
+                        $question->setOrdre($maxOrdre + 1);
                     }
                     
                     // ✅ AUTO-ASSIGNER L'ORDRE DES RÉPONSES
@@ -369,7 +374,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
     #[Route('/admin/question/{id}/delete', name: 'app_question_delete', methods: ['POST'])]
     public function questionDelete(Request $request, Question $question, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $question->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $question->getId(), (string) $request->request->get('_token'))) {
             try {
                 $em->remove($question);
                 $em->flush();
@@ -397,7 +402,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
     #[Route('/admin/reponse', name: 'admin_reponse_index', methods: ['GET'])]
     public function reponseIndex(ReponseRepository $reponseRepo, Request $request): Response
     {
-        $searchKeyword = trim($request->query->get('search', ''));
+        $searchKeyword = trim((string) $request->query->get('search', ''));
         
         if (!empty($searchKeyword)) {
             // Recherche dans le texte des réponses
@@ -440,7 +445,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
                                 $maxOrdre = $r->getOrdre();
                             }
                         }
-                        $reponse->setOrdre($maxOrdre + 1);
+                        $reponse->setOrdre((int) $maxOrdre + 1);
                     } else {
                         $reponse->setOrdre(1);
                     }
@@ -490,7 +495,7 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
     #[Route('/admin/reponse/{id}/delete', name: 'admin_reponse_delete', methods: ['POST'])]
     public function reponseDelete(Request $request, Reponse $reponse, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $reponse->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $reponse->getId(), (string) $request->request->get('_token'))) {
             try {
                 $em->remove($reponse);
                 $em->flush();
@@ -518,9 +523,9 @@ public function statsRdv(RendezVousRepository $rdvRepo): Response
     public function searchQuestionsAjax(Request $request, QuestionRepository $questionRepo): Response
     {
         $categorieFilter = $request->query->get('categorie', 'all');
-        $searchKeyword   = trim($request->query->get('search', ''));
+        $searchKeyword   = trim((string) $request->query->get('search', ''));
         $sortBy          = $request->query->get('sortBy', 'ordre');
-        $sortOrder       = $request->query->get('sortOrder', 'ASC');
+        $sortOrder       = (string) $request->query->get('sortOrder', 'ASC');
 
         // Validation du tri
         $allowedSortFields = ['ordre', 'texte', 'categorie', 'id'];

@@ -14,20 +14,20 @@ class AnalyseEmotionnelle
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $emotionPrincipale = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $niveauStress = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $scoreBienEtre = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $resumeIA = null;
 
-    #[ORM\Column]
-    private ?\DateTime $dateAnalyse = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateAnalyse = null;
 
     #[ORM\OneToOne(inversedBy: 'analysisEmotionnelle', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
@@ -86,14 +86,14 @@ class AnalyseEmotionnelle
         return $this;
     }
 
-    public function getDateAnalyse(): ?\DateTime
+    public function getDateAnalyse(): ?\DateTimeImmutable
     {
         return $this->dateAnalyse;
     }
 
-    public function setDateAnalyse(\DateTime $dateAnalyse): static
+    public function markAnalyzedAt(?\DateTimeImmutable $dateAnalyse = null): static
     {
-        $this->dateAnalyse = $dateAnalyse;
+        $this->dateAnalyse = $dateAnalyse ?? new \DateTimeImmutable();
 
         return $this;
     }
