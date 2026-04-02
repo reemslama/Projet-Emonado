@@ -50,8 +50,16 @@ services:
     restart: unless-stopped
 
     environment:
+<<<<<<< HEAD
       MERCURE_PUBLISHER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
       MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+=======
+      # Uncomment the following line to disable HTTPS,
+      #SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: 'maSuperCleSecrete123!'
+      MERCURE_SUBSCRIBER_JWT_KEY: 'maSuperCleSecrete123!'
+      # Set the URL of your Symfony project (without trailing slash!) as value of the cors_origins directive
+>>>>>>> 020c78a (finalVersionByRimm)
       MERCURE_EXTRA_DIRECTIVES: |
         cors_origins http://127.0.0.1:8000
 

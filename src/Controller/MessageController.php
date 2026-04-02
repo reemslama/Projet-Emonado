@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,7 +24,8 @@ class MessageController extends AbstractController
         MessageRepository $messageRepository,
         Request $request,
         EntityManagerInterface $em,
-        HubInterface $hub
+        HubInterface $hub,
+        LoggerInterface $logger
     ): Response {
         $sender = $this->getUser();
         if (!$sender instanceof User) {
@@ -67,7 +69,13 @@ class MessageController extends AbstractController
                     private: false
                 );
 
-                $hub->publish($update);
+                try {
+                    $hub->publish($update);
+                } catch (\Throwable $e) {
+                    // In dev the Mercure hub often uses a self-signed certificate; don't fail the whole request.
+                    $logger->error('Echec d\'envoi Mercure', ['exception' => $e]);
+                    $this->addFlash('warning', 'Message enregistre, mais la notification temps reel est temporairement indisponible.');
+                }
 
                 // ✅ Réponse AJAX complète
                 if ($request->isXmlHttpRequest()) {
