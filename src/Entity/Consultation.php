@@ -8,22 +8,25 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Traits\TimestampableTrait;
+use App\Entity\Traits\BlameableTrait;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Consultation
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Assert\NotBlank(message: "La date de consultation est obligatoire")]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Assert\NotBlank(message: "Le compte rendu est obligatoire")]
-    #[Assert\Length(min: 10, minMessage: "Le compte rendu doit contenir au moins {{ limit }} caractères")]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $compteRendu = null;
 
     #[ORM\Column(length: 100, nullable: true)]
@@ -35,11 +38,8 @@ class Consultation
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $observations = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
-
     #[ORM\ManyToOne(targetEntity: DossierMedical::class, inversedBy: 'consultations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?DossierMedical $dossier = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -56,7 +56,6 @@ class Consultation
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
         $this->documents = new ArrayCollection();
         $this->prescriptions = new ArrayCollection();
     }
@@ -71,7 +70,7 @@ class Consultation
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setDate(?\DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -83,7 +82,7 @@ class Consultation
         return $this->compteRendu;
     }
 
-    public function setCompteRendu(string $compteRendu): self
+    public function setCompteRendu(?string $compteRendu): self
     {
         $this->compteRendu = $compteRendu;
 
@@ -120,18 +119,6 @@ class Consultation
     public function setObservations(?string $observations): self
     {
         $this->observations = $observations;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-
         return $this;
     }
 

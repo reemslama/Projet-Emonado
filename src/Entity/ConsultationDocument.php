@@ -5,26 +5,29 @@ namespace App\Entity;
 use App\Repository\ConsultationDocumentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\TimestampableTrait;
+use App\Entity\Traits\BlameableTrait;
 
 #[ORM\Entity(repositoryClass: ConsultationDocumentRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class ConsultationDocument
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $typeFichier = null;
 
-    #[ORM\Column(type: Types::STRING, length: 500)]
+    #[ORM\Column(type: Types::STRING, length: 500, nullable: true)]
     private ?string $pathOrUrl = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: Consultation::class, inversedBy: 'documents')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -32,7 +35,6 @@ class ConsultationDocument
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -45,7 +47,7 @@ class ConsultationDocument
         return $this->nom;
     }
 
-    public function setNom(string $nom): self
+    public function setNom(?string $nom): self
     {
         $this->nom = $nom;
         return $this;
@@ -56,7 +58,7 @@ class ConsultationDocument
         return $this->typeFichier;
     }
 
-    public function setTypeFichier(string $typeFichier): self
+    public function setTypeFichier(?string $typeFichier): self
     {
         $this->typeFichier = $typeFichier;
         return $this;
@@ -67,20 +69,9 @@ class ConsultationDocument
         return $this->pathOrUrl;
     }
 
-    public function setPathOrUrl(string $pathOrUrl): self
+    public function setPathOrUrl(?string $pathOrUrl): self
     {
         $this->pathOrUrl = $pathOrUrl;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
-        $this->createdAt = $createdAt;
         return $this;
     }
 

@@ -7,6 +7,9 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Message>
+ */
 class MessageRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,6 +19,8 @@ class MessageRepository extends ServiceEntityRepository
 
     /**
      * Récupère la conversation complète entre deux utilisateurs
+     *
+     * @return Message[]
      */
     public function findConversation(User $user1, User $user2): array
     {

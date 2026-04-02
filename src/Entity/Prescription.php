@@ -5,23 +5,26 @@ namespace App\Entity;
 use App\Repository\PrescriptionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\TimestampableTrait;
+use App\Entity\Traits\BlameableTrait;
 
 #[ORM\Entity(repositoryClass: PrescriptionRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Prescription
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $contenu = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $datePrescription = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $datePrescription;
 
     #[ORM\ManyToOne(targetEntity: Consultation::class, inversedBy: 'prescriptions')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -29,8 +32,7 @@ class Prescription
 
     public function __construct()
     {
-        $this->datePrescription = new \DateTime();
-        $this->createdAt = new \DateTime();
+        $this->datePrescription = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -43,32 +45,19 @@ class Prescription
         return $this->contenu;
     }
 
-    public function setContenu(string $contenu): self
+    public function setContenu(?string $contenu): self
     {
         $this->contenu = $contenu;
         return $this;
     }
 
-    public function getDatePrescription(): ?\DateTimeInterface
+    public function getDatePrescription(): \DateTimeImmutable
     {
         return $this->datePrescription;
     }
-
-    public function setDatePrescription(\DateTimeInterface $datePrescription): self
+    public function refreshDatePrescription(): void
     {
-        $this->datePrescription = $datePrescription;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
+        $this->datePrescription = new \DateTimeImmutable();
     }
 
     public function getConsultation(): ?Consultation

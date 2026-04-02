@@ -2,12 +2,17 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\BlameableTrait;
+use App\Entity\Traits\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 class Message
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -21,17 +26,8 @@ class Message
     #[ORM\JoinColumn(nullable: false)]
     private ?User $receiver = null;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $content = null;
-
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $createdAt = null;
-
-    #[ORM\PrePersist]
-    public function setCreatedAtValue(): void
-    {
-        $this->createdAt = new \DateTime();
-    }
 
     // GETTERS & SETTERS
 
@@ -44,7 +40,6 @@ class Message
     public function setReceiver(?User $receiver): self { $this->receiver = $receiver; return $this; }
 
     public function getContent(): ?string { return $this->content; }
-    public function setContent(string $content): self { $this->content = $content; return $this; }
-
-    public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
+    public function setContent(?string $content): self { $this->content = $content; return $this; }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 }

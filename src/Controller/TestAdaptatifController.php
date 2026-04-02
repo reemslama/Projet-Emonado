@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\TestAdaptatif;
 use App\Repository\TestAdaptatifRepository;
 use App\Service\QuestionnaireAdaptatifService;
@@ -30,7 +31,7 @@ class TestAdaptatifController extends AbstractController
         
         // Ajouter le profil du patient si connecté
         $user = $this->getUser();
-        if ($user) {
+        if ($user instanceof User) {
             $test->setPatient($user);
             $profil = $this->questionnaireService->extraireProfilPatient($user);
             $test->setProfilPatient($profil);
@@ -93,8 +94,8 @@ class TestAdaptatifController extends AbstractController
         }
 
         // Récupérer la réponse
-        $questionTexte = $request->request->get('question');
-        $reponseTexte = $request->request->get('reponse');
+        $questionTexte = (string) $request->request->get('question', '');
+        $reponseTexte = (string) $request->request->get('reponse', '');
         $valeur = (int) $request->request->get('valeur');
 
         // Enregistrer la réponse

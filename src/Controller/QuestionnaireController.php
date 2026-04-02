@@ -23,7 +23,7 @@ class QuestionnaireController extends AbstractController
     }
 
     #[Route('/test/{categorie}', name: 'app_test')]
-    public function test($categorie, QuestionRepository $repo): Response
+    public function test(string $categorie, QuestionRepository $repo): Response
     {
         $questions = $repo->findBy(
             ['categorie' => $categorie],

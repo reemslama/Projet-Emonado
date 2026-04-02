@@ -1,0 +1,13 @@
+[mysqld]
+# Faster writes in dev; keep value 1 in production.
+innodb_flush_log_at_trx_commit = 2
+
+# Disable binary logging in dev to save disk.
+skip-log-bin
+
+# Consistent charset defaults.
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# Keep server timezone coherent (timezone tables loaded separately).
+default-time-zone = UTC

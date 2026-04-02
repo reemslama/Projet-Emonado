@@ -15,29 +15,17 @@ class Journal
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Assert\NotBlank(message: 'Le contenu du journal est obligatoire.')]
-    #[Assert\Length(
-        min: 10,
-        minMessage: 'Le contenu doit contenir au moins {{ limit }} caracteres.',
-        max: 1000,
-        maxMessage: 'Le contenu ne peut pas depasser {{ limit }} caracteres.'
-    )]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $contenu = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Veuillez choisir votre humeur.')]
-    #[Assert\Choice(
-        choices: ['heureux', 'SOS', 'en colere', 'calme'],
-        message: "Veuillez choisir une humeur valide: 'heureux', 'SOS', 'en colere', 'calme'."
-    )]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $humeur = null;
 
-    #[ORM\Column]
-    private ?\DateTime $dateCreation = null;
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $dateCreation = null;
 
     #[ORM\ManyToOne(inversedBy: 'journals')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\OneToOne(mappedBy: 'journal', cascade: ['persist', 'remove'])]
@@ -56,10 +44,10 @@ class Journal
     private ?string $psychologueCaseDescription = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $psychologueReviewedAt = null;
+    private ?\DateTimeImmutable $psychologueReviewedAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $patientAdviceSeenAt = null;
+    private ?\DateTimeImmutable $patientAdviceSeenAt = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $musicPrescriptionJson = null;
@@ -71,7 +59,12 @@ class Journal
     private ?string $musicPrescriptionObjective = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $musicPrescriptionGeneratedAt = null;
+    private ?\DateTimeImmutable $musicPrescriptionGeneratedAt = null;
+
+    public function __construct()
+    {
+        $this->dateCreation = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -83,7 +76,7 @@ class Journal
         return $this->contenu;
     }
 
-    public function setContenu(string $contenu): static
+    public function setContenu(?string $contenu): static
     {
         $this->contenu = $contenu;
 
@@ -95,21 +88,21 @@ class Journal
         return $this->humeur;
     }
 
-    public function setHumeur(string $humeur): static
+    public function setHumeur(?string $humeur): static
     {
         $this->humeur = $humeur;
 
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTime
+    public function getDateCreation(): ?\DateTimeImmutable
     {
         return $this->dateCreation;
     }
 
-    public function setDateCreation(\DateTime $dateCreation): static
+    public function markCreatedAt(?\DateTimeImmutable $dateCreation = null): static
     {
-        $this->dateCreation = $dateCreation;
+        $this->dateCreation = $dateCreation ?? new \DateTimeImmutable();
 
         return $this;
     }
@@ -190,26 +183,26 @@ class Journal
         return $this;
     }
 
-    public function getPsychologueReviewedAt(): ?\DateTime
+    public function getPsychologueReviewedAt(): ?\DateTimeImmutable
     {
         return $this->psychologueReviewedAt;
     }
 
-    public function setPsychologueReviewedAt(?\DateTime $psychologueReviewedAt): static
+    public function markPsychologueReviewedAt(?\DateTimeImmutable $psychologueReviewedAt = null): static
     {
-        $this->psychologueReviewedAt = $psychologueReviewedAt;
+        $this->psychologueReviewedAt = $psychologueReviewedAt ?? new \DateTimeImmutable();
 
         return $this;
     }
 
-    public function getPatientAdviceSeenAt(): ?\DateTime
+    public function getPatientAdviceSeenAt(): ?\DateTimeImmutable
     {
         return $this->patientAdviceSeenAt;
     }
 
-    public function setPatientAdviceSeenAt(?\DateTime $patientAdviceSeenAt): static
+    public function markPatientAdviceSeenAt(?\DateTimeImmutable $patientAdviceSeenAt = null): static
     {
-        $this->patientAdviceSeenAt = $patientAdviceSeenAt;
+        $this->patientAdviceSeenAt = $patientAdviceSeenAt ?? new \DateTimeImmutable();
 
         return $this;
     }
@@ -277,14 +270,14 @@ class Journal
         return $this;
     }
 
-    public function getMusicPrescriptionGeneratedAt(): ?\DateTime
+    public function getMusicPrescriptionGeneratedAt(): ?\DateTimeImmutable
     {
         return $this->musicPrescriptionGeneratedAt;
     }
 
-    public function setMusicPrescriptionGeneratedAt(?\DateTime $musicPrescriptionGeneratedAt): static
+    public function markMusicPrescriptionGeneratedAt(?\DateTimeImmutable $musicPrescriptionGeneratedAt = null): static
     {
-        $this->musicPrescriptionGeneratedAt = $musicPrescriptionGeneratedAt;
+        $this->musicPrescriptionGeneratedAt = $musicPrescriptionGeneratedAt ?? new \DateTimeImmutable();
 
         return $this;
     }

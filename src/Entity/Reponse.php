@@ -13,7 +13,7 @@ class Reponse
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $texte = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
@@ -36,7 +36,7 @@ class Reponse
         return $this->texte;
     }
 
-    public function setTexte(string $texte): self
+    public function setTexte(?string $texte): self
     {
         $this->texte = $texte;
         return $this;

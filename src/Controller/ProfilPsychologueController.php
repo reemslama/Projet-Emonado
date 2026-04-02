@@ -15,8 +15,7 @@ class ProfilPsychologueController extends AbstractController
     public function profil(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = $this->getUser();
-
-        if (!$user) {
+        if (!$user instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
@@ -24,17 +23,18 @@ class ProfilPsychologueController extends AbstractController
 
         // Mise à jour du profil
         if ($request->isMethod('POST') && $request->request->get('action') === 'update') {
-            $user->setNom($request->request->get('nom'));
-            $user->setPrenom($request->request->get('prenom'));
-            $user->setTelephone($request->request->get('telephone'));
+            $user->setNom((string) $request->request->get('nom'));
+            $user->setPrenom((string) $request->request->get('prenom'));
+            $tel = $request->request->get('telephone');
+            $user->setTelephone(is_string($tel) && $tel !== '' ? $tel : null);
 
             $password = $request->request->get('password');
-            if ($password) {
+            if (is_string($password) && $password !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
             }
 
             $specialite = $request->request->get('specialite');
-            if ($specialite) {
+            if (is_string($specialite) && $specialite !== '') {
                 $user->setSpecialite($specialite);
             }
 

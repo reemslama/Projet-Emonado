@@ -63,17 +63,18 @@ class SecurityController extends AbstractController
                     $success = true;
                 } else {
                     $token = bin2hex(random_bytes(32));
-                    $user->setResetPasswordToken($token);
-                    $user->setResetPasswordTokenExpiresAt(new \DateTimeImmutable(self::RESET_TOKEN_VALIDITY));
+                    $user->setResetPasswordToken($token, new \DateTimeImmutable(self::RESET_TOKEN_VALIDITY));
                     $em->flush();
 
                     $resetUrl = $urlGenerator->generate('app_reset_password', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
-                    $from = (string) $this->getParameter('mailer_from');
-                    $fromName = (string) $this->getParameter('mailer_from_name');
+                    $fromParam = $this->getParameter('mailer_from');
+                    $from = is_string($fromParam) ? $fromParam : '';
+                    $fromNameParam = $this->getParameter('mailer_from_name');
+                    $fromName = is_string($fromNameParam) ? $fromNameParam : '';
                     $emailMessage = (new Email())
                         ->from(new Address($from, $fromName))
                         ->replyTo($from)
-                        ->to($user->getEmail())
+                        ->to((string) $user->getEmail())
                         ->subject('Reinitialisation de votre mot de passe - Emonado')
                         ->text(
                             "Bonjour,\n\nPour reinitialiser votre mot de passe, cliquez sur le lien suivant (valide 1 heure):\n\n"
@@ -141,8 +142,7 @@ class SecurityController extends AbstractController
 
             if (empty($errors)) {
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
-                $user->setResetPasswordToken(null);
-                $user->setResetPasswordTokenExpiresAt(null);
+                $user->clearResetPasswordToken();
                 $em->flush();
 
                 $this->addFlash('success', 'Votre mot de passe a ete modifie. Vous pouvez vous connecter avec votre nouveau mot de passe.');

@@ -26,7 +26,7 @@ class SecurityController extends AbstractController
 
         if ($request->isMethod('POST')) {
             $username = trim((string) $request->request->get('username', ''));
-            $password = $request->request->get('password', '');
+            $password = (string) $request->request->get('password', '');
 
             // Connexion par email (compte User avec ROLE_ADMIN)
             $user = $userRepo->findOneBy(['email' => $username]);

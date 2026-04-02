@@ -3,6 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Entity\AuditLog;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -26,7 +27,7 @@ class LoginAuditSubscriber implements EventSubscriberInterface
     public function onInteractiveLogin(InteractiveLoginEvent $event): void
     {
         $user = $event->getAuthenticationToken()->getUser();
-        if (!is_object($user)) {
+        if (!$user instanceof User) {
             return;
         }
 
@@ -34,7 +35,7 @@ class LoginAuditSubscriber implements EventSubscriberInterface
         $log = new AuditLog();
         $log->setAction('login_success');
         $log->setEntityType('User');
-        $log->setEntityId(method_exists($user, 'getId') ? $user->getId() : null);
+        $log->setEntityId($user->getId());
         $log->setDetails('Connexion réussie');
         $log->setUser($user);
         $log->setIp($request ? $request->getClientIp() : null);

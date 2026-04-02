@@ -26,7 +26,8 @@ class HomeController extends AbstractController
     #[Route('/favicon.ico', name: 'app_favicon', methods: ['GET'])]
     public function favicon(): BinaryFileResponse
     {
-        $projectDir = $this->getParameter('kernel.project_dir');
+        $projectDirParam = $this->getParameter('kernel.project_dir');
+        $projectDir = is_string($projectDirParam) ? $projectDirParam : '';
         $iconPath = $projectDir . '/public/images/logo.png';
 
         $response = new BinaryFileResponse($iconPath);

@@ -1,11 +1,9 @@
 # compose.override.yaml
-version: '3'
-
 services:
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
-      - "3306"
+      - "3307:3306"
 ###< doctrine/doctrine-bundle ###
 
 ###> symfony/mailer ###

@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Controller;
 
 use App\Entity\AuditLog;
 use App\Entity\Consultation;
 use App\Entity\ConsultationDocument;
 use App\Entity\DossierMedical;
+use App\Entity\User;
 use App\Entity\Prescription;
 use App\Repository\DossierMedicalRepository;
 use App\Repository\JournalRepository;
@@ -25,11 +25,16 @@ class DossierMedicalController extends AbstractController
     public function patientView(DossierMedicalRepository $dossierRepo, JournalRepository $journalRepo): Response
     {
         $user = $this->getUser();
-        if (!$user || !in_array('ROLE_PATIENT', $user->getRoles())) {
+        if (!$user instanceof User || !in_array('ROLE_PATIENT', $user->getRoles(), true)) {
             return $this->redirectToRoute('app_login');
         }
 
-        $dossier = $dossierRepo->findByPatient($user->getId());
+        $userId = $user->getId();
+        if ($userId === null) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $dossier = $dossierRepo->findByPatient((string) $userId);
         if (!$dossier) {
             return $this->redirectToRoute('patient_consultations');
         }
@@ -38,13 +43,18 @@ class DossierMedicalController extends AbstractController
         $derniereConsultation = $consultationsSorted[0] ?? null;
         $psychologuesIds = [];
         foreach ($dossier->getConsultations() as $c) {
-            if ($c->getPsychologue() && !in_array($c->getPsychologue()->getId(), $psychologuesIds)) {
-                $psychologuesIds[] = $c->getPsychologue()->getId();
+            $psychologueId = $c->getPsychologue()?->getId();
+            if ($psychologueId === null) {
+                continue;
+            }
+            $psychologueKey = (string) $psychologueId;
+            if (!in_array($psychologueKey, $psychologuesIds, true)) {
+                $psychologuesIds[] = $psychologueKey;
             }
         }
         $nombrePsychologues = count($psychologuesIds);
 
-        // Graphique d'évolution des humeurs (journal) + message simplifié
+        // Graphique d'�volution des humeurs (journal) + message simplifi�
         $chartEvolution = $journalRepo->getEvolutionForUser($user, 90);
         $evolutionMessage = null;
         if (\count($chartEvolution) >= 2) {
@@ -55,9 +65,9 @@ class DossierMedicalController extends AbstractController
             $delta = $moy2 - $moy1;
             $pct = $moy1 > 0 ? round(($delta / $moy1) * 100) : 0;
             if ($pct > 0) {
-                $evolutionMessage = 'Votre humeur moyenne a augmenté d\'environ ' . abs($pct) . '% sur la période (évolution positive).';
+                $evolutionMessage = 'Votre humeur moyenne a augment� d\'environ ' . abs($pct) . '% sur la p�riode (�volution positive).';
             } elseif ($pct < 0) {
-                $evolutionMessage = 'Sur la période, votre humeur moyenne a diminué d\'environ ' . abs($pct) . '%. Pensez à en parler en consultation.';
+                $evolutionMessage = 'Sur la p�riode, votre humeur moyenne a diminu� d\'environ ' . abs($pct) . '%. Pensez � en parler en consultation.';
             }
         }
 
@@ -77,13 +87,13 @@ class DossierMedicalController extends AbstractController
     public function patientSaveNotesConsultation(Request $request, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        if (!$user || !in_array('ROLE_PATIENT', $user->getRoles())) {
+        if (!$user instanceof User || !in_array('ROLE_PATIENT', $user->getRoles(), true)) {
             return $this->redirectToRoute('app_login');
         }
         $notes = trim((string) $request->request->get('notes_prochaine_consultation', ''));
         $user->setNotesProchaineConsultation($notes === '' ? null : $notes);
         $em->flush();
-        $this->addFlash('success', 'Vos points pour la prochaine consultation ont été enregistrés.');
+        $this->addFlash('success', 'Vos points pour la prochaine consultation ont �t� enregistr�s.');
         return $this->redirectToRoute('patient_dossier');
     }
 
@@ -97,20 +107,31 @@ class DossierMedicalController extends AbstractController
         $patients = $userRepo->findByRole('ROLE_PATIENT');
         $dossiers = [];
         foreach ($dossierRepo->findAll() as $d) {
-            $dossiers[$d->getPatient()->getId()] = $d;
+            $patient = $d->getPatient();
+            if ($patient instanceof User) {
+                $patientId = $patient->getId();
+                if ($patientId !== null) {
+                    $dossiers[(string) $patientId] = $d;
+                }
+            }
         }
 
-        // Statistiques basées uniquement sur le journal du patient (humeurs, nombre d'entrées)
+        // Statistiques bas�es uniquement sur le journal du patient (humeurs, nombre d'entr�es)
         $statsParPatient = [];
         foreach ($patients as $patient) {
             $statsHumeurs = $journalRepo->countByHumeurForUser($patient);
             $nbJournaux = array_sum($statsHumeurs);
             $sosCount = $statsHumeurs['SOS'] ?? 0;
             $enColereCount = $statsHumeurs['en colere'] ?? 0;
-            // Cas urgent : au moins un SOS ou plusieurs "en colère" dans le journal
+            // Cas urgent : au moins un SOS ou plusieurs "en col�re" dans le journal
             $urgent = $sosCount > 0 || $enColereCount >= 2;
 
-            $statsParPatient[$patient->getId()] = [
+            $patientId = $patient->getId();
+            if ($patientId === null) {
+                continue;
+            }
+            $patientKey = (string) $patientId;
+            $statsParPatient[$patientKey] = [
                 'nb_journaux' => $nbJournaux,
                 'stats_humeurs' => $statsHumeurs,
                 'sos_count' => $sosCount,
@@ -119,23 +140,29 @@ class DossierMedicalController extends AbstractController
             ];
         }
 
-        // Dernière consultation et indicateurs par patient
+        // Derni�re consultation et indicateurs par patient
         $derniereConsultationParPatient = [];
         foreach ($patients as $patient) {
-            $dossier = $dossiers[$patient->getId()] ?? null;
+            $patientId = $patient->getId();
+            $patientKey = $patientId !== null ? (string) $patientId : null;
+            $dossier = $patientKey !== null ? ($dossiers[$patientKey] ?? null) : null;
             $derniere = null;
             if ($dossier && $dossier->getConsultations()->count() > 0) {
                 $convs = $dossier->getConsultations()->toArray();
                 usort($convs, fn($c1, $c2) => ($c2->getDate() ?? new \DateTime()) <=> ($c1->getDate() ?? new \DateTime()));
                 $derniere = $convs[0];
             }
-            $derniereConsultationParPatient[$patient->getId()] = $derniere;
+            if ($patientKey !== null) {
+                $derniereConsultationParPatient[$patientKey] = $derniere;
+            }
         }
 
         // Trier : cas urgents en premier
         usort($patients, function ($a, $b) use ($statsParPatient) {
-            $urgentA = $statsParPatient[$a->getId()]['urgent'] ?? false;
-            $urgentB = $statsParPatient[$b->getId()]['urgent'] ?? false;
+            $keyA = $a->getId() !== null ? (string) $a->getId() : null;
+            $keyB = $b->getId() !== null ? (string) $b->getId() : null;
+            $urgentA = $keyA !== null ? ($statsParPatient[$keyA]['urgent'] ?? false) : false;
+            $urgentB = $keyB !== null ? ($statsParPatient[$keyB]['urgent'] ?? false) : false;
             if ($urgentA && !$urgentB) {
                 return -1;
             }
@@ -154,7 +181,7 @@ class DossierMedicalController extends AbstractController
     }
 
     #[Route('/psychologue/dossier/{patientId}', name: 'psy_dossier_view')]
-    public function psyView(int $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo, JournalRepository $journalRepo, PredictionEvolutionService $predictionService): Response
+    public function psyView(string $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo, JournalRepository $journalRepo, PredictionEvolutionService $predictionService): Response
     {
         if (!$this->isGranted('ROLE_PSYCHOLOGUE')) {
             throw $this->createAccessDeniedException();
@@ -162,15 +189,15 @@ class DossierMedicalController extends AbstractController
 
         $patient = $userRepo->find($patientId);
         if (!$patient || !in_array('ROLE_PATIENT', $patient->getRoles())) {
-            throw $this->createNotFoundException('Patient non trouvé');
+            throw $this->createNotFoundException('Patient non trouv�');
         }
 
         $dossier = $dossierRepo->findByPatient($patientId);
 
-        // Journaux du patient (triés du plus récent au plus ancien)
+        // Journaux du patient (tri�s du plus r�cent au plus ancien)
         $journals = $journalRepo->searchAndSortByUser($patient, null, 'new');
 
-        // Analyses émotionnelles extraites des journaux
+        // Analyses �motionnelles extraites des journaux
         $analyses = [];
         foreach ($journals as $journal) {
             $analysis = $journal->getAnalysisEmotionnelle();
@@ -182,7 +209,7 @@ class DossierMedicalController extends AbstractController
         // Statistiques humeurs
         $statsHumeurs = $journalRepo->countByHumeurForUser($patient);
 
-        // Statistiques analyses (stress, bien-être)
+        // Statistiques analyses (stress, bien-�tre)
         $statsAnalyses = [
             'moyenne_stress' => 0,
             'moyenne_bien_etre' => 0,
@@ -206,10 +233,10 @@ class DossierMedicalController extends AbstractController
             $statsAnalyses['derniere_analyse'] = $analyses[0];
         }
 
-        // Âge du patient
+        // �ge du patient
         $age = $patient->getDateNaissance() ? (new \DateTime())->diff($patient->getDateNaissance())->y : null;
 
-        // Données pour graphique d'évolution des émotions (journal) + dates des consultations
+        // Donn�es pour graphique d'�volution des �motions (journal) + dates des consultations
         $chartEvolution = $journalRepo->getEvolutionForUser($patient, 90);
         $consultationDates = [];
         $nbConsultations = 0;
@@ -222,7 +249,7 @@ class DossierMedicalController extends AbstractController
             }
         }
 
-        // Prédiction IA d'évolution de l'état du patient
+        // Pr�diction IA d'�volution de l'�tat du patient
         $prediction = $predictionService->predict($chartEvolution, $statsHumeurs, $statsAnalyses, $nbConsultations);
 
         return $this->render('dossier_medical/psy_view.html.twig', [
@@ -240,14 +267,14 @@ class DossierMedicalController extends AbstractController
     }
 
     #[Route('/psychologue/dossier/{patientId}/timeline', name: 'psy_dossier_timeline')]
-    public function psyTimeline(int $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo): Response
+    public function psyTimeline(string $patientId, DossierMedicalRepository $dossierRepo, UserRepository $userRepo): Response
     {
         if (!$this->isGranted('ROLE_PSYCHOLOGUE')) {
             throw $this->createAccessDeniedException();
         }
         $patient = $userRepo->find($patientId);
         if (!$patient || !in_array('ROLE_PATIENT', $patient->getRoles())) {
-            throw $this->createNotFoundException('Patient non trouvé');
+            throw $this->createNotFoundException('Patient non trouv�');
         }
         $dossier = $dossierRepo->findByPatient($patientId);
         $consultations = [];
@@ -270,7 +297,11 @@ class DossierMedicalController extends AbstractController
         }
         $consultation = $em->getRepository(Consultation::class)->find($id);
         if (!$consultation) {
-            throw $this->createNotFoundException('Consultation non trouvée');
+            throw $this->createNotFoundException('Consultation non trouv�e');
+        }
+        $dossier = $consultation->getDossier();
+        if ($dossier === null) {
+            throw $this->createNotFoundException('Dossier introuvable pour cette consultation');
         }
         $contenu = trim((string) $request->request->get('contenu_prescription', ''));
         if ($contenu !== '') {
@@ -279,10 +310,11 @@ class DossierMedicalController extends AbstractController
             $p->setContenu($contenu);
             $em->persist($p);
             $em->flush();
-            $this->addFlash('success', 'Prescription enregistrée.');
+            $this->addFlash('success', 'Prescription enregistr�e.');
         }
-        $patientId = $consultation->getDossier()->getPatient()->getId();
-        return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId]);
+        $patientEntity = $dossier->getPatient();
+        $patientId = $patientEntity instanceof User ? $patientEntity->getId() : null;
+        return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId !== null ? (string) $patientId : null]);
     }
 
     #[Route('/psychologue/consultation/{id}/document', name: 'psy_consultation_document', methods: ['POST'])]
@@ -294,6 +326,10 @@ class DossierMedicalController extends AbstractController
         $consultation = $em->getRepository(Consultation::class)->find($id);
         if (!$consultation) {
             throw $this->createNotFoundException('Consultation non trouvée');
+        }
+        $dossier = $consultation->getDossier();
+        if (!$dossier) {
+            throw $this->createNotFoundException('Dossier introuvable pour cette consultation');
         }
         $nom = trim((string) $request->request->get('nom_document', ''));
         $url = trim((string) $request->request->get('url_document', ''));
@@ -307,12 +343,13 @@ class DossierMedicalController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Document lié.');
         }
-        $patientId = $consultation->getDossier()->getPatient()->getId();
-        return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId]);
+        $patientEntity = $dossier->getPatient();
+        $patientId = $patientEntity instanceof User ? $patientEntity->getId() : null;
+        return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId !== null ? (string) $patientId : null]);
     }
 
     #[Route('/psychologue/dossier/create/{patientId}', name: 'psy_dossier_create', methods: ['POST'])]
-    public function psyCreate(int $patientId, Request $request, EntityManagerInterface $em, UserRepository $userRepo, DossierMedicalRepository $dossierRepo, ValidatorInterface $validator): Response
+    public function psyCreate(string $patientId, Request $request, EntityManagerInterface $em, UserRepository $userRepo, DossierMedicalRepository $dossierRepo, ValidatorInterface $validator): Response
     {
         if (!$this->isGranted('ROLE_PSYCHOLOGUE')) {
             throw $this->createAccessDeniedException();
@@ -320,18 +357,18 @@ class DossierMedicalController extends AbstractController
 
         $patient = $userRepo->find($patientId);
         if (!$patient || !in_array('ROLE_PATIENT', $patient->getRoles())) {
-            throw $this->createNotFoundException('Patient non trouvé');
+            throw $this->createNotFoundException('Patient non trouv�');
         }
 
         if ($dossierRepo->findByPatient($patientId)) {
-            $this->addFlash('error', 'Dossier déjà existant !');
+            $this->addFlash('error', 'Dossier d�j� existant !');
             return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId]);
         }
 
         $dossier = new DossierMedical();
         $dossier->setPatient($patient);
-        $dossier->setHistoriqueMedical(trim((string) $request->request->get('historique_medical', '')) ?: 'À compléter');
-        $dossier->setNotesPsychologiques(trim((string) $request->request->get('notes_psychologiques', '')) ?: 'À compléter');
+        $dossier->setHistoriqueMedical(trim((string) $request->request->get('historique_medical', '')) ?: '� compl�ter');
+        $dossier->setNotesPsychologiques(trim((string) $request->request->get('notes_psychologiques', '')) ?: '� compl�ter');
         $dossier->setDiagnostic(trim((string) $request->request->get('diagnostic', '')) ?: null);
         $dossier->setTraitementFond(trim((string) $request->request->get('traitement_fond', '')) ?: null);
         $dossier->setObjectifsLongTerme(trim((string) $request->request->get('objectifs_long_terme', '')) ?: null);
@@ -347,14 +384,14 @@ class DossierMedicalController extends AbstractController
         $em->persist($dossier);
         $em->flush();
 
-        $this->logAudit($em, 'dossier_create', 'DossierMedical', $dossier->getId(), 'Création dossier patient #' . $patientId, $request);
+        $this->logAudit($em, 'dossier_create', 'DossierMedical', $dossier->getId(), 'Cr�ation dossier patient #' . $patientId, $request);
 
-        $this->addFlash('success', 'Dossier créé avec succès !');
+        $this->addFlash('success', 'Dossier cr�� avec succ�s !');
         return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId]);
     }
 
     #[Route('/psychologue/dossier/update/{patientId}', name: 'psy_dossier_update', methods: ['POST'])]
-    public function psyUpdate(int $patientId, Request $request, EntityManagerInterface $em, DossierMedicalRepository $dossierRepo, ValidatorInterface $validator): Response
+    public function psyUpdate(string $patientId, Request $request, EntityManagerInterface $em, DossierMedicalRepository $dossierRepo, ValidatorInterface $validator): Response
     {
         if (!$this->isGranted('ROLE_PSYCHOLOGUE')) {
             throw $this->createAccessDeniedException();
@@ -362,7 +399,7 @@ class DossierMedicalController extends AbstractController
 
         $dossier = $dossierRepo->findByPatient($patientId);
         if (!$dossier) {
-            $this->addFlash('error', 'Dossier non trouvé !');
+            $this->addFlash('error', 'Dossier non trouv� !');
             return $this->redirectToRoute('psy_dossiers_list');
         }
 
@@ -373,12 +410,13 @@ class DossierMedicalController extends AbstractController
             $compteRendu = trim((string) $request->request->get('compte_rendu', ''));
             if ($dateConsult !== null && $dateConsult !== '' && $compteRendu !== '') {
                 $consult = new Consultation();
-                $consult->setDate(new \DateTime($dateConsult));
+                $consult->setDate(new \DateTime((string) $dateConsult));
                 $consult->setCompteRendu($compteRendu);
                 $consult->setHumeurPatient(trim((string) $request->request->get('humeur_patient', '')) ?: null);
                 $consult->setSujetAborde(trim((string) $request->request->get('sujet_aborde', '')) ?: null);
                 $consult->setObservations(trim((string) $request->request->get('observations', '')) ?: null);
-                $consult->setPsychologue($this->getUser());
+                $currentUser = $this->getUser();
+                $consult->setPsychologue($currentUser instanceof User ? $currentUser : null);
                 $consult->setDossier($dossier);
                 $dossier->addConsultation($consult);
 
@@ -399,7 +437,7 @@ class DossierMedicalController extends AbstractController
             $dossier->setDiagnostic(trim((string) $request->request->get('diagnostic', $dossier->getDiagnostic() ?? '')) ?: null);
             $dossier->setTraitementFond(trim((string) $request->request->get('traitement_fond', $dossier->getTraitementFond() ?? '')) ?: null);
             $dossier->setObjectifsLongTerme(trim((string) $request->request->get('objectifs_long_terme', $dossier->getObjectifsLongTerme() ?? '')) ?: null);
-            $dossier->setUpdatedAt(new \DateTime());
+            $dossier->markUpdated();
 
             $errors = $validator->validate($dossier);
             if (count($errors) > 0) {
@@ -417,23 +455,34 @@ class DossierMedicalController extends AbstractController
             $lastConsult = end($convs) ?: null;
             $this->logAudit($em, 'consultation_add', 'Consultation', $lastConsult ? $lastConsult->getId() : null, 'Nouvelle consultation dossier #' . $dossier->getId(), $request);
         } else {
-            $this->logAudit($em, 'dossier_update', 'DossierMedical', $dossier->getId(), 'Mise à jour dossier patient #' . $patientId, $request);
+            $this->logAudit($em, 'dossier_update', 'DossierMedical', $dossier->getId(), 'Mise � jour dossier patient #' . $patientId, $request);
         }
 
-        $this->addFlash('success', $action === 'add_consultation' ? 'Consultation ajoutée avec succès !' : 'Dossier mis à jour avec succès !');
+        $this->addFlash('success', $action === 'add_consultation' ? 'Consultation ajout�e avec succ�s !' : 'Dossier mis � jour avec succ�s !');
         return $this->redirectToRoute('psy_dossier_view', ['patientId' => $patientId]);
     }
 
-    private function logAudit(EntityManagerInterface $em, string $action, string $entityType, ?int $entityId, string $details, Request $request): void
+    private function logAudit(EntityManagerInterface $em, string $action, string $entityType, int|string|null $entityId, string $details, Request $request): void
     {
         $log = new AuditLog();
         $log->setAction($action);
         $log->setEntityType($entityType);
         $log->setEntityId($entityId);
         $log->setDetails($details);
-        $log->setUser($this->getUser());
+        $currentUser = $this->getUser();
+        $log->setUser($currentUser instanceof User ? $currentUser : null);
         $log->setIp($request->getClientIp());
         $em->persist($log);
         $em->flush();
     }
 }
+
+
+
+
+
+
+
+
+
+

@@ -41,6 +41,8 @@ class RendezVousController extends AbstractController
     {
         $search = $request->query->get('q');
         $sort = $request->query->get('sort', 'date');
+        $search = is_string($search) || $search === null ? $search : null;
+        $sort = is_string($sort) || $sort === null ? $sort : null;
         
         $queryBuilder = $repo->findBySearchAndSortQueryBuilder($search, $sort);
         
@@ -63,7 +65,7 @@ class RendezVousController extends AbstractController
     {
         $rdv = new RendezVous();
         
-        if ($this->getUser()) {
+        if ($this->getUser() instanceof \App\Entity\User) {
             $rdv->setPatient($this->getUser());
         }
         
@@ -89,8 +91,7 @@ class RendezVousController extends AbstractController
     public function historique(RendezVousRepository $repo): Response
     {
         $patient = $this->getUser();
-
-        if (!in_array('ROLE_PATIENT', $patient->getRoles())) {
+        if (!$patient instanceof \App\Entity\User || !in_array('ROLE_PATIENT', $patient->getRoles(), true)) {
             throw $this->createAccessDeniedException('Accès réservé aux patients');
         }
 

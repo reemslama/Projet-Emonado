@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RendezVousRepository::class)]
+#[ORM\Table(name: 'appointment')]
 class RendezVous
 {
     #[ORM\Id]
@@ -15,16 +16,13 @@ class RendezVous
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Le nom du patient est obligatoire")]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $nomPatient = null;
 
-    #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: "Le CIN est obligatoire")]
+    #[ORM\Column(length: 20, nullable: true)]
     private ?string $cin = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Le nom du psychologue est obligatoire")]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $nomPsychologue = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -49,7 +47,7 @@ class RendezVous
         return $this->nomPatient;
     }
 
-    public function setNomPatient(string $nomPatient): self
+    public function setNomPatient(?string $nomPatient): self
     {
         $this->nomPatient = $nomPatient;
         return $this;
@@ -60,7 +58,7 @@ class RendezVous
         return $this->cin;
     }
 
-    public function setCin(string $cin): self
+    public function setCin(?string $cin): self
     {
         $this->cin = $cin;
         return $this;
@@ -71,7 +69,7 @@ class RendezVous
         return $this->nomPsychologue;
     }
 
-    public function setNomPsychologue(string $nomPsychologue): self
+    public function setNomPsychologue(?string $nomPsychologue): self
     {
         $this->nomPsychologue = $nomPsychologue;
         return $this;
@@ -82,7 +80,7 @@ class RendezVous
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function scheduleAt(?\DateTimeInterface $date): self
     {
         $this->date = $date;
         return $this;

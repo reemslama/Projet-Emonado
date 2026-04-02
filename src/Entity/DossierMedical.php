@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\BlameableTrait;
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\DossierMedicalRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,8 +12,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DossierMedicalRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class DossierMedical
 {
+    use TimestampableTrait;
+    use BlameableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,12 +33,6 @@ class DossierMedical
     #[Assert\Length(min: 10, minMessage: "Les notes psychologiques doivent contenir au moins {{ limit }} caractères")]
     private ?string $notesPsychologiques = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $updatedAt = null;
-
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $diagnostic = null;
 
@@ -46,13 +46,12 @@ class DossierMedical
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?User $patient = null;
 
-    #[ORM\OneToMany(mappedBy: 'dossier', targetEntity: Consultation::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'dossier', targetEntity: Consultation::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $consultations;
 
     public function __construct()
     {
         $this->consultations = new ArrayCollection();
-        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -79,28 +78,6 @@ class DossierMedical
     public function setNotesPsychologiques(?string $notesPsychologiques): self
     {
         $this->notesPsychologiques = $notesPsychologiques;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        $this->updatedAt = $updatedAt;
         return $this;
     }
 

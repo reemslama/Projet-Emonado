@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Entity\Journal;
+use App\Entity\User;
 use App\Form\JournalType;
 use App\Form\VoiceJournalType;
 use App\Repository\JournalRepository;
@@ -32,17 +32,21 @@ class JournalController extends AbstractController
     }
 
     #[Route('/', name: 'app_journal_index', methods: ['GET'])]
-    public function index(
-        Request $request,
-        JournalRepository $journalRepository
-    ): Response {
+    public function index(Request $request, JournalRepository $journalRepository): Response
+    {
         $this->denyAccessUnlessGranted('ROLE_USER');
         $this->assertPatientArea();
-        $keyword = $request->query->get('q', '');
-        $sort = $request->query->get('sort', 'recent');
+
+        $keyword = (string) $request->query->get('q', '');
+        $sort = (string) $request->query->get('sort', 'recent');
         $openAdviceId = $request->query->getInt('open_advice', 0);
         $openMusicId = $request->query->getInt('open_music', 0);
+
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
         $journals = $journalRepository->searchAndSortByUser($user, $keyword, $sort);
         $stats = $journalRepository->countByHumeurForUser($user);
 
@@ -73,7 +77,7 @@ class JournalController extends AbstractController
         }
 
         $currentUser = $this->getUser();
-        if (!$currentUser || !$journal->getUser() || $journal->getUser()->getId() !== $currentUser->getId()) {
+        if (!$currentUser instanceof User || $journal->getUser()?->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException();
         }
 
@@ -110,7 +114,7 @@ class JournalController extends AbstractController
         }
 
         $currentUser = $this->getUser();
-        if (!$currentUser || !$journal->getUser() || $journal->getUser()->getId() !== $currentUser->getId()) {
+        if (!$currentUser instanceof User || $journal->getUser()?->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException();
         }
 
@@ -119,14 +123,15 @@ class JournalController extends AbstractController
             return $this->redirectToRoute('app_journal_index');
         }
 
+        /** @var array{objective?:string, source?:string, generatedAt?:string, tracks?:array<int,array{title:string,artist:string,url:string}>} $musicPack */
         $musicPack = $musicTherapyService->generateForJournal($journal);
         $journal->setMusicPrescriptionData($musicPack);
         $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
-        $journal->setMusicPrescriptionSource($musicPack['source'] ?? 'fallback');
+        $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
         $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
         $entityManager->flush();
 
-        $this->addFlash('success', 'Prescription musicale IA generee.');
+        $this->addFlash('success', 'Prescription musicale IA générée.');
 
         return $this->redirectToRoute('app_journal_index', [
             'open_music' => $journal->getId(),
@@ -147,15 +152,17 @@ class JournalController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $journal->setUser($this->getUser());
-            $journal->setDateCreation(new \DateTime());
+            $currentUser = $this->getUser();
+            $journal->setUser($currentUser instanceof User ? $currentUser : null);
+            $journal->markCreatedAt(new \DateTimeImmutable());
             $journal->setInputMode('text');
 
             $entityManager->persist($journal);
+            /** @var array{objective?:string, source?:string, generatedAt?:string, tracks?:array<int,array{title:string,artist:string,url:string}>} $musicPack */
             $musicPack = $musicTherapyService->generateForJournal($journal);
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
-            $journal->setMusicPrescriptionSource($musicPack['source'] ?? 'fallback');
+            $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
             $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
             $entityManager->flush();
 
@@ -182,7 +189,9 @@ class JournalController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile $audio */
             $audio = $form->get('voiceNote')->getData();
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/voice_journals';
+            $projectDirParam = $this->getParameter('kernel.project_dir');
+            $projectDir = is_string($projectDirParam) ? $projectDirParam : '';
+            $uploadDir = $projectDir . '/public/uploads/voice_journals';
             if (!is_dir($uploadDir)) {
                 @mkdir($uploadDir, 0775, true);
             }
@@ -193,23 +202,25 @@ class JournalController extends AbstractController
             $audio->move($uploadDir, $fileName);
 
             $journal = new Journal();
-            $journal->setUser($this->getUser());
-            $journal->setDateCreation(new \DateTime());
-            $journal->setContenu('Note vocale envoyee par le patient. En attente de description du psychologue.');
+            $currentUser = $this->getUser();
+            $journal->setUser($currentUser instanceof User ? $currentUser : null);
+            $journal->markCreatedAt(new \DateTimeImmutable());
+            $journal->setContenu('Note vocale envoyée par le patient. En attente de description du psychologue.');
             $journal->setHumeur('calme');
             $journal->setInputMode('voice');
             $journal->setAudioFileName($fileName);
             $journal->setTranscriptionProvider('none');
 
             $entityManager->persist($journal);
+            /** @var array{objective?:string, source?:string, generatedAt?:string, tracks?:array<int,array{title:string,artist:string,url:string}>} $musicPack */
             $musicPack = $musicTherapyService->generateForJournal($journal);
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
-            $journal->setMusicPrescriptionSource($musicPack['source'] ?? 'fallback');
+            $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
             $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
             $entityManager->flush();
 
-            $this->addFlash('success', 'Journal vocal envoye. Le psychologue a recu une alerte.');
+            $this->addFlash('success', 'Journal vocal envoyé. Le psychologue a reçu une alerte.');
             return $this->redirectToRoute('app_journal_index');
         }
 
@@ -235,7 +246,7 @@ class JournalController extends AbstractController
         }
 
         $currentUser = $this->getUser();
-        if (!$currentUser || !$journal->getUser() || $journal->getUser()->getId() !== $currentUser->getId()) {
+        if (!$currentUser instanceof User || $journal->getUser()?->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException();
         }
 
@@ -265,16 +276,16 @@ class JournalController extends AbstractController
 
         $journal = $journalRepository->find($id);
         if (!$journal) {
-            $this->addFlash('error', 'Journal introuvable ou deja supprime.');
+            $this->addFlash('error', 'Journal introuvable ou déjà supprimé.');
             return $this->redirectToRoute('app_journal_index');
         }
 
         $currentUser = $this->getUser();
-        if (!$currentUser || !$journal->getUser() || $journal->getUser()->getId() !== $currentUser->getId()) {
+        if (!$currentUser instanceof User || $journal->getUser()?->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException();
         }
 
-        if ($this->isCsrfTokenValid('delete' . $journal->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $journal->getId(), (string) $request->request->get('_token'))) {
             $entityManager->remove($journal);
             $entityManager->flush();
         }
@@ -322,10 +333,15 @@ class JournalController extends AbstractController
             ['label' => 'En colere', 'key' => 'en colere', 'color' => '#e63946'],
         ];
 
-        $logoPath = $this->getParameter('kernel.project_dir') . '/public/images/logo.png';
+        $projectDirParam = $this->getParameter('kernel.project_dir');
+        $projectDir = is_string($projectDirParam) ? $projectDirParam : '';
+        $logoPath = $projectDir . '/public/images/logo.png';
         $logoDataUri = null;
         if (is_file($logoPath)) {
-            $mime = mime_content_type($logoPath) ?: 'image/png';
+            // Ensure we call the global function; provide a safe fallback if the extension is missing
+            $mime = \function_exists('mime_content_type')
+                ? (\mime_content_type($logoPath) ?: 'image/png')
+                : 'image/png';
             $logoDataUri = 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($logoPath));
         }
 
@@ -352,7 +368,7 @@ class JournalController extends AbstractController
             200,
             [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="statistiques_journal.pdf"',
+                'Content-Disposition' => 'attachment; filename=\"statistiques_journal.pdf\"',
             ]
         );
     }
