@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
@@ -11,7 +13,6 @@ class HomeController extends AbstractController
     #[Route('/', name: 'home')]
     public function index(): Response
     {
-        // On indique le chemin complet depuis templates/
         return $this->render('home/index.html.twig');
     }
 
@@ -20,8 +21,6 @@ class HomeController extends AbstractController
     {
         return $this->render('test/index.html.twig'); 
     }
-<<<<<<< HEAD
-=======
 
     #[Route('/favicon.ico', name: 'app_favicon', methods: ['GET'])]
     public function favicon(): BinaryFileResponse
@@ -38,5 +37,4 @@ class HomeController extends AbstractController
 
         return $response;
     }
->>>>>>> d9465e5 (finalVersionByTeam)
 }

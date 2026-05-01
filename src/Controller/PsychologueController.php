@@ -2,12 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Repository\AnalyseEmotionnelleRepository;
+use App\Repository\JournalRepository;
+use App\Repository\RendezVousRepository;
+use App\Service\TherapeuticCompanionService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
 
 class PsychologueController extends AbstractController
 {
@@ -21,13 +26,8 @@ class PsychologueController extends AbstractController
     public function profil(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = $this->getUser();
-<<<<<<< HEAD
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-=======
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
->>>>>>> d9465e5 (finalVersionByTeam)
         }
 
         if ($request->isMethod('POST')) {
@@ -52,7 +52,7 @@ class PsychologueController extends AbstractController
 
         return $this->render('profil_psychologue/index.html.twig', [
             'user' => $user,
-            'error' => null, // <-- corrige l'erreur
+            'error' => null,
         ]);
     }
 
@@ -67,8 +67,6 @@ class PsychologueController extends AbstractController
         }
         return $this->redirectToRoute('app_login');
     }
-<<<<<<< HEAD
-=======
 
     #[Route('/psychologue/journaux', name: 'psychologue_journals', methods: ['GET'])]
     public function journals(Request $request, JournalRepository $journalRepository): Response
@@ -136,5 +134,4 @@ class PsychologueController extends AbstractController
         $stats = $rdvRepo->getStatsParMois();
         return $this->render('rendez_vous/stats_mois.html.twig', ['stats' => $stats]);
     }
->>>>>>> d9465e5 (finalVersionByTeam)
 }
