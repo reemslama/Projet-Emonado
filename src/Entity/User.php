@@ -37,10 +37,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $dateNaissance = null;
 
+    // ✅ AJOUT IMPORTANT (Java compatible)
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $specialite = null; // <-- Pour les psychologues
+    private ?string $role = null;
 
-    // ---------- SECURITY ----------
+    #[ORM\Column(nullable: true)]
+    private ?bool $hasChild = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $specialite = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $faceIdImagePath = null;
+
+    // ---------------- SECURITY ----------------
+
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
@@ -48,17 +62,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void {}
 
-    // ---------- GETTERS / SETTERS ----------
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    // ---------------- GETTERS / SETTERS ----------------
+
     public function getId(): ?int { return $this->id; }
 
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): self { $this->email = $email; return $this; }
-
-    public function getRoles(): array
-    {
-        return array_unique(array_merge($this->roles, ['ROLE_USER']));
-    }
-    public function setRoles(array $roles): self { $this->roles = $roles; return $this; }
 
     public function getPassword(): ?string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
@@ -70,14 +92,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPrenom(string $prenom): self { $this->prenom = $prenom; return $this; }
 
     public function getTelephone(): ?string { return $this->telephone; }
-    public function setTelephone(?string $telephone): self { $this->telephone = $telephone; return $this; }
+    public function setTelephone(?string $t): self { $this->telephone = $t; return $this; }
 
     public function getSexe(): ?string { return $this->sexe; }
-    public function setSexe(?string $sexe): self { $this->sexe = $sexe; return $this; }
+    public function setSexe(?string $s): self { $this->sexe = $s; return $this; }
 
     public function getDateNaissance(): ?\DateTimeInterface { return $this->dateNaissance; }
-    public function setDateNaissance(?\DateTimeInterface $dateNaissance): self { $this->dateNaissance = $dateNaissance; return $this; }
+    public function setDateNaissance(?\DateTimeInterface $d): self { $this->dateNaissance = $d; return $this; }
+
+    public function getRole(): ?string { return $this->role; }
+    public function setRole(?string $role): self { $this->role = $role; return $this; }
+
+    public function getHasChild(): ?bool { return $this->hasChild; }
+    public function setHasChild(?bool $h): self { $this->hasChild = $h; return $this; }
 
     public function getSpecialite(): ?string { return $this->specialite; }
-    public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
+    public function setSpecialite(?string $s): self { $this->specialite = $s; return $this; }
+
+    public function getAvatar(): ?string { return $this->avatar; }
+    public function setAvatar(?string $a): self { $this->avatar = $a; return $this; }
+
+    public function getFaceIdImagePath(): ?string { return $this->faceIdImagePath; }
+    public function setFaceIdImagePath(?string $f): self { $this->faceIdImagePath = $f; return $this; }
 }

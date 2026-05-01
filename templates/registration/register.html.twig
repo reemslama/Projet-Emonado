@@ -51,6 +51,13 @@
                         <label for="date_naissance" class="form-label">Date de naissance</label>
                         <input type="date" name="date_naissance" id="date_naissance" class="form-control">
                     </div>
+                    <div class="mb-3 form-check">
+                    <input type="checkbox" name="hasChild" id="hasChild" class="form-check-input"
+                        {{ formData.hasChild|default(false) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="hasChild">
+                        J'ai un ou plusieurs enfants
+                    </label>
+                </div>
                     <div class="d-grid mb-3">
                         <button class="btn btn-success btn-lg btn-custom">Créer mon compte</button>
                     </div>

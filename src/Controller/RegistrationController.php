@@ -14,6 +14,8 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class RegistrationController extends AbstractController
 {
+    private const PASSWORD_MIN_LENGTH = 6;
+
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
@@ -21,50 +23,85 @@ class RegistrationController extends AbstractController
         EntityManagerInterface $entityManager,
         CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
-        $error = null;
+
+        $errors = [];
 
         if ($request->isMethod('POST')) {
+
             $submittedToken = $request->request->get('_csrf_token');
             if (!$csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {
                 throw $this->createAccessDeniedException('Invalid CSRF token');
             }
 
-            $email = $request->request->get('email');
-            $password = $request->request->get('password');
-            $nom = $request->request->get('nom');
-            $prenom = $request->request->get('prenom');
-            $telephone = $request->request->get('telephone');
-            $sexe = $request->request->get('sexe');
-            $dateNaissance = $request->request->get('date_naissance');
+            $nom = trim((string) $request->request->get('nom', ''));
+            $prenom = trim((string) $request->request->get('prenom', ''));
+            $email = mb_strtolower(trim((string) $request->request->get('email', '')));
+            $email = preg_replace('/\s+/', '', $email);
 
-            $existingUser = $entityManager->getRepository(User::class)
-                ->findOneBy(['email' => $email]);
+            $password = (string) $request->request->get('password', '');
+            $telephone = trim((string) $request->request->get('telephone', ''));
+            $sexe = trim((string) $request->request->get('sexe', ''));
+            $dateNaissance = trim((string) $request->request->get('date_naissance', ''));
 
-            if ($existingUser) {
-                $error = 'Cet email est déjà utilisé.';
-            } else {
+            // VALIDATION
+            if ($nom === '') {
+                $errors[] = 'Le nom est obligatoire.';
+            }
+            if ($prenom === '') {
+                $errors[] = 'Le prénom est obligatoire.';
+            }
+            if ($email === '') {
+                $errors[] = 'L\'email est obligatoire.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Email invalide.';
+            }
+            if ($password === '') {
+                $errors[] = 'Mot de passe obligatoire.';
+            } elseif (strlen($password) < self::PASSWORD_MIN_LENGTH) {
+                $errors[] = 'Mot de passe trop court.';
+            }
+
+            // CHECK EMAIL EXISTS
+            if (empty($errors)) {
+                $existingUser = $entityManager->getRepository(User::class)
+                    ->findOneBy(['email' => $email]);
+
+                if ($existingUser) {
+                    $errors[] = 'Email déjà utilisé.';
+                }
+            }
+
+            // CREATE USER
+            if (empty($errors)) {
                 $user = new User();
                 $user->setEmail($email);
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
                 $user->setNom($nom);
                 $user->setPrenom($prenom);
-                $user->setTelephone($telephone);
-                $user->setSexe($sexe);
-                if ($dateNaissance) {
-                    $user->setDateNaissance(new \DateTime($dateNaissance));
+                $user->setTelephone($telephone ?: null);
+                $user->setSexe($sexe ?: null);
+
+                if ($dateNaissance !== '') {
+                    try {
+                        $user->setDateNaissance(new \DateTime($dateNaissance));
+                    } catch (\Exception $e) {
+                        $errors[] = 'Date invalide.';
+                    }
                 }
+
                 $user->setRoles(['ROLE_PATIENT']);
 
                 $entityManager->persist($user);
                 $entityManager->flush();
 
                 $this->addFlash('success', 'Compte créé avec succès !');
+
                 return $this->redirectToRoute('app_login');
             }
         }
 
         return $this->render('registration/register.html.twig', [
-            'error' => $error,
+            'errors' => $errors,
         ]);
     }
 }
