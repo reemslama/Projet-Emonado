@@ -6,28 +6,25 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Embeddable\Email as EmailValue;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Serializer\Annotation\Ignore;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\UuidV7;
+
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: 'users')]
+#[ORM\Table(name: 'user')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'uuid', unique: true)]
-    private ?UuidV7 $id = null;
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\Embedded(class: EmailValue::class, columnPrefix: false)]
-    private EmailValue $email;
+    #[ORM\Column(length: 180, unique: true)]
+    private ?string $email = null;
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\Column(nullable: true)]
-    #[Ignore]
+    #[ORM\Column]
     private ?string $password = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -48,24 +45,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $specialite = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $faceIdImagePath = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $hasChild = null;
+
     #[ORM\Column(length: 64, nullable: true)]
-    #[Ignore]
     private ?string $resetPasswordToken = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    #[Ignore]
     private ?\DateTimeImmutable $resetPasswordTokenExpiresAt = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $notesProchaineConsultation = null;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
-    private Collection $journals;
-
-    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: RendezVous::class)]
-    private Collection $rendezVouses;
-
-    // Relation Psychologue ↔ Patients
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'patients')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $psychologue = null;
@@ -73,20 +67,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'psychologue', targetEntity: self::class)]
     private Collection $patients;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
+    private Collection $journals;
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
-        $this->email = new EmailValue();
-        $this->journals = new ArrayCollection();
-        $this->rendezVouses = new ArrayCollection();
         $this->patients = new ArrayCollection();
+        $this->journals = new ArrayCollection();
     }
 
     // ================= SECURITY =================
 
     public function getUserIdentifier(): string
     {
-        return (string) $this->email->getAddress();
+        return (string) $this->email;
     }
 
     public function eraseCredentials(): void {}
@@ -106,14 +100,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     // ================= GETTERS & SETTERS =================
 
-    public function getId(): ?UuidV7 { return $this->id; }
+    public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string { return $this->email->getAddress(); }
-    public function setEmail(?string $email): self { $this->email->setAddress($email); return $this; }
+    public function getEmail(): ?string { return $this->email; }
+    public function setEmail(string $email): self { $this->email = $email; return $this; }
 
-    #[Ignore]
     public function getPassword(): ?string { return $this->password; }
-    public function setPassword(#[\SensitiveParameter] ?string $password): self { $this->password = $password; return $this; }
+    public function setPassword(string $password): self { $this->password = $password; return $this; }
 
     public function getNom(): ?string { return $this->nom; }
     public function setNom(?string $nom): self { $this->nom = $nom; return $this; }
@@ -133,16 +126,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getSpecialite(): ?string { return $this->specialite; }
     public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
 
-    #[Ignore]
+    public function getAvatar(): ?string { return $this->avatar; }
+    public function setAvatar(?string $avatar): self { $this->avatar = $avatar; return $this; }
+
+    public function getFaceIdImagePath(): ?string { return $this->faceIdImagePath; }
+    public function setFaceIdImagePath(?string $faceIdImagePath): self { $this->faceIdImagePath = $faceIdImagePath; return $this; }
+
+    public function isHasChild(): ?bool { return $this->hasChild; }
+    public function setHasChild(?bool $hasChild): self { $this->hasChild = $hasChild; return $this; }
+
     public function getResetPasswordToken(): ?string { return $this->resetPasswordToken; }
-    public function setResetPasswordToken(#[\SensitiveParameter] ?string $resetPasswordToken, ?\DateTimeImmutable $expiresAt = null): self
+    public function setResetPasswordToken(?string $resetPasswordToken, ?\DateTimeImmutable $expiresAt = null): self
     {
         $this->resetPasswordToken = $resetPasswordToken;
         $this->resetPasswordTokenExpiresAt = $expiresAt;
         return $this;
     }
 
-    #[Ignore]
     public function getResetPasswordTokenExpiresAt(): ?\DateTimeImmutable { return $this->resetPasswordTokenExpiresAt; }
     public function clearResetPasswordToken(): self
     {
@@ -151,34 +151,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getNotesProchaineConsultation(): ?string
-    {
-        return $this->notesProchaineConsultation;
-    }
-
-    public function setNotesProchaineConsultation(?string $notesProchaineConsultation): self
-    {
-        $this->notesProchaineConsultation = $notesProchaineConsultation;
-        return $this;
-    }
-
     // ================= RELATION PSYCHOLOGUE =================
 
-    public function getPsychologue(): ?self
-    {
-        return $this->psychologue;
-    }
+    public function getPsychologue(): ?self { return $this->psychologue; }
+    public function setPsychologue(?self $psychologue): self { $this->psychologue = $psychologue; return $this; }
 
-    public function setPsychologue(?self $psychologue): self
-    {
-        $this->psychologue = $psychologue;
-        return $this;
-    }
-
-    public function getPatients(): Collection
-    {
-        return $this->patients;
-    }
+    public function getPatients(): Collection { return $this->patients; }
 
     public function addPatient(User $patient): self
     {
@@ -194,6 +172,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->patients->removeElement($patient)) {
             if ($patient->getPsychologue() === $this) {
                 $patient->setPsychologue(null);
+            }
+        }
+        return $this;
+    }
+
+    // ================= JOURNALS =================
+
+    public function getJournals(): Collection { return $this->journals; }
+
+    public function addJournal(Journal $journal): self
+    {
+        if (!$this->journals->contains($journal)) {
+            $this->journals->add($journal);
+            $journal->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeJournal(Journal $journal): self
+    {
+        if ($this->journals->removeElement($journal)) {
+            if ($journal->getUser() === $this) {
+                $journal->setUser(null);
             }
         }
         return $this;

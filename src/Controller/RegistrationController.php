@@ -23,95 +23,85 @@ class RegistrationController extends AbstractController
         EntityManagerInterface $entityManager,
         CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
+
         $errors = [];
-        $formData = [
-            'nom' => '',
-            'prenom' => '',
-            'email' => '',
-            'telephone' => '',
-            'sexe' => '',
-            'date_naissance' => '',
-        ];
 
         if ($request->isMethod('POST')) {
-            $submittedToken = (string) $request->request->get('_csrf_token', '');
+
+            $submittedToken = $request->request->get('_csrf_token');
             if (!$csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {
-                $errors[] = 'Session invalide. Veuillez réessayer.';
-            } else {
-                $nom = trim((string) $request->request->get('nom', ''));
-                $prenom = trim((string) $request->request->get('prenom', ''));
-                $emailRaw = (string) $request->request->get('email', '');
-                // Normalize email: trim, lowercase, and remove any stray whitespace characters
-                $email = mb_strtolower(trim($emailRaw));
-                $email = (string) preg_replace('/\s+/', '', $email);
-                $password = (string) $request->request->get('password', '');
-                $telephone = trim((string) $request->request->get('telephone', ''));
-                $sexe = trim((string) $request->request->get('sexe', ''));
-                $dateNaissance = trim((string) $request->request->get('date_naissance', ''));
+                throw $this->createAccessDeniedException('Invalid CSRF token');
+            }
 
-                $formData = [
-                    'nom' => $nom,
-                    'prenom' => $prenom,
-                    'email' => $email,
-                    'telephone' => $telephone,
-                    'sexe' => $sexe,
-                    'date_naissance' => $dateNaissance,
-                ];
+            $nom = trim((string) $request->request->get('nom', ''));
+            $prenom = trim((string) $request->request->get('prenom', ''));
+            $email = mb_strtolower(trim((string) $request->request->get('email', '')));
+            $email = preg_replace('/\s+/', '', $email);
 
-                if ($nom === '') {
-                    $errors[] = 'Le nom est obligatoire.';
-                }
-                if ($prenom === '') {
-                    $errors[] = 'Le prénom est obligatoire.';
-                }
-                if ($email === '') {
-                    $errors[] = 'L\'email est obligatoire.';
-                } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $errors[] = 'L\'email n\'est pas valide.';
-                }
-                if ($password === '') {
-                    $errors[] = 'Le mot de passe est obligatoire.';
-                } elseif (strlen($password) < self::PASSWORD_MIN_LENGTH) {
-                    $errors[] = 'Le mot de passe doit contenir au moins ' . self::PASSWORD_MIN_LENGTH . ' caractères.';
-                }
+            $password = (string) $request->request->get('password', '');
+            $telephone = trim((string) $request->request->get('telephone', ''));
+            $sexe = trim((string) $request->request->get('sexe', ''));
+            $dateNaissance = trim((string) $request->request->get('date_naissance', ''));
 
-                if (empty($errors)) {
-                    $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-                    if ($existingUser) {
-                        $errors[] = 'Cet email est déjà utilisé.';
+            // VALIDATION
+            if ($nom === '') {
+                $errors[] = 'Le nom est obligatoire.';
+            }
+            if ($prenom === '') {
+                $errors[] = 'Le prénom est obligatoire.';
+            }
+            if ($email === '') {
+                $errors[] = 'L\'email est obligatoire.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Email invalide.';
+            }
+            if ($password === '') {
+                $errors[] = 'Mot de passe obligatoire.';
+            } elseif (strlen($password) < self::PASSWORD_MIN_LENGTH) {
+                $errors[] = 'Mot de passe trop court.';
+            }
+
+            // CHECK EMAIL EXISTS
+            if (empty($errors)) {
+                $existingUser = $entityManager->getRepository(User::class)
+                    ->findOneBy(['email' => $email]);
+
+                if ($existingUser) {
+                    $errors[] = 'Email déjà utilisé.';
+                }
+            }
+
+            // CREATE USER
+            if (empty($errors)) {
+                $user = new User();
+                $user->setEmail($email);
+                $user->setPassword($passwordHasher->hashPassword($user, $password));
+                $user->setNom($nom);
+                $user->setPrenom($prenom);
+                $user->setTelephone($telephone ?: null);
+                $user->setSexe($sexe ?: null);
+
+                if ($dateNaissance !== '') {
+                    try {
+                        $user->setDateNaissance(new \DateTime($dateNaissance));
+                    } catch (\Exception $e) {
+                        $errors[] = 'Date invalide.';
                     }
                 }
 
-                if (empty($errors)) {
-                    $user = new User();
-                    $user->setEmail($email);
-                    $user->setPassword($passwordHasher->hashPassword($user, $password));
-                    $user->setNom($nom);
-                    $user->setPrenom($prenom);
-                    $user->setTelephone($telephone ?: null);
-                    $user->setSexe($sexe ?: null);
-                    if ($dateNaissance !== '') {
-                        try {
-                            $user->setDateNaissance(new \DateTime($dateNaissance));
-                        } catch (\Exception $e) {
-                            $errors[] = 'La date de naissance n\'est pas valide.';
-                        }
-                    }
-                    $user->setRoles(['ROLE_PATIENT']);
+                $user->setRoles(['ROLE_PATIENT']);
 
-                    if (empty($errors)) {
-                        $entityManager->persist($user);
-                        $entityManager->flush();
-                        $this->addFlash('success', 'Compte créé avec succès.');
-                        return $this->redirectToRoute('app_login');
-                    }
-                }
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Compte créé avec succès !');
+
+                return $this->redirectToRoute('app_login');
             }
         }
 
         return $this->render('registration/register.html.twig', [
             'errors' => $errors,
-            'formData' => $formData,
         ]);
     }
 }
