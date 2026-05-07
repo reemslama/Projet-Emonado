@@ -3,86 +3,300 @@
 {% block title %}Profil Psychologue{% endblock %}
 
 {% block body %}
-<div class="profile-container">
-    <h2>Mon Profil</h2>
 
+<div class="page">
+
+    <!-- TOP BAR (JavaFX style) -->
+    <div class="topbar">
+        <div class="brand">
+            <span class="logo">E</span>
+            <span>Emonado</span>
+        </div>
+
+        <div class="security">Données sécurisées</div>
+    </div>
+
+    <!-- BACK -->
+    <div class="back">
+        <a href="{{ path('psychologue_index') }}">← Retour au dashboard</a>
+    </div>
+
+    <!-- HEADER CARD -->
+    <div class="card header-card">
+
+        <div class="avatar">
+            Dr
+        </div>
+
+        <div class="title">Profil Psychologue</div>
+        <div class="subtitle">Gérez vos informations professionnelles</div>
+
+    </div>
+
+    <!-- FLASH -->
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
+        <div class="alert success">{{ message }}</div>
     {% endfor %}
 
     {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
+        <div class="alert error">{{ error }}</div>
     {% endif %}
 
-    <form method="post" class="profile-form">
-        <div>
-            <label>Nom</label>
-            <input type="text" name="nom" value="{{ user.nom }}" required>
-        </div>
-        <div>
-            <label>Prénom</label>
-            <input type="text" name="prenom" value="{{ user.prenom }}" required>
-        </div>
-        <div>
-            <label>Email</label>
-            <input type="email" value="{{ user.email }}" disabled>
-        </div>
-        <div>
-            <label>Téléphone</label>
-            <input type="tel" name="telephone" value="{{ user.telephone }}">
-        </div>
-        <div>
-            <label>Spécialité</label>
-            <input type="text" name="specialite" value="{{ user.specialite }}">
-        </div>
-        <div>
-            <label>Mot de passe (laisser vide si inchangé)</label>
-            <input type="password" name="password">
-        </div>
+    <!-- FORM CARD -->
+    <div class="card form-card">
 
-        <div class="mt-3 d-flex gap-3">
-            <button type="submit" name="action" value="update" class="btn btn-success">Mettre à jour</button>
-            <a href="{{ path('app_logout') }}" class="btn btn-danger">Déconnexion</a>
-            <button type="submit" name="action" value="delete" class="btn btn-warning" onclick="return confirm('Voulez-vous vraiment supprimer votre profil ?');">Supprimer le profil</button>
-        </div>
-    </form>
+        <div class="section-title">Informations professionnelles</div>
+
+        <form method="post" class="form">
+
+            <div class="field">
+                <label>NOM</label>
+                <input type="text" name="nom" value="{{ user.nom }}" required>
+            </div>
+
+            <div class="field">
+                <label>PRÉNOM</label>
+                <input type="text" name="prenom" value="{{ user.prenom }}" required>
+            </div>
+
+            <div class="field">
+                <label>EMAIL</label>
+                <input type="email" value="{{ user.email }}" disabled>
+            </div>
+
+            <div class="field">
+                <label>TÉLÉPHONE</label>
+                <input type="tel" name="telephone" value="{{ user.telephone }}">
+            </div>
+
+            <div class="field">
+                <label>SPÉCIALITÉ</label>
+                <input type="text" name="specialite" value="{{ user.specialite }}">
+            </div>
+
+            <div class="field">
+                <label>NOUVEAU MOT DE PASSE</label>
+                <input type="password" name="password" placeholder="Laisser vide si inchangé">
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="actions">
+
+                <button type="submit" name="action" value="update" class="btn primary">
+                    Mettre à jour
+                </button>
+
+                <a href="{{ path('app_logout') }}" class="btn secondary">
+                    Déconnexion
+                </a>
+
+                <button type="submit" name="action" value="delete"
+                        onclick="return confirm('Voulez-vous vraiment supprimer votre profil ?');"
+                        class="btn danger">
+                    Supprimer
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
 </div>
 
 <style>
-.profile-container {
-    background-color: rgba(208, 232, 255, 0.27);
-    border-radius: 25px;
-    padding: 30px 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 500px;
+
+/* ===== BACKGROUND ===== */
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #eff6ff;
+}
+
+/* ===== PAGE ===== */
+.page {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 auto;
+    padding: 20px;
 }
 
-.profile-form div {
+/* ===== TOPBAR (JavaFX HBox) ===== */
+.topbar {
+    width: 100%;
+    max-width: 750px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    color: #1e40af;
+}
+
+.logo {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+.security {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ===== BACK ===== */
+.back {
+    width: 100%;
+    max-width: 750px;
+    margin-top: 10px;
+}
+
+.back a {
+    text-decoration: none;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* ===== CARD ===== */
+.card {
+    width: 100%;
+    max-width: 750px;
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    margin-top: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* ===== HEADER CARD ===== */
+.header-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 55px;
+    background: linear-gradient(to bottom right, #3b82f6, #1e40af);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    border: 4px solid white;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
     margin-bottom: 15px;
 }
 
-.profile-form label {
-    display: block;
+/* ===== FORM ===== */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+label {
+    font-size: 11px;
     font-weight: bold;
-    margin-bottom: 5px;
+    color: #9ca3af;
 }
 
-.profile-form input {
+input {
+    padding: 10px 14px;
+    border-radius: 16px;
+    border: 1px solid #bfdbfe;
+    outline: none;
+}
+
+/* ===== ACTIONS ===== */
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 16px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.primary {
+    background: linear-gradient(to right, #3b82f6, #6366f1);
+    color: white;
+}
+
+.secondary {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+}
+
+.danger {
+    background: white;
+    border: 1px solid #fecaca;
+    color: #ef4444;
+}
+
+/* ===== ALERT ===== */
+.alert {
     width: 100%;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    max-width: 750px;
+    padding: 10px;
+    border-radius: 12px;
+    margin-top: 10px;
+    text-align: center;
 }
 
-.mt-3 { margin-top: 15px; }
-.d-flex { display: flex; }
-.gap-3 { gap: 10px; }
+.success {
+    background: #dcfce7;
+}
 
-.alert { text-align: center; }
+.error {
+    background: #fee2e2;
+}
+
 </style>
+
 {% endblock %}
