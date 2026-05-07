@@ -1,0 +1,28 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+<div class="mb-3">
+    {{ form_label(form.humeur) }}
+    {{ form_widget(form.humeur, {'attr': {'class': 'form-control'}}) }}
+    <div class="text-danger small">
+        {{ form_errors(form.humeur) }}
+    </div>
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.contenu) }}
+    {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+    <div class="text-danger small">
+        {{ form_errors(form.contenu) }}
+    </div>
+</div>
+
+{% if journal is defined and journal.dateCreation %}
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <input type="text" class="form-control" value="{{ journal.dateCreation|date('d/m/Y H:i') }}" readonly>
+    </div>
+{% endif %}
+
+<button class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+
+{{ form_end(form) }}

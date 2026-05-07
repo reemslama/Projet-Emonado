@@ -3,83 +3,237 @@
 {% block title %}Accueil Patient{% endblock %}
 
 {% block body %}
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="patient-container">
+<div class="dashboard">
 
-  <h2>Bienvenue {{ app.user.nom }} {{ app.user.prenom }}</h2>
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="logo">EMO</div>
+        <div class="title">Emonado</div>
 
-  <div class="icons-grid">
-    <!-- Icon Profil -->
-    <div class="icon-box" onclick="window.location='{{ path('patient_profil') }}'">
-      <i class="fas fa-user-circle"></i>
-      <span>Profil</span>
+        <div class="welcome-box">
+            <div class="welcome">Bienvenue, {{ app.user.nom }} {{ app.user.prenom }}</div>
+            <div class="subtitle">Tableau de bord</div>
+        </div>
+
     </div>
 
-    <!-- Icon Chat -->
-    <div class="icon-box">
-      <i class="fas fa-comments"></i>
-      <span>Chat</span>
+    <!-- TITLE -->
+    <div class="dashboard-title">
+        <h1>Bienvenue sur votre espace santé</h1>
+        <p>Gérez votre bien-être mental en toute simplicité</p>
     </div>
 
-    <!-- Icon Messagerie -->
-    <div class="icon-box">
-      <i class="fas fa-envelope"></i>
-      <span>Messagerie</span>
-    </div>
+    <!-- GRID -->
+    <div class="dashboard-grid">
 
-    <!-- Icon Écrire -->
-    <div class="icon-box">
-      <i class="fas fa-pen"></i>
-      <span>Écrire</span>
-    </div>
-  </div>
+        <a href="{{ path('patient_profil') }}" class="card">
+            <div class="icon-box profil"><i class="fas fa-user"></i></div>
+            <h3>Mon Profil</h3>
+            <p>Voir et modifier vos infos</p>
+        </a>
 
+        <a href="{{ path('test_page') }}" class="card">
+            <div class="icon-box test"><i class="fas fa-clipboard"></i></div>
+            <h3>Questionnaire</h3>
+            <p>Évaluer votre état mental</p>
+        </a>
+
+        <a href="{{ path('app_journal_index') }}" class="card">
+            <div class="icon-box journal"><i class="fas fa-pen"></i></div>
+            <h3>Mes Journaux</h3>
+            <p>Écrire vos pensées</p>
+        </a>
+
+        <a href="{{ path('app_rendez_vous_index') }}" class="card">
+            <div class="icon-box rdv"><i class="fas fa-calendar"></i></div>
+            <h3>Rendez-vous</h3>
+            <p>Planifier vos consultations</p>
+        </a>
+
+        <a href="{{ path('patient_dossier') }}" class="card">
+            <div class="icon-box dossier"><i class="fas fa-folder"></i></div>
+            <h3>Dossier médical</h3>
+            <p>Historique et documents</p>
+        </a>
+
+        <a href="{{ path('patient_chatbot') }}" class="card">
+            <div class="icon-box pay"><i class="fas fa-comments"></i></div>
+            <h3>Chat IA</h3>
+            <p>Assistant intelligent</p>
+        </a>
+
+        {% if contact %}
+            <a href="{{ path('chat', {'id': contact.id}) }}" class="card">
+                <div class="icon-box pay"><i class="fas fa-envelope"></i></div>
+                <h3>Messagerie</h3>
+                <p>Contacter votre psychologue</p>
+            </a>
+        {% else %}
+            <div class="card disabled">
+                <div class="icon-box pay"><i class="fas fa-envelope"></i></div>
+                <h3>Messagerie</h3>
+                <p>Aucun psychologue</p>
+            </div>
+        {% endif %}
+
+    </div>
 </div>
 
 <style>
-.patient-container {
- background-color: rgba(221, 245, 131, 0.27);
-    border-radius: 25px;
-    padding: 30px 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(to bottom right, #f0fdf4, #ecfdf5, #f0f9ff);
+}
+
+/* TOP BAR */
+.top-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 20px 40px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #166534;
+}
+
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #166534;
+}
+
+.welcome-box {
+    margin-left: auto;
+    text-align: right;
+}
+
+.welcome {
+    font-size: 15px;
+    font-weight: bold;
+    color: #1e293b;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* BUTTONS */
+.btn-chatbot {
+    background: linear-gradient(to right, #14b8a6, #0ea5e9);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-chat {
+    background: linear-gradient(to right, #2563eb, #06b6d4);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* TITLE */
+.dashboard-title {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.dashboard-title h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0f172a;
+}
+
+.dashboard-title p {
+    font-size: 15px;
+    color: #64748b;
+}
+
+/* GRID */
+.dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px 60px;
+}
+
+/* CARD (JAVA FX STYLE EXACT) */
+.card {
+    width: 210px;
+    height: 200px;
+    background: white;
+    border-radius: 24px;
+    padding: 25px 20px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    text-decoration: none;
+    color: inherit;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    transition: 0.3s;
 }
 
-.icons-grid {
-  display: flex;
-  gap: 30px;
-  margin-top: 40px;
-  flex-wrap: wrap;
-  justify-content: center;
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
 }
 
+/* ICON BOX */
 .icon-box {
-  width: 120px;
-  height: 120px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
 }
 
-.icon-box:hover { transform: scale(1.05); }
+/* COLORS EXACT JAVAFX */
+.profil { background: linear-gradient(to bottom right, #dcfce7, #bbf7d0); }
+.test { background: linear-gradient(to bottom right, #fef3c7, #fde68a); }
+.journal { background: linear-gradient(to bottom right, #e0e7ff, #c7d2fe); }
+.rdv { background: linear-gradient(to bottom right, #fce7f3, #fbcfe8); }
+.dossier { background: linear-gradient(to bottom right, #ccfbf1, #99f6e4); }
+.pay { background: linear-gradient(to bottom right, #dbeafe, #bfdbfe); }
 
-.icon-box i {
-  font-size: 2rem;
-  color: #7cb342;
-  margin-bottom: 10px;
+/* TEXT */
+.card h3 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1e293b;
+    margin: 5px 0;
 }
 
-.icon-box span { font-weight: 600; text-align: center; }
+.card p {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* DISABLED */
+.card.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
 </style>
+
 {% endblock %}

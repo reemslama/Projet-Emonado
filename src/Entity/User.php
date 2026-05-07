@@ -2,12 +2,15 @@
 
 namespace App\Entity;
 
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'user')]
+#[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -25,10 +28,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -41,19 +44,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $specialite = null;
+    private ?string $specialite = null; // <-- Pour les psychologues
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $avatar = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $faceIdImagePath = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?bool $hasChild = null;
-
-    // ---------------- SECURITY ----------------
-
+    // ---------- SECURITY ----------
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
@@ -61,20 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void {}
 
-    // 🔥 SIMPLE ROLE STRING COMPATIBLE JAVA
-    public function getRoles(): array
-    {
-        return [$this->role ?? 'ROLE_USER'];
-    }
-
-    public function setRoles(string $role): self
-    {
-        $this->role = $role;
-        return $this;
-    }
-
-    // ---------------- GETTERS / SETTERS ----------------
-
+    // ---------- GETTERS / SETTERS ----------
     public function getId(): ?int { return $this->id; }
 
     public function getEmail(): ?string { return $this->email; }
@@ -84,10 +64,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self { $this->password = $password; return $this; }
 
     public function getNom(): ?string { return $this->nom; }
-    public function setNom(string $nom): self { $this->nom = $nom; return $this; }
+    public function setNom(?string $nom): self { $this->nom = $nom; return $this; }
 
     public function getPrenom(): ?string { return $this->prenom; }
-    public function setPrenom(string $prenom): self { $this->prenom = $prenom; return $this; }
+    public function setPrenom(?string $prenom): self { $this->prenom = $prenom; return $this; }
 
     public function getTelephone(): ?string { return $this->telephone; }
     public function setTelephone(?string $t): self { $this->telephone = $t; return $this; }
@@ -99,14 +79,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDateNaissance(?\DateTimeInterface $d): self { $this->dateNaissance = $d; return $this; }
 
     public function getSpecialite(): ?string { return $this->specialite; }
-    public function setSpecialite(?string $s): self { $this->specialite = $s; return $this; }
-
-    public function getAvatar(): ?string { return $this->avatar; }
-    public function setAvatar(?string $a): self { $this->avatar = $a; return $this; }
-
-    public function getFaceIdImagePath(): ?string { return $this->faceIdImagePath; }
-    public function setFaceIdImagePath(?string $f): self { $this->faceIdImagePath = $f; return $this; }
-
-    public function isHasChild(): ?bool { return $this->hasChild; }
-    public function setHasChild(?bool $h): self { $this->hasChild = $h; return $this; }
+    public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
 }

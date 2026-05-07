@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat avec {{ receiver.prenom }}{% endblock %}
+
+{% block body %}
+
+<div class="chat-container">
+    <h2>Discussion avec {{ receiver.nom }} {{ receiver.prenom }}</h2>
+
+    <div id="chat-box" class="chat-box">
+        {% for message in messages %}
+            <div class="message {% if message.sender == app.user %}sent{% else %}received{% endif %}">
+                <p>{{ message.content }}</p>
+                <small>{{ message.createdAt|date('d/m/Y H:i') }}</small>
+            </div>
+        {% else %}
+            <p class="empty">Aucun message pour le moment...</p>
+        {% endfor %}
+    </div>
+
+    <form id="chat-form" method="post" class="chat-form">
+        <input type="text" name="content" id="message-input" placeholder="Écris ton message..." autocomplete="off" required>
+        <button type="submit">Envoyer</button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const chatBox = document.getElementById("chat-box");
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("message-input");
+
+    // Ferme ancienne connexion Mercure si elle existe
+    if (window.chatEventSource) {
+        window.chatEventSource.close();
+    }
+
+    // Connexion Mercure
+    const mercureUrl = "{{ mercure('chat/' ~ app.user.id ~ '/' ~ receiver.id) }}";
+    window.chatEventSource = new EventSource(mercureUrl);
+
+    window.chatEventSource.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        console.log("Message reçu Mercure:", data);
+
+        // Évite de réafficher ton propre message
+        if (data.senderId === {{ app.user.id }}) return;
+
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message received";
+
+        // Format de la date en français
+        let createdAt = new Date(data.createdAt);
+        if (isNaN(createdAt)) createdAt = new Date(); // fallback si date invalide
+
+        msgDiv.innerHTML = `
+            <p>${data.content}</p>
+            <small>${createdAt.toLocaleString('fr-FR', {
+                day:'2-digit', month:'2-digit', year:'numeric',
+                hour:'2-digit', minute:'2-digit'
+            })}</small>
+        `;
+
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    window.chatEventSource.onerror = function (error) {
+        console.error("Erreur Mercure :", error);
+    };
+
+    // Envoi du message en AJAX
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (!input.value.trim()) return;
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Affiche immédiatement le message envoyé
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "message sent";
+
+            let createdAt = new Date(data.createdAt);
+            if (isNaN(createdAt)) createdAt = new Date();
+
+            msgDiv.innerHTML = `
+                <p>${data.content}</p>
+                <small>${createdAt.toLocaleString('fr-FR', {
+                    day:'2-digit', month:'2-digit', year:'numeric',
+                    hour:'2-digit', minute:'2-digit'
+                })}</small>
+            `;
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            input.value = "";
+            input.focus();
+
+        } catch (error) {
+            console.error("Erreur envoi message :", error);
+        }
+    });
+
+    // Scroll auto au chargement
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+});
+</script>
+
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.chat-box { height: 420px; overflow-y: auto; padding: 15px; background: #f8f9fa; border-radius: 12px; }
+.message { margin: 8px 0; padding: 10px 14px; border-radius: 18px; max-width: 75%; word-wrap: break-word; }
+.sent     { background: #dcf8c6; margin-left: auto; }
+.received { background: #ffffff; margin-right: auto; border: 1px solid #e0e0e0; }
+.chat-form { display: flex; margin-top: 15px; }
+#message-input { flex: 1; padding: 12px; border-radius: 24px; border: 1px solid #ccc; }
+button { margin-left: 10px; padding: 0 24px; border-radius: 24px; background: #4caf50; color: white; border: none; }
+.empty { text-align: center; color: #888; font-style: italic; }
+</style>
+{% endblock %}

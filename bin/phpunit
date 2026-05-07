@@ -1,4 +1,24 @@
 #!/usr/bin/env php
 <?php
 
-require dirname(__DIR__).'/vendor/phpunit/phpunit/phpunit';
+if (!file_exists(dirname(__DIR__).'/vendor/autoload.php')) {
+    throw new RuntimeException('Unable to find autoload.php file, run `composer install` first.');
+}
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+use Symfony\Bridge\PhpUnit\DeprecationErrorHandler;
+
+if (false === getenv('SYMFONY_DEPRECATIONS_HELPER')) {
+    putenv('SYMFONY_DEPRECATIONS_HELPER=weak');
+}
+
+if ($_SERVER['argv'][1] ?? false) {
+    $_SERVER['argv'] = array_merge(['/usr/local/bin/phpunit'], array_slice($_SERVER['argv'], 1));
+} else {
+    $_SERVER['argv'] = ['/usr/local/bin/phpunit'];
+}
+
+$_SERVER['argv'][] = '--migrate-configuration';
+
+include $_SERVER['argv'][0] = dirname(__DIR__).'/vendor/bin/simple-phpunit';

@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Journaux Patients{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 text-success">Journaux patients</h2>
+    <a href="{{ path('psychologue_index') }}" class="btn btn-outline-secondary">Retour dashboard</a>
+</div>
+
+{{ include('components/_flash_messages.html.twig') }}
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text"
+               name="q"
+               value="{{ keyword }}"
+               class="form-control"
+               placeholder="Rechercher par humeur ou contenu">
+    </div>
+    <div class="col-md-4">
+        <select name="sort" class="form-select">
+            <option value="recent" {{ sort != 'old' ? 'selected' : '' }}>Plus recent</option>
+            <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Plus ancien</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary w-100">Rechercher / Tri</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle bg-white shadow-sm">
+        <thead class="table-success text-center">
+            <tr>
+                <th>Patient</th>
+                <th>Humeur</th>
+                <th>Contenu</th>
+                <th>Date</th>
+                <th>Analyse IA</th>
+                <th>Actions psy</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for journal in journals %}
+            <tr>
+                <td>
+                    {% if journal.user %}
+                        {{ journal.user.nom }} {{ journal.user.prenom }}
+                    {% else %}
+                        Patient inconnu
+                    {% endif %}
+                </td>
+                <td class="fw-semibold text-success">{{ journal.humeur }}</td>
+                <td>
+                    {% if journal.inputMode == 'voice' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">Vocal</span>
+                    {% endif %}
+                    {{ journal.contenu|slice(0, 120) }}{% if journal.contenu|length > 120 %}...{% endif %}
+                </td>
+                <td class="text-center">{{ journal.dateCreation|date('d/m/Y') }}</td>
+                <td class="text-center">
+                    {% if journal.analysisEmotionnelle %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Disponible</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Aucune</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <div class="d-flex flex-column gap-2 align-items-center">
+                        {% if journal.inputMode != 'voice' %}
+                            <form method="post" action="{{ path('app_analyse_emotionnelle_from_journal', {'id': journal.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('analyze' ~ journal.id) }}">
+                                <button class="btn btn-sm btn-outline-success">Analyser IA</button>
+                            </form>
+                        {% else %}
+                            <a href="{{ path('psychologue_voice_cases') }}" class="btn btn-sm btn-outline-primary">Traiter vocal</a>
+                            {% if journal.psychologueReviewedAt %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Conseil envoye</span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">En attente conseil</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Aucun journal trouve</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

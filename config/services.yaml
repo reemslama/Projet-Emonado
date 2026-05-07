@@ -4,9 +4,14 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Utiliser l'adresse Gmail configurée pour éviter les blocages "From" côté SMTP
+    mailer_from: '%env(MAILER_FROM)%'
+    mailer_from_name: reemslama21@gmail.com
+    groq_api_key: '%env(GROQ_API_KEY)%'
+    openai_api_key: ''  # fallback si OPENAI_API_KEY non défini
 
 services:
-    # default configuration for services in *this* file
+    # default configuration for services in this file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
@@ -20,5 +25,26 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # Configuration du service Groq AI (collègue)
+    App\Service\GroqAiService:
+        arguments:
+            $groqApiKey: '%groq_api_key%'
+
+    # Configuration du service Gemini (chatbot patient)
+    App\Service\GeminiService:
+        arguments:
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+            $groqApiKey: '%env(default::GROQ_API_KEY)%'
+
+    # Service GeminiAssistant (collègue)
+    App\Service\GeminiAssistant:
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
+
+    # Prédiction évolution patient (Yassine)
+    App\Service\PredictionEvolutionService:
+        arguments:
+            $openaiApiKey: '%env(default:openai_api_key:OPENAI_API_KEY)%'
+
     # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # please note that last definitions always replace previous ones

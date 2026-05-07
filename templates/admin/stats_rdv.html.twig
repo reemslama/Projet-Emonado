@@ -1,0 +1,54 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Statistiques des rendez-vous{% endblock %}
+
+{% block header %}Statistiques des rendez-vous{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
+        <h5 class="mb-3">Nombre de rendez-vous par mois</h5>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Année</th>
+                    <th>Mois</th>
+                    <th>Nombre de RDV</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in stats %}
+                    <tr>
+                        <td>{{ stat.annee }}</td>
+                        <td>
+                            {% if stat.mois == 1 %}Janvier
+                            {% elseif stat.mois == 2 %}Février
+                            {% elseif stat.mois == 3 %}Mars
+                            {% elseif stat.mois == 4 %}Avril
+                            {% elseif stat.mois == 5 %}Mai
+                            {% elseif stat.mois == 6 %}Juin
+                            {% elseif stat.mois == 7 %}Juillet
+                            {% elseif stat.mois == 8 %}Août
+                            {% elseif stat.mois == 9 %}Septembre
+                            {% elseif stat.mois == 10 %}Octobre
+                            {% elseif stat.mois == 11 %}Novembre
+                            {% elseif stat.mois == 12 %}Décembre
+                            {% endif %}
+                        </td>
+                        <td>{{ stat.total }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">Aucun rendez-vous trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary mt-3">
+            Retour au tableau de bord admin
+        </a>
+    </div>
+</div>
+{% endblock %}

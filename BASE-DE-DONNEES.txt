@@ -1,0 +1,40 @@
+========================================
+  EMONADO - Base de données
+========================================
+
+MISE À JOUR DE LA BASE (recommandé)
+----------------------------------------
+
+1. Démarrer MySQL ou MariaDB sur votre machine.
+
+2. Vérifier le fichier .env à la racine du projet :
+   - DATABASE_URL doit pointer vers votre serveur et la base.
+   - Exemple : mysql://root:VOTRE_MOT_DE_PASSE@127.0.0.1:3306/emonado_db?serverVersion=8.0
+
+3. Double-cliquer sur :  update-database.bat
+
+   Ce script :
+   - synchronise le stockage des migrations,
+   - crée la base si elle n’existe pas,
+   - met à jour les tables et colonnes pour qu’elles correspondent aux entités (schéma),
+   - vérifie le schéma.
+
+Si une erreur "connexion refusée" apparaît
+----------------------------------------
+
+- MySQL n’est pas démarré : lancez le service MySQL (XAMPP, WAMP, ou service Windows).
+- Mauvais identifiants : vérifiez utilisateur, mot de passe et nom de base dans .env.
+
+Si une erreur "Table 'user' already exists" apparaît (avec doctrine:migrations:migrate)
+----------------------------------------
+
+- N’utilisez pas migrate dans ce cas. Utilisez uniquement :
+    update-database.bat
+  qui fait un "schema:update --force" et met la base à jour sans recréer les tables.
+
+Créer les utilisateurs de test après la mise à jour
+----------------------------------------
+
+  php bin/console app:create-default-users
+
+========================================

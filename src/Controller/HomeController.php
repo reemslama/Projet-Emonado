@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class HomeController extends AbstractController
 {
@@ -19,7 +19,8 @@ class HomeController extends AbstractController
     #[Route('/test', name: 'test_page')]
     public function test(): Response
     {
-        return $this->render('test/index.html.twig'); 
+        // Redirige vers le template de choix du questionnaire
+        return $this->render('questionnaire/choix.html.twig'); 
     }
 
     #[Route('/favicon.ico', name: 'app_favicon', methods: ['GET'])]

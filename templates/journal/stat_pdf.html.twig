@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport humeurs</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 22px;
+            background: #eef3f8;
+        }
+        .sheet {
+            background: linear-gradient(180deg, #f4f8fd 0%, #eef4fb 100%);
+            border: 1px solid #d9e5f2;
+            border-radius: 14px;
+            padding: 14px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dff3eb 0%, #d9ecff 100%);
+            color: #0f172a;
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            border: 1px solid #c9dff5;
+            position: relative;
+            overflow: hidden;
+        }
+        .header:after {
+            content: '';
+            position: absolute;
+            right: -80px;
+            top: -80px;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: rgba(47, 128, 237, 0.10);
+        }
+        .brand-row {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        .brand-row td {
+            vertical-align: middle;
+        }
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #c7d2fe;
+            padding: 6px;
+            text-align: center;
+        }
+        .brand-logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .brand-text {
+            padding-left: 10px;
+        }
+        .brand-app {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.2px;
+        }
+        .brand-byline {
+            margin: 2px 0 0 0;
+            font-size: 11px;
+            color: #334155;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 6px 0 0 0;
+        }
+        .subtitle {
+            font-size: 12px;
+            margin-top: 6px;
+            opacity: 0.95;
+        }
+        .kpi {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+            margin-bottom: 10px;
+        }
+        .kpi td {
+            background: #ffffff;
+            border: 1px solid #d6e0ea;
+            border-radius: 10px;
+            padding: 10px 12px;
+            vertical-align: top;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+        .kpi-main {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .kpi-main td {
+            border: none;
+            padding: 0;
+            background: transparent;
+            vertical-align: middle;
+        }
+        .kpi-logo-wrap {
+            width: 40px;
+            text-align: right;
+        }
+        .kpi-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 7px;
+            border: 1px solid #c7d2fe;
+            background: #f8fafc;
+            padding: 3px;
+            display: inline-block;
+        }
+        .kpi-logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .kpi-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .kpi-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .insight-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+            margin-bottom: 10px;
+        }
+        .insight-table td {
+            background: #ffffff;
+            border: 1px solid #d6e0ea;
+            border-radius: 10px;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+        .insight-title {
+            margin: 0 0 6px 0;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .badge-green { background: #16a34a; }
+        .badge-amber { background: #d97706; }
+        .badge-red { background: #dc2626; }
+        .badge-blue { background: #2563eb; }
+        .insight-text {
+            font-size: 11px;
+            color: #334155;
+            line-height: 1.45;
+        }
+        .panel {
+            background: #ffffff;
+            border: 1px solid #d6e0ea;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .panel:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1f9d55 0%, #2f80ed 50%, #e63946 100%);
+        }
+        .panel-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: #111827;
+        }
+        .row {
+            margin-bottom: 8px;
+        }
+        .row:last-child {
+            margin-bottom: 0;
+        }
+        .row-head {
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+        .bar-track {
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 10px;
+            border-radius: 10px;
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.20),
+                rgba(255, 255, 255, 0.20) 6px,
+                rgba(255, 255, 255, 0.05) 6px,
+                rgba(255, 255, 255, 0.05) 12px
+            );
+        }
+        table.summary {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 12px;
+            background: #ffffff;
+        }
+        .summary th,
+        .summary td {
+            border: 1px solid #d6e0ea;
+            padding: 8px;
+        }
+        .summary th {
+            background: #e7f1ee;
+            text-align: left;
+            color: #0f172a;
+        }
+        .summary td.right {
+            text-align: right;
+        }
+        .footer {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+    <div class="header">
+        <table class="brand-row">
+            <tr>
+                <td style="width: 56px;">
+                    <div class="brand-logo">
+                        {% if logoDataUri %}
+                            <img src="{{ logoDataUri }}" alt="Healthsphere logo">
+                        {% else %}
+                            HS
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="brand-text">
+                    <p class="brand-app">EmoNado</p>
+                    <p class="brand-byline">Presented by Healthsphere</p>
+                </td>
+            </tr>
+        </table>
+        <h1 class="title">Rapport Professionnel des Humeurs</h1>
+        <div class="subtitle">
+            Patient: {{ user and user.nom is defined ? user.nom ~ ' ' ~ user.prenom : 'Utilisateur' }} |
+            Genere le {{ generatedAt|date('d/m/Y H:i') }}
+        </div>
+    </div>
+
+    <table class="kpi">
+        <tr>
+            <td>
+                <table class="kpi-main">
+                    <tr>
+                        <td>
+                            <div class="kpi-label">Total journaux</div>
+                            <div class="kpi-value">{{ total }}</div>
+                        </td>
+                        <td class="kpi-logo-wrap">
+                            {% if logoDataUri %}
+                                <span class="kpi-logo">
+                                    <img src="{{ logoDataUri }}" alt="Logo Healthsphere">
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                {% set dominant = rows|first %}
+                {% set dominantValue = 0 %}
+                {% for r in rows %}
+                    {% if (stats[r.key] ?? 0) > dominantValue %}
+                        {% set dominantValue = (stats[r.key] ?? 0) %}
+                        {% set dominant = r %}
+                    {% endif %}
+                {% endfor %}
+                <div class="kpi-label">Humeur dominante</div>
+                <div class="kpi-value">{{ dominant.label }}</div>
+            </td>
+            <td>
+                <div class="kpi-label">Derniere mise a jour</div>
+                <div class="kpi-value">{{ generatedAt|date('d/m/Y') }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {% set trendTone = insights.trend.tone ?? 'stable' %}
+    {% set trendBadgeClass = trendTone == 'positive' ? 'badge-green' : (trendTone == 'negative' ? 'badge-red' : 'badge-blue') %}
+    {% set priorityTone = insights.priority.tone ?? 'normal' %}
+    {% set priorityBadgeClass = priorityTone == 'urgent' ? 'badge-red' : (priorityTone == 'watch' ? 'badge-amber' : 'badge-green') %}
+
+    <table class="insight-table">
+        <tr>
+            <td style="width: 60%;">
+                <p class="insight-title">Tendance 7 jours
+                    <span class="badge {{ trendBadgeClass }}">{{ insights.trend.icon }} {{ insights.trend.label }}</span>
+                </p>
+                <div class="insight-text">
+                    Periode recente: {{ insights.windows.recentLabel }}<br>
+                    Periode precedente: {{ insights.windows.previousLabel }}<br>
+                    Charge recente: {{ insights.trend.recentRate|number_format(1, '.', ' ') }}%
+                    | Avant: {{ insights.trend.previousRate|number_format(1, '.', ' ') }}%
+                    | Delta: {{ insights.trend.delta|number_format(1, '.', ' ') }} pts
+                </div>
+            </td>
+            <td style="width: 40%;">
+                <p class="insight-title">Priorite clinique
+                    <span class="badge {{ priorityBadgeClass }}">{{ insights.priority.label }}</span>
+                </p>
+                <div class="insight-text">{{ insights.priority.reason }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="panel">
+        <h2 class="panel-title">Distribution visuelle</h2>
+        {% for r in rows %}
+            {% set count = stats[r.key] ?? 0 %}
+            {% set pct = total > 0 ? (count / total * 100) : 0 %}
+            <div class="row">
+                <div class="row-head">{{ r.label }} - {{ count }} ({{ pct|number_format(1, '.', ' ') }}%)</div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ pct }}%; background: {{ r.color }};"></div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <table class="summary">
+        <thead>
+            <tr>
+                <th>Humeur</th>
+                <th class="right">Nombre</th>
+                <th class="right">Pourcentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+                {% set count = stats[r.key] ?? 0 %}
+                {% set pct = total > 0 ? (count / total * 100) : 0 %}
+                <tr>
+                    <td>{{ r.label }}</td>
+                    <td class="right">{{ count }}</td>
+                    <td class="right">{{ pct|number_format(1, '.', ' ') }}%</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>Total</strong></td>
+                <td class="right"><strong>{{ total }}</strong></td>
+                <td class="right"><strong>100%</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        EmoNado - Export PDF statistique (confidentiel)
+    </div>
+    </div>
+</body>
+</html>

@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-// ... autres use nécessaires
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RegistrationFormType extends AbstractType

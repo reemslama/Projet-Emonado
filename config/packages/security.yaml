@@ -1,6 +1,7 @@
 security:
     password_hashers:
-        App\Entity\User: auto
+        App\Entity\User:
+            algorithm: auto
 
     providers:
         app_user_provider:
@@ -10,20 +11,30 @@ security:
 
     firewalls:
         dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            pattern: ^/(_(profiler|wdt)|css|images|js|assets|bootstrap|fontawesome)/
             security: false
 
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator
+
             logout:
                 path: app_logout
+                target: app_login
+
             remember_me:
                 secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
 
     access_control:
-
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/mot-de-passe-oublie, roles: PUBLIC_ACCESS }
+        - { path: ^/reinitialiser-mot-de-passe, roles: PUBLIC_ACCESS }
+        - { path: ^/test/pdf, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/psychologue, roles: ROLE_PSYCHOLOGUE }
+        - { path: ^/psychologue, roles: [ROLE_PSYCHOLOGUE, ROLE_PSY, ROLE_ADMIN] }
         - { path: ^/patient, roles: ROLE_PATIENT }

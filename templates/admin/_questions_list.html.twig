@@ -1,0 +1,69 @@
+{# Template partiel pour affichage AJAX des questions #}
+{% if questions is empty %}
+    <tr>
+        <td colspan="7" class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mt-2 mb-0">
+                {% if searchKeyword %}
+                    Aucune question trouvée pour "<strong>{{ searchKeyword }}</strong>".
+                {% elseif categorieFilter != 'all' %}
+                    Aucune question dans la catégorie "<strong>{{ categorieFilter }}</strong>".
+                {% else %}
+                    Aucune question trouvée.
+                {% endif %}
+            </p>
+        </td>
+    </tr>
+{% else %}
+    {% for question in questions %}
+    <tr>
+        <td class="text-center">{{ question.id }}</td>
+        <td>
+            {% if question.texte|length > 80 %}
+                {{ question.texte|slice(0, 80) }}...
+            {% else %}
+                {{ question.texte }}
+            {% endif %}
+        </td>
+        <td>
+            <span class="badge bg-primary">
+                {{ question.categorie|capitalize }}
+            </span>
+        </td>
+        <td>
+            <span class="badge bg-secondary">
+                {{ question.typeQuestion }}
+            </span>
+        </td>
+        <td class="text-center">
+            <span class="badge bg-dark">{{ question.ordre }}</span>
+        </td>
+        <td class="text-center">
+            <span class="badge bg-info">
+                {{ question.reponses|length }}
+            </span>
+        </td>
+        <td>
+            <a href="{{ path('app_question_show', {id: question.id}) }}" 
+               class="btn btn-sm btn-info me-1" 
+               title="Voir les détails">
+                <i class="bi bi-eye"></i> Voir
+            </a>
+            <a href="{{ path('app_question_edit', {id: question.id}) }}" 
+               class="btn btn-sm btn-warning me-1" 
+               title="Modifier">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <form method="post" action="{{ path('app_question_delete', {id: question.id}) }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
+                <button type="submit" 
+                        class="btn btn-sm btn-danger" 
+                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette question et toutes ses réponses ?')"
+                        title="Supprimer">
+                    <i class="bi bi-trash"></i> Supprimer
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+{% endif %}

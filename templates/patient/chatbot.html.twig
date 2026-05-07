@@ -1,0 +1,221 @@
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Assistant IA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.chatbot-shell {
+    max-width: 860px;
+    margin: 0 auto;
+    border-radius: 18px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f7fbff 0%, #ffffff 55%, #eef6ff 100%);
+    box-shadow: 0 16px 40px rgba(10, 30, 60, 0.12);
+}
+
+.chatbot-header {
+    padding: 22px 24px;
+    background: linear-gradient(120deg, #0f6f73 0%, #0f9a8f 70%);
+    color: #fff;
+}
+
+.chatbot-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.chatbot-header p {
+    margin: 8px 0 0;
+    opacity: 0.92;
+}
+
+.chatbot-body {
+    height: 430px;
+    padding: 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bubble {
+    max-width: 82%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.bubble.user {
+    align-self: flex-end;
+    background: #1676d1;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble.bot {
+    align-self: flex-start;
+    background: #fff;
+    color: #17303a;
+    border: 1px solid #d8e3ee;
+    border-bottom-left-radius: 4px;
+}
+
+.chatbot-footer {
+    padding: 16px;
+    border-top: 1px solid #deebf5;
+    background: #fff;
+}
+
+.chat-form {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-form input {
+    flex: 1;
+    border: 1px solid #c7d7e6;
+    border-radius: 999px;
+    padding: 11px 16px;
+    outline: none;
+}
+
+.chat-form input:focus {
+    border-color: #0f9a8f;
+    box-shadow: 0 0 0 3px rgba(15, 154, 143, 0.14);
+}
+
+.chat-form button {
+    border: none;
+    border-radius: 999px;
+    background: #0f9a8f;
+    color: #fff;
+    padding: 0 18px;
+    font-weight: 600;
+}
+
+.chat-form button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.status-text {
+    margin-top: 8px;
+    min-height: 1.2em;
+    color: #4a6170;
+    font-size: 0.92rem;
+}
+
+@media (max-width: 768px) {
+    .chatbot-body {
+        height: 360px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="chatbot-shell">
+    <div class="chatbot-header">
+        <h1>Assistant IA Gemini</h1>
+        <p>Posez vos questions et recevez des réponses rapides.</p>
+    </div>
+
+    <div id="chat-box" class="chatbot-body" aria-live="polite"></div>
+
+    <div class="chatbot-footer">
+        <form id="chat-form" class="chat-form">
+            <input
+                type="text"
+                id="message-input"
+                placeholder="Écrivez votre message..."
+                autocomplete="off"
+                maxlength="1200"
+                required
+            >
+            <button type="submit" id="send-button">Envoyer</button>
+        </form>
+        <div id="status-text" class="status-text"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const chatBox = document.getElementById('chat-box');
+    const sendButton = document.getElementById('send-button');
+    const statusText = document.getElementById('status-text');
+
+    const endpoint = '{{ path('patient_chatbot_ask') }}';
+    const csrfToken = '{{ csrf_token('_csrf')|e('js') }}';
+
+    const addMessage = (text, type) => {
+        const bubble = document.createElement('div');
+        bubble.className = `bubble ${type}`;
+        bubble.textContent = text;
+        chatBox.appendChild(bubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    const setBusy = (busy, text = '') => {
+        input.disabled = busy;
+        sendButton.disabled = busy;
+        statusText.textContent = text;
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const message = input.value.trim();
+        if (!message) {
+            return;
+        }
+
+        addMessage(message, 'user');
+        input.value = '';
+        setBusy(true, 'Assistant en train de répondre...');
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({ 
+                    message,
+                    _token: csrfToken
+                })
+            });
+
+            const rawBody = await response.text();
+            let data = {};
+
+            try {
+                data = rawBody ? JSON.parse(rawBody) : {};
+            } catch (jsonError) {
+                addMessage(`Erreur serveur (${response.status}). Réessayez.`, 'bot');
+                return;
+            }
+
+            if (!response.ok || data.ok !== true) {
+                addMessage(data.error || `Erreur serveur (${response.status}).`, 'bot');
+            } else {
+                addMessage(data.reply || 'Réponse vide du serveur.', 'bot');
+            }
+        } catch (error) {
+            addMessage('Impossible de contacter le service IA. Réessayez dans quelques instants.', 'bot');
+        } finally {
+            setBusy(false, '');
+            input.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

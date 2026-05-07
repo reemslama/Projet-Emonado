@@ -1,0 +1,434 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Résultat - Score: {{ score }}{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        background: #fafbfc;
+    }
+
+    .result-container {
+        max-width: 650px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+
+    /* Score principal - minimaliste */
+    .score-card {
+        background: white;
+        border-radius: 16px;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e9ecef;
+        margin-bottom: 30px;
+    }
+
+    .score-number {
+        font-size: 5rem;
+        font-weight: 300;
+        color: {% if score <= 5 %}#28a745{% elseif score <= 10 %}#17a2b8{% elseif score <= 15 %}#ffc107{% else %}#dc3545{% endif %};
+        margin: 0;
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 10px;
+        font-weight: 400;
+    }
+
+    .level-text {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-top: 30px;
+        color: #2c3e50;
+    }
+
+    .level-description {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-top: 10px;
+        font-weight: 300;
+    }
+
+    /* Barre simple */
+    .progress-simple {
+        height: 6px;
+        background: #e9ecef;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 40px 0 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: {% if score <= 5 %}#28a745{% elseif score <= 10 %}#17a2b8{% elseif score <= 15 %}#ffc107{% else %}#dc3545{% endif %};
+        transition: width 1s ease;
+        border-radius: 3px;
+    }
+
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #adb5bd;
+    }
+
+    /* Section recommandations minimaliste */
+    .recommendations {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e9ecef;
+        margin-bottom: 20px;
+    }
+
+    .recommendations h6 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .recommendations ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recommendations li {
+        padding: 12px 0;
+        color: #495057;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f1f3f5;
+        line-height: 1.6;
+    }
+
+    .recommendations li:last-child {
+        border-bottom: none;
+    }
+
+    /* Contact simple */
+    .contact-simple {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin: 20px 0;
+    }
+
+    .contact-simple h6 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .contact-simple p {
+        margin: 8px 0;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    /* Boutons minimalistes */
+    .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 40px 0 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-minimal {
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid;
+        cursor: pointer;
+    }
+
+    .btn-minimal-primary {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+    }
+
+    .btn-minimal-primary:hover {
+        background: #157347;
+        border-color: #157347;
+        color: white;
+    }
+
+    .btn-minimal-outline {
+        background: white;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+
+    .btn-minimal-outline:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+        color: #495057;
+    }
+
+    /* Disclaimer discret */
+    .disclaimer-simple {
+        background: #fff9e6;
+        border-left: 3px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 30px 0;
+    }
+
+    .disclaimer-simple p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #856404;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .score-number {
+            font-size: 4rem;
+        }
+        .score-card, .recommendations {
+            padding: 35px 25px;
+        }
+        .actions {
+            flex-direction: column;
+        }
+        .btn-minimal {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="result-container">
+    
+    {# Score principal #}
+    <div class="score-card">
+        <div class="score-number">{{ score }}</div>
+        <div class="score-label">sur 18 points</div>
+        
+        <div class="level-text">
+            {% if score <= 5 %}Niveau Faible
+            {% elseif score <= 10 %}Niveau Modéré
+            {% elseif score <= 15 %}Niveau Élevé
+            {% else %}Niveau Très Élevé
+            {% endif %}
+        </div>
+        
+        <div class="level-description">
+            {% if score <= 5 %}Continuez ainsi, vous êtes sur la bonne voie.
+            {% elseif score <= 10 %}Restez vigilant et prenez soin de vous.
+            {% elseif score <= 15 %}Envisagez de prendre des mesures.
+            {% else %}Nous vous conseillons de consulter un professionnel.
+            {% endif %}
+        </div>
+        
+        {# Barre de progression minimaliste #}
+        <div class="progress-simple">
+            <div class="progress-fill" style="width: {{ (score / 18 * 100)|round }}%"></div>
+        </div>
+        <div class="progress-labels">
+            <span>0</span>
+            <span>18</span>
+        </div>
+    </div>
+    
+    {# Recommandations #}
+    <div class="recommendations">
+        <h6>Recommandations</h6>
+        <ul>
+            {% if score <= 5 %}
+                <li>Maintenez vos bonnes habitudes de vie</li>
+                <li>Pratiquez des activités relaxantes régulièrement</li>
+                <li>Conservez votre équilibre vie pro/perso</li>
+            {% elseif score <= 10 %}
+                <li>Identifiez vos sources de stress</li>
+                <li>Essayez la méditation ou le yoga</li>
+                <li>Assurez-vous de bien dormir (7-8h)</li>
+                <li>Faites de l'exercice régulièrement</li>
+            {% elseif score <= 15 %}
+                <li>Parlez à quelqu'un de confiance</li>
+                <li>Consultez un professionnel si besoin</li>
+                <li>Pratiquez la gestion du stress</li>
+                <li>Prenez du temps pour vous</li>
+                <li>Limitez caféine et alcool</li>
+            {% else %}
+                <li>Consultez rapidement un professionnel</li>
+                <li>Ne restez pas seul(e)</li>
+                <li>Contactez une ligne d'écoute</li>
+                <li>Parlez-en à votre médecin</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    {# Contacts si nécessaire #}
+    {% if score > 10 %}
+    <div class="contact-simple">
+        <h6>Numéros d'urgence</h6>
+        <p><strong>SOS Détresse</strong> : 0800 808 005 (24h/24)</p>
+        <p><strong>Allo Ecoute</strong> : 80 101 919</p>
+        <p><strong>Urgences</strong> : 190</p>
+    </div>
+    {% endif %}
+    
+    {# Boutons d'action #}
+    <div class="actions">
+        <button onclick="exportToPDF()" class="btn-minimal btn-minimal-primary">
+            <i class="fa-solid fa-download"></i> Télécharger PDF
+        </button>
+        <a href="{{ path('test_page') }}" class="btn-minimal btn-minimal-outline">
+            <i class="fa-solid fa-rotate"></i> Autre test
+        </a>
+        <a href="{{ path('home') }}" class="btn-minimal btn-minimal-outline">
+            <i class="fa-solid fa-home"></i> Accueil
+        </a>
+    </div>
+    
+    {# Disclaimer #}
+    <div class="disclaimer-simple">
+        <p>
+            Ce test est informatif et ne remplace pas un diagnostic médical. 
+            Consultez un professionnel de santé si vous ressentez des difficultés persistantes.
+        </p>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let y = 30;
+    
+    // Titre
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('Résultat Emonado', margin, y);
+    y += 15;
+    
+    // Score
+    doc.setFontSize(48);
+    {% if score <= 5 %}
+        doc.setTextColor(40, 167, 69);
+    {% elseif score <= 10 %}
+        doc.setTextColor(23, 162, 184);
+    {% elseif score <= 15 %}
+        doc.setTextColor(255, 193, 7);
+    {% else %}
+        doc.setTextColor(220, 53, 69);
+    {% endif %}
+    doc.text('{{ score }}', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text('/ 18 points', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+    
+    // Niveau
+    doc.setFontSize(16);
+    doc.setTextColor(0);
+    {% if score <= 5 %}
+        doc.text('Niveau Faible', pageWidth / 2, y, { align: 'center' });
+    {% elseif score <= 10 %}
+        doc.text('Niveau Modéré', pageWidth / 2, y, { align: 'center' });
+    {% elseif score <= 15 %}
+        doc.text('Niveau Élevé', pageWidth / 2, y, { align: 'center' });
+    {% else %}
+        doc.text('Niveau Très Élevé', pageWidth / 2, y, { align: 'center' });
+    {% endif %}
+    y += 20;
+    
+    // Recommandations
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Recommandations', margin, y);
+    y += 8;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    
+    {% if score <= 5 %}
+        const recs = [
+            'Maintenez vos bonnes habitudes',
+            'Activités relaxantes régulières',
+            'Équilibre vie pro/perso'
+        ];
+    {% elseif score <= 10 %}
+        const recs = [
+            'Identifiez vos sources de stress',
+            'Méditation ou yoga',
+            'Bon sommeil (7-8h)',
+            'Exercice régulier'
+        ];
+    {% elseif score <= 15 %}
+        const recs = [
+            'Parlez à quelqu\'un',
+            'Consultez si besoin',
+            'Gestion du stress',
+            'Temps pour vous',
+            'Limitez caféine/alcool'
+        ];
+    {% else %}
+        const recs = [
+            'Consultez un professionnel',
+            'Ne restez pas seul(e)',
+            'Ligne d\'écoute',
+            'Médecin traitant'
+        ];
+    {% endif %}
+    
+    recs.forEach(r => {
+        doc.text('• ' + r, margin + 5, y);
+        y += 6;
+    });
+    
+    {% if score > 10 %}
+    y += 10;
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('Numéros d\'urgence', margin, y);
+    y += 8;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('• SOS Détresse : 0800 808 005', margin + 5, y);
+    y += 6;
+    doc.text('• Allo Ecoute : 80 101 919', margin + 5, y);
+    y += 6;
+    doc.text('• Urgences : 190', margin + 5, y);
+    {% endif %}
+    
+    doc.save('resultat_{{ score }}pts.pdf');
+}
+
+// Animation
+document.addEventListener('DOMContentLoaded', () => {
+    const fill = document.querySelector('.progress-fill');
+    if (fill) {
+        fill.style.width = '0%';
+        setTimeout(() => fill.style.width = '{{ (score / 18 * 100)|round }}%', 200);
+    }
+});
+</script>
+{% endblock %}

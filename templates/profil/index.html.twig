@@ -3,94 +3,295 @@
 {% block title %}Mon Profil{% endblock %}
 
 {% block body %}
-<div class="profile-container">
-    <h2>Mon Profil</h2>
 
+<div class="page">
+
+    <!-- TOP BAR (comme JavaFX header) -->
+    <div class="top-bar">
+        <div class="logo">Emonado</div>
+        <div class="subtitle">Données sécurisées</div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="back">
+        <a href="{{ path('patient_index') }}">← Retour au dashboard</a>
+    </div>
+
+    <!-- HEADER CARD -->
+    <div class="card profile-header">
+
+        <div class="avatar">
+            {{ user.prenom|slice(0,1) }}{{ user.nom|slice(0,1) }}
+        </div>
+
+        <h2>Mon Profil</h2>
+        <p>Gérez vos informations personnelles</p>
+
+        <div style="margin-top:15px;">
+            <div style="background:#f8fafc; padding:14px; border-radius:18px; display:inline-block;">
+                📷 Face ID non configuré
+            </div>
+        </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
+        <div class="alert success">{{ message }}</div>
     {% endfor %}
 
     {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
+        <div class="alert error">{{ error }}</div>
     {% endif %}
 
-    <!-- Formulaire Mise à jour -->
-    <form method="post" class="profile-form">
-        <input type="hidden" name="action" value="update">
+    <!-- FORM CARD -->
+    <div class="card">
 
-        <div>
-            <label>Nom</label>
-            <input type="text" name="nom" value="{{ user.nom }}" required>
+        <h3 style="margin-bottom:15px; color:#1f2937;">Informations personnelles</h3>
+
+        <form method="post" class="form">
+            <input type="hidden" name="action" value="update">
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>NOM</label>
+                    <input type="text" name="nom" value="{{ user.nom }}" required>
+                </div>
+
+                <div class="field">
+                    <label>PRÉNOM</label>
+                    <input type="text" name="prenom" value="{{ user.prenom }}" required>
+                </div>
+
+                <div class="field full">
+                    <label>EMAIL</label>
+                    <input type="email" value="{{ user.email }}" disabled>
+                </div>
+
+                <div class="field">
+                    <label>TÉLÉPHONE</label>
+                    <input type="tel" name="telephone" value="{{ user.telephone }}">
+                </div>
+
+                <div class="field">
+                    <label>SEXE</label>
+                    <select name="sexe">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Homme" {% if user.sexe == 'Homme' %}selected{% endif %}>Homme</option>
+                        <option value="Femme" {% if user.sexe == 'Femme' %}selected{% endif %}>Femme</option>
+                    </select>
+                </div>
+
+                <div class="field full">
+                    <label>DATE DE NAISSANCE</label>
+                    <input type="date" name="date_naissance"
+                           value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}">
+                </div>
+
+                <div class="field full">
+                    <label>NOUVEAU MOT DE PASSE</label>
+                    <input type="password" name="password" placeholder="Laisser vide si inchangé">
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-primary">
+                Mettre à jour
+            </button>
+        </form>
+
+        <!-- ACTIONS -->
+        <div class="actions">
+
+            <a href="{{ path('app_logout') }}" class="btn-secondary">
+                Déconnexion
+            </a>
+
+            <form method="post" onsubmit="return confirm('Supprimer votre profil ?');" style="flex:1;">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn-danger">
+                    Supprimer
+                </button>
+            </form>
+
         </div>
 
-        <div>
-            <label>Prénom</label>
-            <input type="text" name="prenom" value="{{ user.prenom }}" required>
-        </div>
-
-        <div>
-            <label>Email</label>
-            <input type="email" value="{{ user.email }}" disabled>
-        </div>
-
-        <div>
-            <label>Téléphone</label>
-            <input type="tel" name="telephone" value="{{ user.telephone }}">
-        </div>
-
-        <div>
-            <label>Sexe</label>
-            <select name="sexe">
-                <option value="">-- Sélectionner --</option>
-                <option value="Homme" {% if user.sexe == 'Homme' %}selected{% endif %}>Homme</option>
-                <option value="Femme" {% if user.sexe == 'Femme' %}selected{% endif %}>Femme</option>
-            </select>
-        </div>
-
-        <div>
-            <label>Date de naissance</label>
-            <input type="date" name="date_naissance" value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}">
-        </div>
-
-        <div>
-            <label>Mot de passe (laisser vide si inchangé)</label>
-            <input type="password" name="password">
-        </div>
-
-        <button type="submit" class="btn btn-success mt-3">Mettre à jour</button>
-    </form>
-
-    <!-- Bouton Déconnexion -->
-    <a href="{{ path('app_logout') }}" class="btn btn-secondary mt-3">Déconnexion</a>
-
-    <!-- Formulaire Supprimer Profil -->
-    <form method="post" onsubmit="return confirm('Voulez-vous vraiment supprimer votre profil ?');">
-        <input type="hidden" name="action" value="delete">
-        <button type="submit" class="btn btn-danger mt-3">Supprimer mon profil</button>
-    </form>
+    </div>
 </div>
 
 <style>
-.profile-container {
-   background-color: rgba(221, 245, 131, 0.27);
-    border-radius: 25px;
-    padding: 30px 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
+
+/* ===== BACKGROUND GLOBAL ===== */
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(to bottom right, #ecfdf5, #d1fae5, #e0f2fe);
+}
+
+/* ===== PAGE WRAPPER ===== */
+.page {
+    padding: 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 18px;
 }
 
-.profile-form div { margin-bottom: 15px; }
-.profile-form label { display: block; font-weight: bold; margin-bottom: 5px; }
-.profile-form input, .profile-form select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+/* ===== TOP BAR ===== */
+.top-bar {
+    width: 100%;
+    max-width: 700px;
+    background: rgba(255,255,255,0.94);
+    padding: 16px 24px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
 
-.btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; color: white; font-weight: 600; }
-.btn-secondary { background-color: #7cb342; }
-.btn-secondary:hover { background-color: #669933; }
-.btn-danger { background-color: #669933; }
-.btn-danger:hover { background-color: #669933; }
+.logo {
+    font-weight: bold;
+    color: #166534;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ===== BACK ===== */
+.back a {
+    text-decoration: none;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* ===== CARD ===== */
+.card {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+/* ===== PROFILE HEADER ===== */
+.profile-header {
+    text-align: center;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    margin: auto;
+    border-radius: 50%;
+    background: linear-gradient(to bottom right, #6ee7b7, #14b8a6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: bold;
+    color: white;
+    border: 4px solid white;
+}
+
+.profile-header h2 {
+    margin-top: 10px;
+    color: #1f2937;
+}
+
+.profile-header p {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+/* ===== FORM ===== */
+.form {
+    margin-top: 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field.full {
+    grid-column: span 2;
+}
+
+label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #9ca3af;
+}
+
+input, select {
+    padding: 10px 14px;
+    border-radius: 16px;
+    border: 1px solid #d1fae5;
+    outline: none;
+}
+
+/* ===== BUTTON ===== */
+.btn-primary {
+    margin-top: 18px;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(to right, #22c55e, #10b981);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* ===== ACTIONS ===== */
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-secondary, .btn-danger {
+    flex: 1;
+    padding: 12px;
+    border-radius: 16px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.btn-danger {
+    color: #ef4444;
+}
+
+/* ===== ALERT ===== */
+.alert {
+    padding: 10px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 700px;
+}
+
+.success {
+    background: #dcfce7;
+}
+
+.error {
+    background: #fee2e2;
+}
+
 </style>
+
 {% endblock %}

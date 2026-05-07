@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Studio IA Therapeutique{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 text-success">Studio IA therapeutique</h2>
+    <a href="{{ path('psychologue_index') }}" class="btn btn-outline-secondary">Retour dashboard</a>
+</div>
+
+{% for row in insights %}
+    {% set p = row.pack %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+                <h5 class="mb-0">{{ row.user.nom }} {{ row.user.prenom }}</h5>
+                <div>
+                    <span class="badge text-bg-primary">Emotion: {{ p.dominantEmotion }}</span>
+                    <span class="badge text-bg-dark">Trajectoire: {{ p.trajectory }}</span>
+                    <span class="badge text-bg-secondary">Analyses: {{ p.metrics.sampleSize }}</span>
+                </div>
+            </div>
+
+            <p class="mb-2"><strong>Reformulation empathique IA:</strong><br>{{ p.empathy }}</p>
+            <p class="mb-2"><strong>Hypothese therapeutique IA:</strong><br>{{ p.hypothesis }}</p>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <h6>Questions intelligentes</h6>
+                        <ul class="mb-0">
+                            {% for q in p.smartQuestions %}
+                                <li>{{ q }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <h6>Mini-plan 24h</h6>
+                        <ul class="mb-0">
+                            <li><strong>Matin:</strong> {{ p.dayPlan.matin }}</li>
+                            <li><strong>Apres-midi:</strong> {{ p.dayPlan.apresMidi }}</li>
+                            <li><strong>Soir:</strong> {{ p.dayPlan.soir }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0">
+                <strong>Objectif prochaine seance:</strong> {{ p.nextSessionObjective }}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning">Aucune analyse disponible pour construire un parcours emotionnel.</div>
+{% endfor %}
+{% endblock %}

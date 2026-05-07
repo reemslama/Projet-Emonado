@@ -1,0 +1,341 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Test Adaptatif {{ categorie|capitalize }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    {# En-tête conversationnel #}
+    <div class="text-center mb-4">
+        {% if categorie == 'stress' %}
+            <i class="fa-solid fa-brain text-danger mb-3" style="font-size: 3rem;"></i>
+            <h2 class="text-danger">Test Adaptatif de Stress</h2>
+        {% elseif categorie == 'depression' %}
+            <i class="fa-solid fa-heart-pulse text-primary mb-3" style="font-size: 3rem;"></i>
+            <h2 class="text-primary">Test Adaptatif de Dépression</h2>
+        {% else %}
+            <i class="fa-solid fa-lightbulb text-warning mb-3" style="font-size: 3rem;"></i>
+            <h2 class="text-warning">Test Adaptatif de QI</h2>
+        {% endif %}
+        
+        <p class="text-muted mt-2">
+            <i class="fa-solid fa-robot"></i> 
+            Ce test s'adapte à vos réponses en temps réel
+        </p>
+    </div>
+
+    {# Badge de progression #}
+    <div class="text-center mb-4">
+        <div class="d-inline-block">
+            <span class="badge 
+                {% if categorie == 'stress' %}bg-danger
+                {% elseif categorie == 'depression' %}bg-primary
+                {% else %}bg-warning
+                {% endif %} px-4 py-2" style="font-size: 1rem;">
+                <i class="fa-solid fa-comments"></i> 
+                Question {{ numeroQuestion }} 
+                <span class="text-white-50">• Score actuel: {{ test.scoreActuel }}</span>
+            </span>
+        </div>
+    </div>
+
+    {# Zone de conversation #}
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            {# Historique des questions précédentes (dernière question seulement) #}
+            {% if test.questionsReponses|length > 0 %}
+            <div class="conversation-history mb-4">
+                {% set derniereQR = test.questionsReponses|last %}
+                <div class="message-bot mb-3 fade-in">
+                    <div class="d-flex align-items-start">
+                        <div class="avatar-bot me-3">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="message-bubble message-bubble-bot">
+                            {{ derniereQR.question }}
+                        </div>
+                    </div>
+                </div>
+                <div class="message-user mb-3 fade-in">
+                    <div class="d-flex align-items-start justify-content-end">
+                        <div class="message-bubble message-bubble-user">
+                            {{ derniereQR.reponse }}
+                        </div>
+                        <div class="avatar-user ms-3">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Question actuelle #}
+            <div class="conversation-current">
+                <div class="message-bot mb-4 typing-animation">
+                    <div class="d-flex align-items-start">
+                        <div class="avatar-bot me-3">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="message-bubble message-bubble-bot shadow-lg">
+                            {{ question.texte }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Formulaire de réponse #}
+                <form method="post" action="{{ path('app_test_adaptatif_answer') }}" id="answerForm">
+                    <input type="hidden" name="question" value="{{ question.texte }}">
+                    
+                    <div class="reponses-container">
+                        {% for reponse in question.reponses %}
+                        <div class="answer-option mb-3 slide-in" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                            <button type="button" 
+                                    class="btn btn-answer w-100 text-start p-4" 
+                                    onclick="selectAnswer(this, '{{ reponse.texte|e('js') }}', {{ reponse.valeur }})">
+                                <div class="d-flex align-items-center">
+                                    <span class="answer-letter me-3">{{ 'ABCD'|slice(loop.index0, 1) }}</span>
+                                    <span class="answer-text">{{ reponse.texte }}</span>
+                                    <i class="fa-solid fa-arrow-right ms-auto answer-icon"></i>
+                                </div>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <input type="hidden" name="reponse" id="reponseInput">
+                    <input type="hidden" name="valeur" id="valeurInput">
+                </form>
+            </div>
+
+            {# Indicateur de chargement (caché par défaut) #}
+            <div class="text-center mt-4 d-none" id="loadingIndicator">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Analyse en cours...</span>
+                </div>
+                <p class="text-muted mt-2">
+                    <i class="fa-solid fa-magic-wand-sparkles"></i> 
+                    Analyse de votre réponse...
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    {# Bouton pour voir l'historique #}
+    <div class="text-center mt-5">
+        <a href="{{ path('test_page') }}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Abandonner
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function selectAnswer(button, reponseTexte, valeur) {
+    console.log('Fonction selectAnswer appelée');
+    console.log('Réponse:', reponseTexte, 'Valeur:', valeur);
+    
+    // Désactiver tous les boutons pour éviter les doubles clics
+    document.querySelectorAll('.btn-answer').forEach(function(b) {
+        b.disabled = true;
+    });
+
+    // Mettre en surbrillance la réponse sélectionnée
+    button.classList.add('btn-answer-selected');
+
+    // Remplir les champs cachés
+    document.getElementById('reponseInput').value = reponseTexte;
+    document.getElementById('valeurInput').value = valeur;
+
+    // Afficher l'indicateur de chargement
+    document.getElementById('loadingIndicator').classList.remove('d-none');
+
+    // Soumettre le formulaire après une courte pause (effet visuel)
+    setTimeout(function() {
+        console.log('Soumission du formulaire');
+        document.getElementById('answerForm').submit();
+    }, 800);
+}
+
+// Scroll doux vers la question actuelle au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM chargé');
+    const currentQuestion = document.querySelector('.conversation-current');
+    if (currentQuestion) {
+        setTimeout(function() {
+            currentQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    }
+});
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* Avatar */
+.avatar-bot, .avatar-user {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.avatar-bot {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.avatar-user {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+/* Bulles de message */
+.message-bubble {
+    padding: 15px 20px;
+    border-radius: 20px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.message-bubble-bot {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 5px;
+}
+
+.message-bubble-user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+/* Boutons de réponse */
+.btn-answer {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+}
+
+.btn-answer * {
+    pointer-events: none; /* Les enfants ne capturent pas les clics */
+}
+
+.btn-answer:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    transform: translateX(10px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.btn-answer-selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateX(10px);
+}
+
+.answer-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: #e9ecef;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.btn-answer-selected .answer-letter {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.answer-text {
+    flex: 1;
+}
+
+.answer-icon {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-answer:hover .answer-icon,
+.btn-answer-selected .answer-icon {
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes typing {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.typing-animation {
+    animation: typing 2s ease infinite;
+}
+
+/* Historique */
+.conversation-history {
+    opacity: 0.7;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .message-bubble {
+        max-width: 90%;
+    }
+    
+    .avatar-bot, .avatar-user {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

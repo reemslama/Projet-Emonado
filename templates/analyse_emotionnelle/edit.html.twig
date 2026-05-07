@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit AnalyseEmotionnelle{% endblock %}
+
+{% block body %}
+    <h1>Edit AnalyseEmotionnelle</h1>
+
+    {{ include('analyse_emotionnelle/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_analyse_emotionnelle_index') }}">back to list</a>
+
+    {{ include('analyse_emotionnelle/_delete_form.html.twig') }}
+{% endblock %}

@@ -4,84 +4,230 @@
 
 {% block body %}
 <main class="login-container">
-  <section class="login-wrapper">
+    <section class="login-wrapper">
 
-    {% if error %}
-      <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
+        <h2 class="login-title">Connexion</h2>
+        <p class="login-subtitle">Veuillez choisir votre rôle</p>
 
-    <form method="post" class="login-form">
-      <div class="options">
-        <button type="submit" name="role" value="patient" class="option">Patient</button>
-        <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
-        <button type="submit" name="role" value="admin" class="option">Admin</button>
-      </div>
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('info') %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
 
-      <div class="mb-3 mt-3">
-        <input type="email" name="email" class="form-control" placeholder="Email" required value="{{ last_username }}">
-      </div>
-      <div class="mb-3">
-        <input type="password" name="password" class="form-control" placeholder="Mot de passe" required>
-      </div>
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
 
-      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        <form method="post" class="login-form">
 
-    
-    </form>
-  </section>
+            <div class="options">
+                <button type="submit" name="role" value="patient" class="option">Patient</button>
+                <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
+                <button type="submit" name="role" value="admin" class="option">Admin</button>
+            </div>
+
+            <div class="mb-3">
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       placeholder="Email"
+                       required
+                       value="{{ last_username }}">
+            </div>
+
+            <div class="mb-3">
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Mot de passe"
+                       required>
+            </div>
+
+            <div class="forgot-password">
+                <a href="{{ path('app_forgot_password') }}">
+                    Mot de passe oublié ?
+                </a>
+            </div>
+
+            <input type="hidden"
+                   name="_csrf_token"
+                   value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="login-btn">
+                Se connecter
+            </button>
+
+        </form>
+
+        <div class="register-link">
+            <p>Pas encore de compte ?</p>
+            <a href="{{ path('app_register') }}">S'inscrire</a>
+        </div>
+
+    </section>
 </main>
 
 <style>
 body {
     background-color: #f8f8f8;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
 }
+
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
+    padding: 30px;
 }
+
 .login-wrapper {
-    background-color: rgba(221, 245, 131, 0.27);
+    background-color: white;
     border-radius: 25px;
-    padding: 30px 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    padding: 40px;
+    max-width: 500px;
     width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    text-align: center;
 }
+
+.login-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.login-subtitle {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
 .login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 100%;
-}
-.options {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
+
+.options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
 .option {
     background: white;
     border: 2px solid #c5df43;
-    padding: 14px;
-    border-radius: 22px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: bold;
     color: #333;
-    text-align: center;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
+
 .option:hover {
-    background-color: #f4fbe4;
-}
-.option.selected {
     background-color: #c5df43;
     color: white;
+}
+
+.form-control {
+    border-radius: 15px !important;
+    padding: 12px !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #c5df43 !important;
+    box-shadow: 0 0 5px rgba(197,223,67,0.4) !important;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -5px;
+}
+
+.forgot-password a {
+    color: #e7a83c;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.login-btn {
+    background-color: #c5df43;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #b2cc35;
+    transform: scale(1.02);
+}
+
+.register-link {
+    margin-top: 20px;
+}
+
+.register-link p {
+    color: #777;
+    margin-bottom: 8px;
+}
+
+.register-link a {
+    color: #c5df43;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    border-radius: 15px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    padding: 10px;
+}
+
+@media (max-width: 768px) {
+    .login-wrapper {
+        padding: 25px;
+    }
+
+    .options {
+        flex-direction: column;
+    }
+
+    .option {
+        width: 100%;
+    }
 }
 </style>
 {% endblock %}

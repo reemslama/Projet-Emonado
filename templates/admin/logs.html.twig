@@ -1,0 +1,47 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Logs d'audit{% endblock %}
+{% block header %}Logs de connexion et modifications{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <p class="text-muted small">Dernières actions enregistrées (traçabilité et conformité).</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if logs|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Entité</th>
+                                <th>Détails</th>
+                                <th>Utilisateur</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.createdAt|date('d/m/Y H:i:s') }}</td>
+                                    <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                                    <td>{{ log.entityType ?? '—' }}{% if log.entityId %} #{{ log.entityId }}{% endif %}</td>
+                                    <td class="small text-muted">{{ log.details|slice(0, 80) }}{% if log.details|length > 80 %}...{% endif %}</td>
+                                    <td>{{ log.user ? log.user.email : '—' }}</td>
+                                    <td>{{ log.ip ?? '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Aucun log pour le moment.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary">Retour au dashboard</a>
+    </div>
+</div>
+{% endblock %}

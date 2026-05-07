@@ -1,0 +1,267 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique Tests Adaptatifs{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    
+    <div class="text-center mb-5">
+        <i class="fa-solid fa-clock-rotate-left text-primary mb-3" style="font-size: 3rem;"></i>
+        <h1 class="fw-bold">Mon Historique</h1>
+        <p class="text-muted">Tests adaptatifs passés</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            {% if tests|length == 0 %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-inbox text-muted mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="text-muted">Aucun test passé</h4>
+                <p class="text-muted">Vous n'avez pas encore passé de test adaptatif.</p>
+                <a href="{{ path('test_page') }}" class="btn btn-primary mt-3">
+                    <i class="fa-solid fa-play"></i> Commencer un test
+                </a>
+            </div>
+            {% else %}
+            
+            {# Statistiques globales #}
+            {% set totalTests = tests|length %}
+            {% set totalQuestions = 0 %}
+            {% set totalScore = 0 %}
+            {% for test in tests %}
+                {% set totalQuestions = totalQuestions + test.nombreQuestions %}
+                {% set totalScore = totalScore + test.scoreActuel %}
+            {% endfor %}
+            
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-chart-pie"></i> Vue d'ensemble
+                        </h5>
+                        {% if app.user %}
+                        <a href="{{ path('test_pdf_rapport_patient', {patientId: app.user.id}) }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="fa-solid fa-file-pdf"></i> Rapport Complet PDF
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-clipboard-check text-primary fs-2 mb-2"></i>
+                                <h3 class="mb-0">{{ totalTests }}</h3>
+                                <p class="text-muted mb-0">Tests passés</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-question text-success fs-2 mb-2"></i>
+                                <h3 class="mb-0">{{ totalQuestions }}</h3>
+                                <p class="text-muted mb-0">Questions répondues</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fa-solid fa-brain text-warning fs-2 mb-2"></i>
+                                <h3 class="mb-0">{{ (totalQuestions / totalTests)|round }}</h3>
+                                <p class="text-muted mb-0">Questions moyennes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Liste des tests #}
+            <div class="tests-timeline">
+                {% for test in tests %}
+                {% set moyenneParQ = test.scoreActuel / test.nombreQuestions %}
+                
+                <div class="timeline-item mb-4">
+                    <div class="card shadow-sm border-0 test-card">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                
+                                {# Icône et catégorie #}
+                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                                    {% if test.categorie == 'stress' %}
+                                        <div class="category-icon bg-danger">
+                                            <i class="fa-solid fa-face-frown"></i>
+                                        </div>
+                                        <small class="d-block mt-2 text-muted">Stress</small>
+                                    {% elseif test.categorie == 'depression' %}
+                                        <div class="category-icon bg-primary">
+                                            <i class="fa-solid fa-heart-pulse"></i>
+                                        </div>
+                                        <small class="d-block mt-2 text-muted">Dépression</small>
+                                    {% else %}
+                                        <div class="category-icon bg-warning">
+                                            <i class="fa-solid fa-lightbulb"></i>
+                                        </div>
+                                        <small class="d-block mt-2 text-muted">QI</small>
+                                    {% endif %}
+                                </div>
+                                
+                                {# Informations #}
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <h5 class="mb-2">
+                                        Test du {{ test.dateFin|date('d/m/Y à H:i') }}
+                                    </h5>
+                                    <p class="text-muted mb-2">
+                                        <i class="fa-solid fa-question-circle"></i> 
+                                        {{ test.nombreQuestions }} questions • 
+                                        <i class="fa-solid fa-clock"></i> 
+                                        {{ ((test.dateFin.timestamp - test.dateDebut.timestamp) / 60)|round }} min
+                                    </p>
+                                    
+                                    {# Niveau #}
+                                    {% if moyenneParQ >= 2.5 %}
+                                        <span class="badge bg-danger">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Critique
+                                        </span>
+                                    {% elseif moyenneParQ >= 1.5 %}
+                                        <span class="badge bg-warning">
+                                            <i class="fa-solid fa-exclamation-circle"></i> Préoccupant
+                                        </span>
+                                    {% elseif moyenneParQ >= 0.8 %}
+                                        <span class="badge bg-info">
+                                            <i class="fa-solid fa-info-circle"></i> Modéré
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fa-solid fa-check-circle"></i> Faible
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                {# Score #}
+                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                                    <div class="score-circle">
+                                        <div class="score-value">{{ test.scoreActuel }}</div>
+                                        <div class="score-label">sur {{ test.nombreQuestions * 3 }}</div>
+                                    </div>
+                                </div>
+                                
+                                {# Action #}
+                                <div class="col-md-2 text-center">
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{{ path('app_test_adaptatif_resultat', {id: test.id}) }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fa-solid fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('test_pdf_download', {id: test.id}) }}" 
+                                           class="btn btn-success btn-sm" 
+                                           title="Télécharger le PDF">
+                                            <i class="fa-solid fa-file-pdf"></i> PDF
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% endif %}
+            
+            <div class="text-center mt-5 mb-5">
+                <a href="{{ path('test_page') }}" class="btn btn-primary btn-lg px-5">
+                    <i class="fa-solid fa-plus-circle"></i> Nouveau Test
+                </a>
+                <a href="{{ path('patient_index') }}" class="btn btn-outline-secondary btn-lg px-5 ms-2">
+                    <i class="fa-solid fa-home"></i> Accueil
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.category-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.score-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.score-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.test-card {
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.test-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.stat-card {
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    background: #f8f9fa;
+}
+
+.tests-timeline {
+    position: relative;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 0;
+}
+
+/* Animation */
+.test-card {
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+{% for i in 1..10 %}
+.test-card:nth-child({{ i }}) {
+    animation-delay: {{ i * 0.1 }}s;
+}
+{% endfor %}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}
