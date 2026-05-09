@@ -2,18 +2,32 @@
 
 namespace App\Controller;
 
+use App\Entity\DossierMedical;
+use App\Entity\Consultation;
+use App\Repository\DossierMedicalRepository;
+use App\Service\TherapeuticCompanionService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PatientController extends AbstractController
 {
     #[Route('/patient', name: 'patient_index')]
-    public function index(UserRepository $userRepository): Response
+    public function index(): Response
     {
-        return $this->render('patient/index.html.twig');
+        $patient = $this->getUser();
+        $contact = null;
+
+        if ($patient instanceof \App\Entity\User) {
+            $contact = $patient->getPsychologue();
+        }
+
+        return $this->render('patient/index.html.twig', [
+            'contact' => $contact,
+        ]);
     }
 
     #[Route('/patient/consultations', name: 'patient_consultations')]

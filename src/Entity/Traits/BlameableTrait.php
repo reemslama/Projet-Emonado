@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait BlameableTrait
 {
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -35,4 +35,3 @@ trait BlameableTrait
         $this->updatedBy = $user;
     }
 }
-

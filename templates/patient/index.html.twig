@@ -53,6 +53,13 @@
             <p>Planifier vos consultations</p>
         </a>
 
+        <a href="{{ path('patient_pre_consultation') }}" class="card card-pay-precon">
+            <div class="pay-precon-badge">PAY</div>
+            <div class="icon-box precon-pay"><i class="fas fa-credit-card"></i></div>
+            <h3>Paiement &amp; questionnaire</h3>
+            <p>Payer après acceptation et remplir le dossier clinique</p>
+        </a>
+
         <a href="{{ path('patient_dossier') }}" class="card">
             <div class="icon-box dossier"><i class="fas fa-folder"></i></div>
             <h3>Dossier médical</h3>
@@ -215,6 +222,29 @@ body {
 .rdv { background: linear-gradient(to bottom right, #fce7f3, #fbcfe8); }
 .dossier { background: linear-gradient(to bottom right, #ccfbf1, #99f6e4); }
 .pay { background: linear-gradient(to bottom right, #dbeafe, #bfdbfe); }
+.precon-pay { background: linear-gradient(to bottom right, #7dd3fc, #38bdf8); }
+
+.card-pay-precon {
+    position: relative;
+    padding-top: 20px;
+}
+.pay-precon-badge {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(to right, #38bdf8, #0ea5e9);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    padding: 8px 28px;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.45);
+}
+.card-pay-precon .icon-box {
+    margin-top: 28px;
+}
 
 /* TEXT */
 .card h3 {

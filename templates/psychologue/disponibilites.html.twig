@@ -1,0 +1,216 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Disponibilités du psychologue{% endblock %}
+
+{% block body %}
+<div class="dispo-page">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <a href="{{ path('psychologue_index') }}" class="btn btn-light btn-sm dispo-back">Retour</a>
+        <div class="dispo-subtitle">Ajoutez, ajustez et suivez vos créneaux depuis un seul écran.</div>
+    </div>
+
+    <h2 class="dispo-title">Disponibilités du psychologue</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="dispo-stat-card">
+                <div class="dispo-stat-label">Créneaux totaux</div>
+                <div class="dispo-stat-value">{{ stats.total }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dispo-stat-card">
+                <div class="dispo-stat-label">Libres</div>
+                <div class="dispo-stat-value text-success">{{ stats.libres }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dispo-stat-card">
+                <div class="dispo-stat-label">Réservés</div>
+                <div class="dispo-stat-value text-warning">{{ stats.reserves }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="dispo-panel">
+                <h4>Ajouter un créneau</h4>
+                <p class="text-muted mb-3">Définissez un nouveau créneau disponible pour vos patients.</p>
+
+                {{ include('components/_flash_messages.html.twig') }}
+
+                <form method="post" id="slot-form">
+                    <input type="hidden" name="slot_id" id="slot-id">
+
+                    <div class="mb-3">
+                        <label for="slot-date" class="form-label">Date</label>
+                        <input id="slot-date" name="date" type="date" class="form-control" required>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="slot-start" class="form-label">Heure début</label>
+                            <input id="slot-start" name="start" type="time" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="slot-end" class="form-label">Heure fin</label>
+                            <input id="slot-end" name="end" type="time" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check dispo-check mb-3">
+                        <input class="form-check-input" type="checkbox" value="1" id="slot-reservable" name="reservable" checked>
+                        <label class="form-check-label" for="slot-reservable">
+                            Ce créneau est libre et réservable
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn dispo-btn-add" formaction="{{ path('psychologue_disponibilites_add') }}" name="_token" value="{{ csrf_token('psy_dispo_add') }}">Ajouter</button>
+                        <button type="submit" id="btn-edit" class="btn dispo-btn-edit" formaction="{{ path('psychologue_disponibilites_edit') }}" name="_token" value="{{ csrf_token('psy_dispo_edit') }}">Modifier</button>
+                        <button type="submit" id="btn-delete" class="btn dispo-btn-delete" formaction="{{ path('psychologue_disponibilites_delete') }}" name="_token" value="{{ csrf_token('psy_dispo_delete') }}">Supprimer</button>
+                        <button type="button" class="btn dispo-btn-reset" id="btn-reset">Réinitialiser</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="dispo-panel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h4 class="mb-0">Planning des disponibilités</h4>
+                    <div class="small text-muted">Les créneaux réservés sont verrouillés.</div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="slots-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Début</th>
+                                <th>Fin</th>
+                                <th>État du créneau</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr
+                                    data-slot-id="{{ row.id }}"
+                                    data-date="{{ row.date_iso }}"
+                                    data-start="{{ row.start }}"
+                                    data-end="{{ row.end }}"
+                                    data-reservable="{{ row.reservable ? '1' : '0' }}"
+                                    data-reserved="{{ row.reserved ? '1' : '0' }}"
+                                    class="{{ selectedId == row.id ? 'table-active' : '' }}"
+                                    style="cursor: pointer;"
+                                >
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.start }}</td>
+                                    <td>{{ row.end }}</td>
+                                    <td>
+                                        {% if row.status_label == 'réservé' %}
+                                            <span class="badge text-bg-warning">réservé</span>
+                                        {% elseif row.status_label == 'libre' %}
+                                            <span class="badge text-bg-success">libre</span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">indisponible</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">Aucun contenu dans la table</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dispo-page { max-width: 1260px; margin: 0 auto; }
+.dispo-back { border-radius: 12px; }
+.dispo-title { font-weight: 700; margin-bottom: 14px; color: #0b2b46; }
+.dispo-subtitle { font-size: .95rem; color: #5a6b7b; }
+.dispo-stat-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
+    padding: 16px;
+}
+.dispo-stat-label { color: #6b7280; margin-bottom: 8px; }
+.dispo-stat-value { font-size: 1.8rem; font-weight: 700; color: #0b2b46; line-height: 1; }
+.dispo-panel {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+    padding: 18px;
+    height: 100%;
+}
+.dispo-panel h4 { font-weight: 700; margin-bottom: 2px; color: #0b2b46; }
+.dispo-check { background: #f8fafc; border-radius: 12px; padding: 10px 12px; border: 1px solid #e5e7eb; }
+.dispo-btn-add, .dispo-btn-edit, .dispo-btn-delete, .dispo-btn-reset { border-radius: 12px; font-weight: 600; }
+.dispo-btn-add { background: #0f766e; border-color: #0f766e; color: #fff; }
+.dispo-btn-edit { background: #e0f2fe; border-color: #bae6fd; color: #0c4a6e; }
+.dispo-btn-delete { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+.dispo-btn-reset { background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }
+#slots-table thead th { background: #f1f5f9; color: #334155; font-weight: 600; }
+</style>
+
+<script>
+(() => {
+  const table = document.getElementById('slots-table');
+  const form = document.getElementById('slot-form');
+  const inputId = document.getElementById('slot-id');
+  const inputDate = document.getElementById('slot-date');
+  const inputStart = document.getElementById('slot-start');
+  const inputEnd = document.getElementById('slot-end');
+  const inputReservable = document.getElementById('slot-reservable');
+  const btnReset = document.getElementById('btn-reset');
+  const btnEdit = document.getElementById('btn-edit');
+  const btnDelete = document.getElementById('btn-delete');
+
+  function fillFromRow(row) {
+    if (!row) return;
+    table.querySelectorAll('tbody tr[data-slot-id]').forEach((r) => r.classList.remove('table-active'));
+    row.classList.add('table-active');
+    inputId.value = row.dataset.slotId || '';
+    inputDate.value = row.dataset.date || '';
+    inputStart.value = row.dataset.start || '';
+    inputEnd.value = row.dataset.end || '';
+    inputReservable.checked = (row.dataset.reservable || '1') === '1';
+    const isReserved = (row.dataset.reserved || '0') === '1';
+    btnEdit.disabled = isReserved;
+    btnDelete.disabled = isReserved;
+  }
+
+  function resetForm() {
+    inputId.value = '';
+    form.reset();
+    table.querySelectorAll('tbody tr[data-slot-id]').forEach((r) => r.classList.remove('table-active'));
+    btnEdit.disabled = false;
+    btnDelete.disabled = false;
+  }
+
+  if (table) {
+    table.addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-slot-id]');
+      fillFromRow(row);
+    });
+
+    const selected = table.querySelector('tr.table-active[data-slot-id]');
+    if (selected) {
+      fillFromRow(selected);
+    }
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', resetForm);
+  }
+})();
+</script>
+{% endblock %}

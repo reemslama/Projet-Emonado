@@ -1,0 +1,329 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement & pré-consultation{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="precon-shell">
+    <div class="precon-topbar">
+        <a href="{{ path('patient_index') }}" class="precon-back"><i class="fas fa-arrow-left"></i> Retour</a>
+        <h1 class="precon-title">Paiement & formulaire pré-consultation</h1>
+    </div>
+
+    {{ include('components/_flash_messages.html.twig') }}
+
+    {% if not has_accepted_rdv %}
+        <div class="precon-empty">
+            <i class="fas fa-calendar-check fa-3x mb-3 text-muted"></i>
+            <p class="mb-0">Aucun rendez-vous accepté pour le moment. Dès que votre psychologue acceptera une demande, vous pourrez régler la séance et remplir le dossier clinique ici.</p>
+        </div>
+    {% else %}
+
+    <div class="precon-filters row g-2 mb-4">
+        <div class="col-md-4">
+            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                {% if selected %}
+                    <input type="hidden" name="c" value="{{ selected.consultation.id }}">
+                {% endif %}
+                <label class="small text-muted mb-0">Paiement</label>
+                <select name="paiement" class="form-select form-select-sm" style="max-width: 180px;" onchange="this.form.submit()">
+                    <option value="tous" {{ payment_filter == 'tous' ? 'selected' }}>Tous</option>
+                    <option value="pending" {{ payment_filter == 'pending' ? 'selected' }}>En attente</option>
+                    <option value="paid" {{ payment_filter == 'paid' ? 'selected' }}>Payés</option>
+                </select>
+                <label class="small text-muted mb-0 ms-2">Date</label>
+                <select name="tri" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                    <option value="recent" {{ sort == 'recent' ? 'selected' }}>Date la plus récente</option>
+                    <option value="ancien" {{ sort == 'ancien' ? 'selected' }}>Date la plus ancienne</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <h2 class="h6 fw-bold text-secondary mb-3">Consultations acceptées</h2>
+            <div class="d-flex flex-column gap-3">
+                {% for row in rows %}
+                    {% set rdv = row.rdv %}
+                    {% set pay = row.payment %}
+                    {% set c = row.consultation %}
+                    {% set qRow = row.questionnaire %}
+                    {% set active = selected and selected.consultation.id == c.id %}
+                    <a href="{{ path('patient_pre_consultation', { c: c.id, paiement: payment_filter, tri: sort }) }}"
+                       class="precon-card text-decoration-none {{ active ? 'precon-card-active' : '' }}">
+                        <div class="precon-card-accent"></div>
+                        <div class="precon-card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-bold">{{ rdv.type ? rdv.type.libelle : 'Consultation' }} — {{ rdv.date ? rdv.date|date('d/m/Y') : '—' }}</div>
+                                    <div class="small text-muted">Dr. {{ rdv.nomPsychologue|default('—') }} · {{ rdv.date ? rdv.date|date('H:i') : '—' }}{% if rdv.disponibilite and rdv.disponibilite.heureFin %} – {{ rdv.disponibilite.heureFin|date('H:i') }}{% endif %}</div>
+                                </div>
+                                {% if not pay.isPaid %}
+                                    <span class="precon-pay-icon" title="Payer"><i class="fas fa-credit-card"></i></span>
+                                {% else %}
+                                    <span class="text-success"><i class="fas fa-check-circle"></i></span>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2 small">
+                                <strong>Paiement:</strong> {{ pay.statut }}
+                                &nbsp;|&nbsp;
+                                <strong>Montant:</strong> {{ pay.montant|number_format(2, ',', ' ') }} {{ pay.devise }}
+                            </div>
+                            {% if not pay.isPaid %}
+                                <div class="small text-muted mt-1">Formulaire verrouillé jusqu'au paiement</div>
+                            {% elseif qRow and qRow.motifPrincipal and qRow.symptomesObserves %}
+                                <div class="small text-success mt-1">Formulaire enregistré</div>
+                            {% else %}
+                                <div class="small text-info mt-1">Formulaire en attente</div>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% else %}
+                    <p class="text-muted small">Aucune ligne ne correspond au filtre.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if selected %}
+                {% set pay = selected.payment %}
+                {% set rdv = selected.rdv %}
+                {% set c = selected.consultation %}
+
+                <div class="precon-pay-panel mb-4">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-info text-dark">Simulation locale</span>
+                        <span class="badge bg-secondary">Aucun vrai prélèvement</span>
+                    </div>
+                    <div class="precon-sim-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div class="fw-bold">Carte simulée</div>
+                                <div class="small text-white-50">Validation locale uniquement</div>
+                            </div>
+                            <span class="fw-bold fs-5">VISA</span>
+                        </div>
+                        <div class="mb-2 small text-white-50">Numéro de carte</div>
+                        <div class="precon-fake-input mb-3">4242 4242 4242 4242</div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="small text-white-50">Expiry</div>
+                                <div class="precon-fake-input">MM/AA</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-white-50">CVV</div>
+                                <div class="precon-fake-input">123</div>
+                            </div>
+                        </div>
+                        {% if not pay.isPaid %}
+                            <form method="post" action="{{ path('patient_pre_consultation_pay') }}">
+                                <input type="hidden" name="consultation_id" value="{{ c.id }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('patient_pay_' ~ c.id) }}">
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-2 rounded-3">
+                                    <i class="fas fa-lock-open me-2"></i>Payer avec la carte simulée
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-light mb-0 rounded-3 small">
+                                <i class="fas fa-check text-success me-1"></i> Paiement enregistré (réf. {{ pay.referenceLocale|default('local') }}).
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="precon-form-card">
+                    <h2 class="h5 fw-bold mb-3">Formulaire pré-consultation</h2>
+                    {% if not pay.isPaid %}
+                        <p class="text-muted">Stripe n’est pas utilisé ici : utilisez la carte simulée ci-dessus pour débloquer ce formulaire.</p>
+                    {% else %}
+                        <p class="text-success small mb-4"><i class="fas fa-check-circle me-1"></i> Paiement reçu. Remplissez maintenant le formulaire clinique.</p>
+                    {% endif %}
+
+                    <form method="post" action="{{ path('patient_pre_consultation_questionnaire') }}" class="precon-q-form">
+                        <input type="hidden" name="consultation_id" value="{{ c.id }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('patient_questionnaire_' ~ c.id) }}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Motif principal <span class="text-danger">*</span></label>
+                            <textarea name="motif_principal" class="form-control" rows="3" required
+                                {{ not pay.isPaid ? 'disabled' : '' }}
+                            >{{ questionnaire ? questionnaire.motifPrincipal : '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Symptômes observés <span class="text-danger">*</span></label>
+                            <textarea name="symptomes_observes" class="form-control" rows="3" required
+                                {{ not pay.isPaid ? 'disabled' : '' }}
+                            >{{ questionnaire ? questionnaire.symptomesObserves : '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Note vocale transcrite</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-dict-start" {{ not pay.isPaid ? 'disabled' : '' }}>Démarrer la dictée</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-dict-stop" disabled>Arrêter</button>
+                            </div>
+                            <textarea name="note_vocale_transcrite" id="note_vocale_transcrite" class="form-control" rows="2"
+                                {{ not pay.isPaid ? 'disabled' : '' }}
+                                placeholder="La transcription apparaîtra ici (saisie manuelle ou collage).">{{ questionnaire ? questionnaire.noteVocaleTranscrite : '' }}</textarea>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Stress (0–10)</label>
+                                <select name="stress" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.stress : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Anxiété (0–10)</label>
+                                <select name="anxiete" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.anxiete : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Humeur (0–10)</label>
+                                <select name="humeur" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.humeur : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Sommeil (0–10)</label>
+                                <select name="sommeil" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.sommeil : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Énergie (0–10)</label>
+                                <select name="energie" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.energie : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Soutien (0–10)</label>
+                                <select name="soutien" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.soutien : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-0">Urgence ressentie (0–10)</label>
+                                <select name="urgence_ressentie" class="form-select form-select-sm" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                    {% for i in 0..10 %}
+                                        <option value="{{ i }}" {{ (questionnaire ? questionnaire.urgenceRessentie : 5) == i ? 'selected' }}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Risque auto-agression</label>
+                            <select name="risque_auto_agression" class="form-select" {{ not pay.isPaid ? 'disabled' : '' }}>
+                                {% set r = questionnaire ? questionnaire.risqueAutoAgression : 'none' %}
+                                <option value="none" {{ r == 'none' ? 'selected' }}>Aucun</option>
+                                <option value="low" {{ r == 'low' ? 'selected' }}>Faible</option>
+                                <option value="moderate" {{ r == 'moderate' ? 'selected' }}>Modéré</option>
+                                <option value="high" {{ r == 'high' ? 'selected' }}>Élevé</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Contexte complémentaire</label>
+                            <textarea name="contexte_complementaire" class="form-control" rows="4" {{ not pay.isPaid ? 'disabled' : '' }}>{{ questionnaire ? questionnaire.contexteComplementaire : '' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4 rounded-3" {{ not pay.isPaid ? 'disabled' : '' }}>
+                            Enregistrer le formulaire
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-muted">Sélectionnez une consultation dans la liste.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.precon-shell { max-width: 1200px; margin: 0 auto; padding: 24px 20px 48px; font-family: "Segoe UI", system-ui, sans-serif; }
+.precon-topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.precon-back { color: #0f766e; font-weight: 600; text-decoration: none; }
+.precon-title { font-size: 1.35rem; font-weight: 800; margin: 0; color: #0f172a; }
+.precon-empty { text-align: center; padding: 48px 24px; background: #fff; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+.precon-card { display: flex; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07); color: inherit; transition: transform .15s; }
+.precon-card:hover { transform: translateY(-2px); }
+.precon-card-active { box-shadow: 0 0 0 2px #0ea5e9, 0 8px 24px rgba(14,165,233,.2); }
+.precon-card-accent { width: 6px; background: linear-gradient(180deg, #38bdf8, #6366f1); flex-shrink: 0; }
+.precon-card-active .precon-card-accent { background: linear-gradient(180deg, #10b981, #0ea5e9); }
+.precon-card-body { padding: 14px 16px; flex: 1; }
+.precon-pay-icon { color: #0ea5e9; font-size: 1.25rem; }
+.precon-pay-panel { }
+.precon-sim-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 12px 32px rgba(15,23,42,.35);
+}
+.precon-fake-input {
+    background: rgba(255,255,255,.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: ui-monospace, monospace;
+    letter-spacing: .05em;
+}
+.precon-form-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.06);
+}
+</style>
+
+{% if selected and selected.payment.isPaid %}
+<script>
+(function () {
+  const start = document.getElementById('btn-dict-start');
+  const stop = document.getElementById('btn-dict-stop');
+  const ta = document.getElementById('note_vocale_transcrite');
+  if (!start || !stop || !ta || !('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec;
+  start.addEventListener('click', function () {
+    rec = new SR();
+    rec.lang = 'fr-FR';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = function (e) {
+      let t = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        t += e.results[i][0].transcript;
+      }
+      if (t) { ta.value = (ta.value ? ta.value + ' ' : '') + t.trim(); }
+    };
+    rec.start();
+    start.disabled = true;
+    stop.disabled = false;
+  });
+  stop.addEventListener('click', function () {
+    if (rec) try { rec.stop(); } catch (e) {}
+    start.disabled = false;
+    stop.disabled = true;
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

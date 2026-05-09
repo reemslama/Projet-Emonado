@@ -41,6 +41,8 @@ class SecurityController extends AbstractController
                 $log->setEntityId($user->getId());
                 $log->setDetails('Connexion admin');
                 $log->setUser($user);
+                $log->assignCreator($user);
+                $log->assignUpdater($user);
                 $log->setIp($request->getClientIp());
                 $em->persist($log);
                 $em->flush();

@@ -25,6 +25,28 @@
     <!-- ICON GRID (JavaFX FlowPane style) -->
     <div class="icons-grid">
 
+        <div class="icon-box" onclick="window.location='{{ path('psychologue_rdv_manage') }}'">
+            <div class="circle pink">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <span>RDV</span>
+        </div>
+
+        <div class="icon-box prep-card" onclick="window.location='{{ path('psychologue_preparation') }}'">
+            <div class="circle sky">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <span class="prep-label-main">Préparation</span>
+            <span class="prep-label-sub">Rendez-vous</span>
+        </div>
+
+        <div class="icon-box dispo-card" onclick="window.location='{{ path('psychologue_disponibilites') }}'">
+            <div class="circle dispo">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+            <span>Disponibilités</span>
+        </div>
+
         <div class="icon-box" onclick="window.location='{{ path('psy_dossiers_list') }}'">
             <div class="circle blue">
                 <i class="fas fa-folder-medical"></i>
@@ -58,7 +80,7 @@
             <span>Profil</span>
         </div>
 
-        <div class="icon-box" onclick="window.location='{{ path('psychologue_stats_rdv') }}'">
+        <div class="icon-box" onclick="window.location='{{ path('app_rendez_vous_stats_mois') }}'">
             <div class="circle green">
                 <i class="fas fa-chart-bar"></i>
             </div>
@@ -223,11 +245,33 @@ body {
 .indigo { background: #e0e7ff; }
 .green { background: #dcfce7; }
 .cyan { background: #ccfbf1; }
+.dispo { background: #dbeafe; color: #1d4ed8; }
+.sky { background: linear-gradient(to bottom right, #e0f2fe, #bae6fd); color: #0c4a6e; }
 
 .icon-box span {
     font-weight: 600;
     text-align: center;
     font-size: 13px;
+}
+
+.icon-box.prep-card .prep-label-main {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f172a;
+}
+.icon-box.prep-card .prep-label-sub {
+    font-weight: 500;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: -4px;
+}
+
+.icon-box.dispo-card {
+    border: 2px solid #dbeafe;
+}
+
+.icon-box.prep-card {
+    border: 2px solid #e0f2fe;
 }
 
 /* ===== BADGE ===== */

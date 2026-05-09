@@ -32,6 +32,7 @@ class LoginAuditSubscriber implements EventSubscriberInterface
         }
 
         $request = $this->requestStack->getCurrentRequest();
+
         $log = new AuditLog();
         $log->setAction('login_success');
         $log->setEntityType('User');
@@ -39,6 +40,9 @@ class LoginAuditSubscriber implements EventSubscriberInterface
         $log->setDetails('Connexion réussie');
         $log->setUser($user);
         $log->setIp($request ? $request->getClientIp() : null);
+        $log->assignCreator($user); // ← fixes created_by_id
+        $log->assignUpdater($user); // ← fixes updated_by_id
+
         $this->em->persist($log);
         $this->em->flush();
     }

@@ -2,7 +2,9 @@
 
 namespace App\EventSubscriber;
 
+use App\Entity\RendezVous;
 use App\Repository\RendezVousRepository;
+use Doctrine\DBAL\Types\Types;
 use CalendarBundle\CalendarEvents;
 use CalendarBundle\Entity\Event;
 use CalendarBundle\Event\CalendarEvent;
@@ -31,13 +33,22 @@ class CalendarSubscriber implements EventSubscriberInterface
         $end = $calendar->getEnd();
         
         // Requête pour récupérer les RDV de la période
+        $startDate = $start instanceof \DateTimeInterface ? \DateTimeImmutable::createFromMutable(\DateTime::createFromInterface($start))->setTime(0, 0, 0) : null;
+        $endDate = $end instanceof \DateTimeInterface ? \DateTimeImmutable::createFromMutable(\DateTime::createFromInterface($end))->setTime(0, 0, 0) : null;
+
         /** @var list<RendezVous> $rdvs */
-        $rdvs = $this->rdvRepository->createQueryBuilder('r')
-            ->where('r.date BETWEEN :start AND :end')
-            ->setParameter('start', $start)
-            ->setParameter('end', $end)
-            ->getQuery()
-            ->getResult();
+        $rdvs = ($startDate && $endDate)
+            ? $this->rdvRepository->createQueryBuilder('r')
+                ->join('r.disponibilite', 'd')
+                ->addSelect('d')
+                ->andWhere('d.date BETWEEN :start AND :end')
+                ->andWhere('r.statut IN (:st)')
+                ->setParameter('start', $startDate, Types::DATE_MUTABLE)
+                ->setParameter('end', $endDate, Types::DATE_MUTABLE)
+                ->setParameter('st', [RendezVous::STATUT_EN_ATTENTE, RendezVous::STATUT_ACCEPTE])
+                ->getQuery()
+                ->getResult()
+            : [];
 
         // Transformer chaque RDV en événement pour le calendrier
         foreach ($rdvs as $rdv) {
