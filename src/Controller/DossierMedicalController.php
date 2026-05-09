@@ -485,4 +485,3 @@ class DossierMedicalController extends AbstractController
 
 
 
-

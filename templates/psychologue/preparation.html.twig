@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Préparation rendez-vous{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="prep-shell container-fluid py-4 px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <a href="{{ path('psychologue_index') }}" class="btn btn-dark rounded-pill px-4"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+        <a href="{{ path('psychologue_preparation', app.request.query.all) }}" class="btn btn-primary rounded-pill px-4">
+            <i class="fas fa-sync-alt me-2"></i>Actualiser
+        </a>
+    </div>
+
+    <header class="mb-4">
+        <h1 class="h3 fw-bold text-dark mb-1">Préparation pour rendez-vous</h1>
+        <p class="text-muted mb-0">Sélectionnez un patient pour afficher les informations du formulaire et la prédiction d’état psychologique.</p>
+    </header>
+
+    {{ include('components/_flash_messages.html.twig') }}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="prep-stat-card">
+                <div class="small text-muted">Rendez-vous suivis</div>
+                <div class="fs-3 fw-bold">{{ stats.followed }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="prep-stat-card border-success border-opacity-25">
+                <div class="small text-muted">Paiements valides</div>
+                <div class="fs-3 fw-bold text-success">{{ stats.paid }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="prep-stat-card border-primary border-opacity-25">
+                <div class="small text-muted">Formulaires reçus</div>
+                <div class="fs-3 fw-bold text-primary">{{ stats.forms }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if rows is empty %}
+        <div class="prep-empty text-center py-5 rounded-4 bg-white shadow-sm">
+            <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+            <p class="mb-0 text-muted">Aucun rendez-vous accepté à préparer pour le moment.</p>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h2 class="h6 fw-bold text-secondary mb-3">Patients et rendez-vous</h2>
+
+                <form method="get" class="prep-filters mb-3">
+                    <label class="small text-muted">Patient</label>
+                    <select name="patient" class="form-select form-select-sm mb-2" onchange="this.form.submit()">
+                        <option value="">Tous les patients</option>
+                        {% for p in patients %}
+                            <option value="{{ p.id }}" {{ patient_filter == p.id ? 'selected' }}>{{ p.prenom }} {{ p.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <label class="small text-muted">Tri</label>
+                    <select name="tri" class="form-select form-select-sm mb-2" onchange="this.form.submit()">
+                        <option value="grave" {{ sort == 'grave' ? 'selected' }}>État le plus grave</option>
+                        <option value="recent" {{ sort == 'recent' ? 'selected' }}>Date la plus récente</option>
+                        <option value="ancien" {{ sort == 'ancien' ? 'selected' }}>Date la plus ancienne</option>
+                    </select>
+                    <label class="small text-muted">Recherche</label>
+                    <input type="search" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="Patient, type ou date…">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary mt-2 w-100">Filtrer</button>
+                </form>
+
+                <div class="d-flex flex-column gap-2 prep-sidebar-list">
+                    {% for row in rows %}
+                        {% set rdv = row.rdv %}
+                        {% set pay = row.payment %}
+                        {% set qform = row.questionnaire %}
+                        {% set pred = row.prediction %}
+                        {% set active = selected and selected.rdv.id == rdv.id %}
+                        {% set qs = { rdv: rdv.id, tri: sort, q: search } %}
+                        {% if patient_filter %}{% set qs = qs|merge({ patient: patient_filter }) %}{% endif %}
+                        <a href="{{ path('psychologue_preparation', qs) }}" class="prep-side-card text-decoration-none {{ active ? 'prep-side-card-active' : '' }}">
+                            <span class="prep-side-accent {% if qform %}prep-acc-blue{% elseif pay and pay.isPaid %}prep-acc-green{% else %}prep-acc-yellow{% endif %}"></span>
+                            <div class="prep-side-body">
+                                <div class="fw-semibold text-dark">{{ rdv.patient ? (rdv.patient.prenom ~ ' ' ~ rdv.patient.nom)|trim : '—' }}</div>
+                                <div class="small text-muted">{{ rdv.type ? rdv.type.libelle : 'Consultation' }} · {{ rdv.date ? rdv.date|date('d/m/Y') : '—' }}</div>
+                                <div class="small mt-2">
+                                    {% if not pay %}
+                                        <span class="text-warning">En attente de fiche paiement</span>
+                                    {% elseif not pay.isPaid %}
+                                        <span class="text-warning">Paiement en attente</span>
+                                    {% elseif not qform %}
+                                        <span class="text-success">Paiement valide, formulaire en attente</span>
+                                    {% else %}
+                                        <span class="text-primary">Prédiction : {{ pred.short_label }} | Score {{ pred.clinical_score }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                {% if selected %}
+                    {% set rdv = selected.rdv %}
+                    {% set pay = selected.payment %}
+                    {% set qform = selected.questionnaire %}
+                    {% set pred = selected.prediction %}
+                    {% set disp = rdv.disponibilite %}
+
+                    <div class="prep-detail-card rounded-4 shadow-sm p-4 mb-4">
+                        <h2 class="h5 fw-bold mb-3">{{ rdv.patient ? (rdv.patient.prenom ~ ' ' ~ rdv.patient.nom)|trim : 'Patient' }}</h2>
+                        <p class="mb-2">
+                            <strong>Rendez-vous :</strong>
+                            {{ rdv.type ? rdv.type.libelle : 'Consultation' }}
+                            le {{ rdv.date ? rdv.date|date('d/m/Y') : '—' }}
+                            à {{ rdv.date ? rdv.date|date('H:i') : '—' }}
+                            {% if disp and disp.heureFin %} — {{ disp.heureFin|date('H:i') }}{% endif %}
+                        </p>
+                        <p class="mb-2">
+                            {% if pay and pay.isPaid %}
+                                <strong>Paiement :</strong> valide · <strong>Montant :</strong> {{ pay.montant|number_format(2, ',', ' ') }} {{ pay.devise }}
+                            {% elseif pay %}
+                                <strong>Paiement :</strong> en attente
+                            {% else %}
+                                <strong>Paiement :</strong> aucune fiche encore (le patient n’a pas ouvert la page de paiement).
+                            {% endif %}
+                        </p>
+                        {% if qform %}
+                            <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i> Formulaire rempli par le patient et prêt pour la préparation du rendez-vous.</p>
+                        {% elseif pay and pay.isPaid %}
+                            <p class="text-muted small mb-0">Formulaire en attente d’envoi par le patient.</p>
+                        {% else %}
+                            <p class="text-muted small mb-0">Le formulaire sera disponible après paiement.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="prep-detail-card rounded-4 shadow-sm p-4 mb-4">
+                        <h3 class="h6 fw-bold mb-3">Prédiction d’état psychologique du patient</h3>
+                        {% if qform %}
+                            <p class="mb-2"><strong>Score clinique :</strong> {{ pred.clinical_score }}</p>
+                            <div class="prep-chart-wrap mb-3" style="max-height: 280px;">
+                                <canvas id="prepChart"></canvas>
+                            </div>
+                            <div class="prep-pred-summary border-start border-4 border-secondary ps-3 py-2 rounded-end bg-light">
+                                {{ pred.summary_html_safe|raw }}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">Les indicateurs graphiques et la synthèse apparaîtront lorsque le questionnaire sera reçu.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if qform %}
+                        <div class="prep-detail-card rounded-4 shadow-sm p-4">
+                            <h3 class="h6 fw-bold mb-3">Données du formulaire</h3>
+                            <p class="small text-muted mb-3">Formulaire envoyé le : {{ qform.submittedAt ? qform.submittedAt|date('d/m/Y H:i') : '—' }}</p>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3 text-muted small">Motif principal</dt>
+                                <dd class="col-sm-9">{{ qform.motifPrincipal|nl2br }}</dd>
+                                <dt class="col-sm-3 text-muted small">Symptômes</dt>
+                                <dd class="col-sm-9">{{ qform.symptomesObserves|nl2br }}</dd>
+                                <dt class="col-sm-3 text-muted small">Auto-évaluation</dt>
+                                <dd class="col-sm-9">
+                                    Stress {{ qform.stress }} · Anxiété {{ qform.anxiete }} · Humeur {{ qform.humeur }} · Sommeil {{ qform.sommeil }}
+                                    · Énergie {{ qform.energie }} · Soutien {{ qform.soutien }} · Urgence {{ qform.urgenceRessentie }}
+                                </dd>
+                                <dt class="col-sm-3 text-muted small">Risque auto-agression</dt>
+                                <dd class="col-sm-9">{{ qform.risqueAutoAgression }}</dd>
+                                <dt class="col-sm-3 text-muted small">Contexte</dt>
+                                <dd class="col-sm-9">{{ qform.contexteComplementaire|default('—')|nl2br }}</dd>
+                                <dt class="col-sm-3 text-muted small">Note vocale</dt>
+                                <dd class="col-sm-9">{{ qform.noteVocaleTranscrite|default('—')|nl2br }}</dd>
+                            </dl>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">Sélectionnez une ligne dans la liste.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.prep-shell { max-width: 1280px; margin: 0 auto; font-family: "Segoe UI", system-ui, sans-serif; }
+.prep-stat-card { background: #fff; border-radius: 16px; padding: 1rem 1.25rem; box-shadow: 0 4px 14px rgba(0,0,0,.06); border: 1px solid rgba(0,0,0,.04); }
+.prep-side-card { display: flex; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.06); color: inherit; transition: transform .12s; }
+.prep-side-card:hover { transform: translateY(-2px); }
+.prep-side-card-active { box-shadow: 0 0 0 2px #38bdf8, 0 8px 20px rgba(56,189,248,.2); background: #f0f9ff; }
+.prep-side-accent { width: 5px; flex-shrink: 0; }
+.prep-acc-green { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.prep-acc-yellow { background: linear-gradient(180deg, #facc15, #eab308); }
+.prep-acc-blue { background: linear-gradient(180deg, #38bdf8, #2563eb); }
+.prep-side-body { padding: 12px 14px; flex: 1; min-width: 0; }
+.prep-detail-card { background: #fff; border: 1px solid rgba(0,0,0,.05); }
+.prep-pred-summary strong { display: block; margin-bottom: .25rem; }
+</style>
+
+{% if chart_payload_json %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const payload = {{ chart_payload_json|raw }};
+  const ctx = document.getElementById('prepChart');
+  if (!ctx || !payload) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: payload.labels,
+      datasets: [{
+        label: 'Score (0–10)',
+        data: payload.values,
+        backgroundColor: payload.colors,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,24 +1,417 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <style>
+        .reservation-shell{
+            background: rgba(255,255,255,.72);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        }
+        .reservation-header{
+            padding: 26px 28px 8px;
+        }
+        .reservation-header h2{ font-weight: 800; margin-bottom: 4px; }
+        .reservation-header .subtitle{ color: #6b7280; }
+        .section-card{
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(0,0,0,.06);
+            border-radius: 16px;
+            padding: 18px;
+        }
+        #patient-map{ height: 260px; border-radius: 14px; overflow: hidden; }
+        .action-btn{
+            border-radius: 14px;
+            font-weight: 700;
+            padding: 10px 14px;
+        }
+        .muted{ color: #6b7280; }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white py-3">
-                <h4 class="mb-0">Nouveau Rendez-vous</h4>
+<div class="reservation-shell">
+    <div class="d-flex justify-content-between align-items-start">
+        <a href="{{ path('patient_index') }}" class="btn btn-sm btn-success mt-3 ms-3 action-btn">Retour</a>
+        <div class="reservation-header flex-grow-1">
+            <h2>Reservation</h2>
+            <div class="subtitle">Choisissez un psychologue, un type de suivi, une date puis un créneau sur le calendrier.</div>
+        </div>
+        <div class="me-3 mt-3 text-end">
+            <div class="small muted">Patient</div>
+            <div class="fw-bold">{{ app.user ? (app.user.nom ~ ' ' ~ app.user.prenom)|trim : '' }}</div>
+        </div>
+    </div>
+
+    <div class="px-3 pb-3">
+        {{ include('components/_flash_messages.html.twig') }}
+
+        <div class="section-card mb-3">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'rdv-form'}}) }}
+            <textarea id="rdv-availability-json" class="d-none" readonly aria-hidden="true">{{ availability_matrix_json|default('{}')|raw }}</textarea>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-7">
+                    {{ form_label(form.psychologue) }}
+                    {{ form_widget(form.psychologue, { id: 'rdv-psy' }) }}
+                </div>
+                <div class="col-lg-5">
+                    {{ form_label(form.type) }}
+                    {{ form_widget(form.type) }}
+                </div>
             </div>
-            <div class="card-body p-4">
-                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    <div class="mb-3">
-                        {{ form_widget(form) }}
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success btn-lg">Enregistrer le RDV</button>
-                        <a href="{{ path('app_rendez_vous_index') }}" class="btn btn-link text-muted">Retour à la liste</a>
-                    </div>
-                {{ form_end(form) }}
+
+            <hr class="my-4">
+
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    {{ form_label(form.jour) }}
+                    {{ form_widget(form.jour, { id: 'rdv-jour', attr: { style: 'display:none;' } }) }}
+                    <select id="rdv-jour-select" class="form-select">
+                        <option value="">Choisir une date disponible</option>
+                    </select>
+                    <div class="small muted mt-1">Seules les dates publiées par le psychologue sont affichées.</div>
+                </div>
+                <div class="col-lg-8">
+                    {{ form_label(form.creneau) }}
+                    {{ form_widget(form.creneau, { id: 'rdv-creneau' }) }}
+                    <select id="rdv-creneau-select" class="form-select" aria-describedby="slots-help">
+                        <option value="">Choisir un créneau</option>
+                    </select>
+                    {{ form_errors(form.creneau) }}
+                    <div class="small muted mt-1" id="slots-help">Choisissez d’abord un psychologue et une date.</div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    {{ form_label(form.notePatient) }}
+                    {{ form_widget(form.notePatient) }}
+                    <div class="small muted mt-2">Assistant IA inactif. Questions IA: aucune.</div>
+                </div>
+                <div class="col-lg-4 d-flex flex-column justify-content-end gap-2">
+                    <button class="btn btn-success action-btn" type="submit">Reserver maintenant</button>
+                    <button class="btn btn-warning action-btn" type="button" id="btn-refresh-slots">Changer le créneau</button>
+                    <a class="btn btn-danger action-btn" href="{{ path('app_rendez_vous_new') }}">Annuler le rendez-vous</a>
+                </div>
+            </div>
+
+            {{ form_widget(form.latitude, { id: 'rdv-lat' }) }}
+            {{ form_widget(form.longitude, { id: 'rdv-lng' }) }}
+
+            {{ form_end(form) }}
+        </div>
+
+        <div class="section-card mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <div class="fw-bold">Localisation du patient sur la carte</div>
+                    <div class="small muted" id="pos-label">Aucune position sélectionnée</div>
+                </div>
+                <button class="btn btn-outline-secondary action-btn" type="button" id="btn-clear-position">Effacer la position</button>
+            </div>
+            <div id="patient-map"></div>
+            <div class="small muted mt-2">Cliquez sur la carte pour définir votre position.</div>
+        </div>
+
+        <div class="section-card">
+            <div class="fw-bold mb-2">Mes demandes de rendez-vous</div>
+            <div class="row g-2 align-items-center mb-3">
+                <div class="col-lg-8">
+                    <input class="form-control" id="demandes-search" placeholder="Rechercher par psychiatre, type, date ou statut">
+                </div>
+                <div class="col-lg-4">
+                    <select class="form-select" id="demandes-statut">
+                        <option value="tous" {{ statut == 'tous' ? 'selected' : '' }}>Tous</option>
+                        <option value="en_attente" {{ statut == 'en_attente' ? 'selected' : '' }}>en attente</option>
+                        <option value="acceptee" {{ statut == 'acceptee' ? 'selected' : '' }}>acceptée</option>
+                        <option value="rejetee" {{ statut == 'rejetee' ? 'selected' : '' }}>refusée</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="demandes-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 28%;">Type</th>
+                            <th style="width: 28%;">Psychiatre</th>
+                            <th style="width: 22%;">Date</th>
+                            <th style="width: 18%;">Horaire</th>
+                            <th style="width: 18%;">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in demandes %}
+                            {% set d = item.rdv %}
+                            {% set decision = item.decision %}
+                            {% set statutPatient = decision == 'accepte' ? 'Acceptée par le psychologue' : (decision == 'rejete' ? 'Refusée par le psychologue' : 'En attente du psychologue') %}
+                            <tr data-search="{{ (d.type ? d.type.libelle : '') ~ ' ' ~ (d.nomPsychologue ?? '') ~ ' ' ~ (d.date ? d.date|date('d/m/Y H:i') : '') ~ ' ' ~ statutPatient ~ ' ' ~ decision }}">
+                                <td>
+                                    <span class="badge" style="background-color: {{ d.type ? d.type.couleur|default('#0d6efd') : '#0d6efd' }}; color: white;">
+                                        {{ d.type ? d.type.libelle : '—' }}
+                                    </span>
+                                </td>
+                                <td>Dr. {{ d.nomPsychologue }}</td>
+                                <td>{{ d.date ? d.date|date('d/m/Y') : '—' }}</td>
+                                <td>{{ d.date ? d.date|date('H:i') : '—' }}</td>
+                                <td>
+                                    {% if decision == 'accepte' %}
+                                        <span class="badge bg-success">Acceptée</span>
+                                    {% elseif decision == 'rejete' %}
+                                        <span class="badge bg-danger">Refusée</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% endif %}
+                                    <div class="small muted mt-1">{{ statutPatient }}</div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    Aucun rendez-vous enregistré pour {{ (app.user.prenom ~ ' ' ~ app.user.nom)|trim }}.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script>
+        (function () {
+            const rdvForm = document.getElementById('rdv-form');
+            const psySelect = document.querySelector('#rdv-psy')
+                || (rdvForm && rdvForm.querySelector('select[name="rendez_vous[psychologue]"]'))
+                || document.querySelector('select[id$="_psychologue"]');
+            const dayInput = document.querySelector('#rdv-jour')
+                || (rdvForm && rdvForm.querySelector('input[name="rendez_vous[jour]"]'));
+            const daySelect = document.getElementById('rdv-jour-select');
+            const creneauHidden = document.getElementById('rdv-creneau')
+                || (rdvForm && rdvForm.querySelector('input[name="rendez_vous[creneau]"]'));
+            const slotSelect = document.getElementById('rdv-creneau-select');
+            const help = document.getElementById('slots-help');
+            const refreshBtn = document.getElementById('btn-refresh-slots');
+            const statutSelect = document.getElementById('demandes-statut');
+            const searchInput = document.getElementById('demandes-search');
+            const demandesTable = document.getElementById('demandes-table');
+            let availableDates = [];
+
+            let availabilityMatrix = {};
+            function loadEmbeddedAvailability() {
+                const ta = document.getElementById('rdv-availability-json');
+                const raw = ta
+                    ? String(ta.value || ta.textContent || '').trim()
+                    : '';
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        availabilityMatrix = Array.isArray(parsed) || parsed === null
+                            ? {}
+                            : (typeof parsed === 'object' ? parsed : {});
+                    } catch (e) {
+                        availabilityMatrix = {};
+                    }
+                }
+            }
+            loadEmbeddedAvailability();
+
+            function setHelp(msg) {
+                if (help) help.textContent = msg;
+            }
+
+            function selectedPsyName() {
+                if (!psySelect) return '';
+                const opt = psySelect.options[psySelect.selectedIndex];
+                return opt ? opt.text.trim() : '';
+            }
+
+            function selectedPsyId() {
+                if (!psySelect) return '';
+                return (psySelect.value || '').trim();
+            }
+
+            function getAvailabilityForPsy(psyId) {
+                if (!psyId) return null;
+                const s = String(psyId).trim();
+                const asNum = String(Number(s));
+                return availabilityMatrix[s] || (asNum !== 'NaN' ? availabilityMatrix[asNum] : null) || null;
+            }
+
+            function loadAvailableDates() {
+                if (!dayInput) {
+                    setHelp('Erreur: champ date introuvable. Rechargez la page.');
+                    return;
+                }
+                if (!psySelect) {
+                    setHelp('Erreur: liste psychologue introuvable. Rechargez la page.');
+                    return;
+                }
+                const psyId = selectedPsyId();
+                availableDates = [];
+                if (!psyId) {
+                    setHelp('Choisissez d’abord un psychologue.');
+                    dayInput.value = '';
+                    if (creneauHidden) creneauHidden.value = '';
+                    if (daySelect) {
+                        daySelect.innerHTML = '<option value="">Choisir une date disponible</option>';
+                    }
+                    if (slotSelect) slotSelect.innerHTML = '<option value="">Choisir un créneau</option>';
+                    return;
+                }
+
+                const pack = getAvailabilityForPsy(psyId);
+                availableDates = pack && Array.isArray(pack.dates) ? pack.dates : [];
+
+                if (daySelect) {
+                    const current = dayInput.value;
+                    const options = ['<option value="">Choisir une date disponible</option>']
+                        .concat(availableDates.map(d => `<option value="${d}">${d.split('-').reverse().join('/')}</option>`));
+                    daySelect.innerHTML = options.join('');
+                    if (current && availableDates.includes(current)) {
+                        daySelect.value = current;
+                    } else {
+                        daySelect.value = '';
+                        dayInput.value = '';
+                    }
+                }
+
+                if (!availableDates.length) {
+                    setHelp('Aucune date disponible pour ce psychologue (vérifiez la table disponibilite).');
+                    if (slotSelect) slotSelect.innerHTML = '<option value="">Choisir un créneau</option>';
+                } else {
+                    setHelp('Choisissez une date disponible, puis un créneau.');
+                }
+            }
+
+            function syncCreneauFromSelect() {
+                if (creneauHidden && slotSelect) {
+                    creneauHidden.value = (slotSelect.value || '').trim();
+                }
+            }
+
+            function loadSlots() {
+                if (!dayInput || !slotSelect || !creneauHidden) return;
+                if (!psySelect) return;
+                const psyId = selectedPsyId();
+                const date = daySelect ? daySelect.value : dayInput.value;
+                if (!psyId || !date) {
+                    setHelp('Choisissez d’abord un psychologue et une date.');
+                    slotSelect.innerHTML = '<option value="">Choisir un créneau</option>';
+                    creneauHidden.value = '';
+                    return;
+                }
+                dayInput.value = date;
+                if (availableDates.length && !availableDates.includes(date)) {
+                    setHelp('Veuillez choisir une date disponible dans le calendrier.');
+                    slotSelect.innerHTML = '<option value="">Choisir un créneau</option>';
+                    creneauHidden.value = '';
+                    return;
+                }
+                const pack = getAvailabilityForPsy(psyId);
+                const slots = pack && pack.slotsByDate && Array.isArray(pack.slotsByDate[date])
+                    ? pack.slotsByDate[date]
+                    : [];
+                const prev = (creneauHidden.value || '').trim();
+                slotSelect.innerHTML = '<option value="">Choisir un créneau</option>' + slots.map(s => `<option value="${s}">${s}</option>`).join('');
+                if (prev && slots.includes(prev)) {
+                    slotSelect.value = prev;
+                } else {
+                    slotSelect.value = '';
+                    creneauHidden.value = '';
+                }
+                syncCreneauFromSelect();
+                setHelp(slots.length ? 'Sélectionnez un créneau disponible.' : 'Aucun créneau disponible pour cette date.');
+            }
+
+            if (psySelect) {
+                psySelect.addEventListener('change', () => {
+                    loadAvailableDates();
+                    loadSlots();
+                });
+            }
+            if (daySelect) daySelect.addEventListener('change', loadSlots);
+            if (slotSelect) slotSelect.addEventListener('change', syncCreneauFromSelect);
+            if (refreshBtn) refreshBtn.addEventListener('click', loadSlots);
+            if (rdvForm) rdvForm.addEventListener('submit', syncCreneauFromSelect);
+
+            // Filtre demandes
+            function applyDemandesFilter() {
+                if (!demandesTable) return;
+                const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+                const rows = demandesTable.querySelectorAll('tbody tr');
+                rows.forEach(tr => {
+                    const hay = (tr.getAttribute('data-search') || '').toLowerCase();
+                    if (!q) {
+                        tr.style.display = '';
+                        return;
+                    }
+                    tr.style.display = hay.includes(q) ? '' : 'none';
+                });
+            }
+            if (searchInput) searchInput.addEventListener('input', applyDemandesFilter);
+
+            if (statutSelect) {
+                statutSelect.addEventListener('change', () => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('statut', statutSelect.value);
+                    window.location.href = url.toString();
+                });
+            }
+
+            // Carte Leaflet
+            const latInput = document.getElementById('rdv-lat');
+            const lngInput = document.getElementById('rdv-lng');
+            const posLabel = document.getElementById('pos-label');
+            const clearPosBtn = document.getElementById('btn-clear-position');
+            const mapEl = document.getElementById('patient-map');
+
+            if (mapEl && window.L) {
+                const map = L.map('patient-map', { scrollWheelZoom: true }).setView([36.8065, 10.1815], 6);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                let marker = null;
+
+                function setPos(lat, lng) {
+                    if (marker) marker.remove();
+                    marker = L.marker([lat, lng]).addTo(map);
+                    if (latInput) latInput.value = String(lat);
+                    if (lngInput) lngInput.value = String(lng);
+                    if (posLabel) posLabel.textContent = `Position sélectionnée: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                }
+
+                map.on('click', (e) => setPos(e.latlng.lat, e.latlng.lng));
+
+                if (clearPosBtn) {
+                    clearPosBtn.addEventListener('click', () => {
+                        if (marker) marker.remove();
+                        marker = null;
+                        if (latInput) latInput.value = '';
+                        if (lngInput) lngInput.value = '';
+                        if (posLabel) posLabel.textContent = 'Aucune position sélectionnée';
+                    });
+                }
+            }
+
+            // Init dates + slots (données injectées par le serveur, pas d’appel fetch)
+            loadAvailableDates();
+            loadSlots();
+        })();
+    </script>
 {% endblock %}

@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Repository\JournalRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
 
 class PsychologueController extends AbstractController
 {
@@ -25,7 +29,7 @@ class PsychologueController extends AbstractController
         $patients = $em->getRepository(User::class)
             ->createQueryBuilder('u')
             ->where('u.roles LIKE :role')
-            ->setParameter('role', '%ROLE_PATIENT%')
+            ->setParameter('role', '%"ROLE_PATIENT"%')
             ->orderBy('u.nom', 'ASC')
             ->addOrderBy('u.prenom', 'ASC')
             ->getQuery()

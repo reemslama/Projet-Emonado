@@ -41,15 +41,19 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         $user = $token->getUser();
 
-        if (in_array('ROLE_PATIENT', $user->getRoles())) {
+        $roles = method_exists($user, 'getRoles') ? $user->getRoles() : [];
+
+        if (in_array('ROLE_PATIENT', $roles, true)) {
             return new RedirectResponse($this->urlGenerator->generate('patient_index'));
         }
 
-        if (in_array('ROLE_PSYCHOLOGUE', $user->getRoles())) {
+        // Certains comptes psy utilisent ROLE_PSY. On supporte les deux.
+        if (in_array('ROLE_PSYCHOLOGUE', $roles, true) || in_array('ROLE_PSY', $roles, true)) {
+            // Interface principale psychologue (dashboard)
             return new RedirectResponse($this->urlGenerator->generate('psychologue_index'));
         }
 
-        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+        if (in_array('ROLE_ADMIN', $roles, true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
 

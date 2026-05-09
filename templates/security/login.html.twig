@@ -28,10 +28,11 @@
         <form method="post" class="login-form">
 
             <div class="options">
-                <button type="submit" name="role" value="patient" class="option">Patient</button>
-                <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
-                <button type="submit" name="role" value="admin" class="option">Admin</button>
+                <button type="button" data-role="patient" class="option">Patient</button>
+                <button type="button" data-role="psychologue" class="option">Psychologue</button>
+                <button type="button" data-role="admin" class="option">Admin</button>
             </div>
+            <input type="hidden" name="role" id="selected_role" value="">
 
             <div class="mb-3">
                 <input type="email"
@@ -229,5 +230,32 @@ body {
         width: 100%;
     }
 }
+</style>
+
+<script>
+  (function () {
+    const roleInput = document.getElementById('selected_role');
+    const buttons = document.querySelectorAll('.options .option[data-role]');
+
+    function setActive(btn) {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-role') || '';
+        if (roleInput) roleInput.value = role;
+        setActive(btn);
+      });
+    });
+  })();
+</script>
+
+<style>
+  .option.active {
+    background-color: #c5df43;
+    color: white;
+  }
 </style>
 {% endblock %}

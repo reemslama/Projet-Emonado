@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rendez-vous du psychologue{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <a href="{{ path('psychologue_index') }}" class="btn btn-success btn-sm" style="border-radius: 14px;">Retour</a>
+        <div class="text-end small text-muted">Gestion des validations</div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 18px;">
+        <div class="card-body">
+            <h4 class="mb-1">Rendez-vous du psychologue</h4>
+            <div class="text-muted mb-3">Consultez les rendez-vous en attente et acceptés, puis traitez les demandes en attente.</div>
+
+            {{ include('components/_flash_messages.html.twig') }}
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <form method="post" id="form-accept" action="" class="d-inline">
+                    <input type="hidden" name="_token" id="token-decision" value="">
+                    <input type="hidden" name="action" value="accept">
+                    <button type="submit" class="btn btn-success" style="border-radius: 14px;" disabled id="btn-accept">Accepter</button>
+                </form>
+                <form method="post" id="form-reject" action="" class="d-inline">
+                    <input type="hidden" name="_token" id="token-decision-2" value="">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn btn-danger" style="border-radius: 14px;" disabled id="btn-reject">Rejeter</button>
+                </form>
+                <form method="post" id="form-note" action="" class="d-inline">
+                    <input type="hidden" name="_token" id="token-note" value="">
+                    <input type="hidden" name="psy_note" id="psy-note-hidden" value="">
+                    <button type="submit" class="btn btn-primary" style="border-radius: 14px;" disabled id="btn-save-note">Enregistrer la note</button>
+                </form>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Note du patient</label>
+                <textarea class="form-control" rows="3" readonly id="note-patient" placeholder="Sélectionnez un rendez-vous dans la table ci-dessous."></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Note du psychologue</label>
+                <textarea class="form-control" rows="3" id="note-psy" placeholder="Ajoutez ici une note claire pour chaque rendez-vous accepté."></textarea>
+            </div>
+
+            <div class="alert alert-success mb-3" style="border-radius: 16px;">
+                <div class="fw-semibold">Paiement et pré-évaluation clinique</div>
+                <div class="small text-muted">Paiement: aucun rendez-vous sélectionné</div>
+                <div class="small text-muted">Montant: -</div>
+                <div class="small text-muted">Score clinique: -</div>
+                <div class="small text-muted">Le formulaire patient apparaîtra ici après paiement.</div>
+            </div>
+
+            <div class="row g-2 align-items-center mb-2">
+                <div class="col-md-9">
+                    <input class="form-control" id="search" placeholder="Rechercher par nom, type, date ou statut">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filter-status">
+                        <option value="tous">Tous</option>
+                        <option value="en_attente">en attente</option>
+                        <option value="accepte">acceptée</option>
+                        <option value="rejete">rejetée</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="rdv-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prenom</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Horaire</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rows %}
+                            {% set dateStr = r.date ? r.date|date('d/m/Y') : '' %}
+                            {% set timeStr = r.date ? r.date|date('H:i') : '' %}
+                            <tr
+                                data-row-selectable="1"
+                                data-id="{{ r.id }}"
+                                data-token-decision="{{ csrf_token('rdv_decision_' ~ r.id) }}"
+                                data-token-note="{{ csrf_token('rdv_note_' ~ r.id) }}"
+                                data-patient-note="{{ (r.patient_note ?? '')|e('html_attr') }}"
+                                data-psy-note="{{ (r.psy_note ?? '')|e('html_attr') }}"
+                                data-statut="{{ r.statut }}"
+                                data-search="{{ (r.nom ?? '') ~ ' ' ~ (r.prenom ?? '') ~ ' ' ~ (r.type ?? '') ~ ' ' ~ dateStr ~ ' ' ~ timeStr ~ ' ' ~ r.statut }}"
+                                style="cursor:pointer;"
+                            >
+                                <td>{{ r.nom ?? '—' }}</td>
+                                <td>{{ r.prenom ?? '—' }}</td>
+                                <td>{{ r.type ?? '—' }}</td>
+                                <td>{{ dateStr ?: '—' }}</td>
+                                <td>{{ timeStr ?: '—' }}</td>
+                                <td>
+                                    {% if r.statut == 'accepte' %}
+                                        <span class="badge bg-success">acceptée</span>
+                                    {% elseif r.statut == 'rejete' %}
+                                        <span class="badge bg-danger">rejetée</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">en attente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Aucun contenu dans la table</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% set _rdv_placeholder = 987654321 %}
+<script>
+(() => {
+  const RDV_DECISION_TMPL = {{ path('psychologue_rdv_decision', { id: _rdv_placeholder })|json_encode|raw }};
+  const RDV_NOTE_TMPL = {{ path('psychologue_rdv_note', { id: _rdv_placeholder })|json_encode|raw }};
+  const RDV_TMPL_MARKER = '{{ _rdv_placeholder }}';
+
+  const table = document.getElementById('rdv-table');
+  const notePatient = document.getElementById('note-patient');
+  const notePsy = document.getElementById('note-psy');
+  const btnAccept = document.getElementById('btn-accept');
+  const btnReject = document.getElementById('btn-reject');
+  const btnSave = document.getElementById('btn-save-note');
+  const formAccept = document.getElementById('form-accept');
+  const formReject = document.getElementById('form-reject');
+  const formNote = document.getElementById('form-note');
+  const tokenDecision = document.getElementById('token-decision');
+  const tokenDecision2 = document.getElementById('token-decision-2');
+  const tokenNote = document.getElementById('token-note');
+  const hiddenPsyNote = document.getElementById('psy-note-hidden');
+  const search = document.getElementById('search');
+  const filterStatus = document.getElementById('filter-status');
+
+  let selectedId = null;
+
+  function setSelectedRow(tr) {
+    if (!tr) return;
+    table.querySelectorAll('tbody tr').forEach(r => r.classList.remove('table-active'));
+    tr.classList.add('table-active');
+    selectedId = tr.getAttribute('data-id');
+    notePatient.value = tr.getAttribute('data-patient-note') || '';
+    notePsy.value = tr.getAttribute('data-psy-note') || '';
+
+    const pending = ((tr.getAttribute('data-statut') || '') === 'en_attente');
+
+    const decisionUrl = RDV_DECISION_TMPL.split(RDV_TMPL_MARKER).join(String(selectedId));
+    const noteUrl = RDV_NOTE_TMPL.split(RDV_TMPL_MARKER).join(String(selectedId));
+    formAccept.action = decisionUrl;
+    formReject.action = decisionUrl;
+    formNote.action = noteUrl;
+
+    tokenDecision.value = tr.getAttribute('data-token-decision') || '';
+    tokenDecision2.value = tr.getAttribute('data-token-decision') || '';
+    tokenNote.value = tr.getAttribute('data-token-note') || '';
+
+    btnAccept.disabled = !pending;
+    btnReject.disabled = !pending;
+    btnSave.disabled = false;
+  }
+
+  if (table) {
+    table.addEventListener('click', (e) => {
+      const tr = e.target.closest('tbody tr[data-row-selectable]');
+      if (tr) setSelectedRow(tr);
+    });
+  }
+
+  if (notePsy) {
+    notePsy.addEventListener('input', () => {
+      hiddenPsyNote.value = notePsy.value;
+    });
+  }
+
+  function applyFilter() {
+    const q = (search.value || '').toLowerCase().trim();
+    const st = (filterStatus.value || 'tous').toLowerCase();
+    table.querySelectorAll('tbody tr[data-row-selectable]').forEach(tr => {
+      const hay = (tr.getAttribute('data-search') || '').toLowerCase();
+      const status = (tr.getAttribute('data-statut') || '').toLowerCase();
+      const okQ = !q || hay.includes(q);
+      const okS = st === 'tous' || status === st;
+      tr.style.display = (okQ && okS) ? '' : 'none';
+    });
+  }
+
+  if (search) search.addEventListener('input', applyFilter);
+  if (filterStatus) filterStatus.addEventListener('change', applyFilter);
+
+  // init hidden note
+  hiddenPsyNote.value = notePsy.value;
+})();
+</script>
+{% endblock %}
+

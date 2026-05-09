@@ -2,7 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\RendezVous;
 use App\Repository\RendezVousRepository;
+use Doctrine\DBAL\Types\Types;
 use App\Service\MailjetSmsService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -31,14 +33,15 @@ class SendRappelsSmsCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('📱 Envoi des rappels SMS (Mailjet)');
 
-        $demain = new \DateTime('+1 day');
-        $debut = (clone $demain)->setTime(0, 0, 0);
-        $fin   = (clone $demain)->setTime(23, 59, 59);
+        $demain = new \DateTimeImmutable('tomorrow');
 
         $rdvs = $this->rdvRepo->createQueryBuilder('r')
-            ->where('r.date BETWEEN :debut AND :fin')
-            ->setParameter('debut', $debut)
-            ->setParameter('fin', $fin)
+            ->join('r.disponibilite', 'd')
+            ->addSelect('d')
+            ->andWhere('d.date = :demain')
+            ->andWhere('r.statut = :st')
+            ->setParameter('demain', $demain, Types::DATE_MUTABLE)
+            ->setParameter('st', RendezVous::STATUT_ACCEPTE)
             ->getQuery()
             ->getResult();
 
@@ -55,12 +58,14 @@ class SendRappelsSmsCommand extends Command
         foreach ($rdvs as $rdv) {
             $patient = $rdv->getPatient();
 
+            $rdvDate = $rdv->getDate();
             if (!$patient || !$patient->getTelephone()) {
-                $io->warning("⚠️ Patient sans téléphone (RDV {$rdv->getDate()->format('d/m/Y')})");
+                $label = $rdvDate ? $rdvDate->format('d/m/Y') : '?';
+                $io->warning("⚠️ Patient sans téléphone (RDV {$label})");
                 continue;
             }
 
-            $dateFormatee = $rdv->getDate()->format('d/m/Y à H\hi');
+            $dateFormatee = $rdvDate ? $rdvDate->format('d/m/Y à H\hi') : '';
             
             if ($this->smsService->sendRappelRdv(
                 $patient->getTelephone(),

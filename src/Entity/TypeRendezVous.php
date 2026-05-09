@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TypeRendezVousRepository::class)]
-#[ORM\Table(name: 'appointment_type')]
+#[ORM\Table(name: 'type_rendez_vous')]
 class TypeRendezVous
 {
     #[ORM\Id]
@@ -20,15 +20,16 @@ class TypeRendezVous
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libelle = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    /** Non présent dans la table SQL `type_rendez_vous` : valeur uniquement en mémoire (UI / défauts). */
+    #[ORM\Transient]
     #[Assert\Length(
         max: 500,
         maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
     )]
     private ?string $description = null;
 
-    // ✅ AJOUT : Champ couleur pour le calendrier
-    #[ORM\Column(length: 7, nullable: true)]
+    /** Non présent dans la table SQL : couleur par défaut pour calendrier / badges. */
+    #[ORM\Transient]
     private ?string $couleur = '#0d6efd';
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: RendezVous::class)]
