@@ -1,0 +1,76 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}CRUD Enfant - Scènes{% endblock %}
+
+{% block header %}Gestion des Scènes (Espace Enfant){% endblock %}
+
+{% block body %}
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Liste des Scènes</h5>
+            <a href="{{ path('admin_test_psy_scene_new') }}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-circle me-2"></i> Nouvelle Scène
+            </a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>N°</th>
+                        <th>Type</th>
+                        <th>Titre</th>
+                        <th>Image</th>
+                        <th>Actif</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for scene in scenes %}
+                    <tr>
+                        <td class="fw-bold">#{{ scene.numero }}</td>
+                        <td><span class="badge bg-info text-dark">{{ scene.type }}</span></td>
+                        <td>{{ scene.titre }}</td>
+                        <td>
+                            {% if scene.imagePath %}
+                                <span class="badge bg-light text-dark"><i class="bi bi-image me-1"></i> {{ scene.imagePath }}</span>
+                            {% else %}
+                                <span class="text-muted small">Aucune</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if scene.actif %}
+                                <span class="badge bg-success">Oui</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Non</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ path('admin_test_psy_scene_edit', {'id': scene.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="{{ path('admin_test_psy_scene_delete', {'id': scene.id}) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette scène ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ scene.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">Aucune scène trouvée.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

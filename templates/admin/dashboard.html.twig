@@ -1,0 +1,95 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block header %}Tableau de Bord{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row g-4 mb-5">
+        <!-- Carte Patients -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
+                <div class="card-body">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-inline-block mb-3">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Patients</h5>
+                    <h2 class="fw-bold text-primary">{{ stats.nb_patients }}</h2>
+                    <a href="{{ path('admin_patients') }}" class="btn btn-outline-primary rounded-pill btn-sm mt-2">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Psychologues -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
+                <div class="card-body">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 d-inline-block mb-3">
+                        <i class="bi bi-person-badge-fill fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Psychologues</h5>
+                    <h2 class="fw-bold text-success">{{ stats.nb_psychologues }}</h2>
+                    <a href="{{ path('admin_psychologues') }}" class="btn btn-outline-success rounded-pill btn-sm mt-2">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Dossiers Actifs -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
+                <div class="card-body">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-inline-block mb-3">
+                        <i class="bi bi-folder-fill fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Dossiers</h5>
+                    <h2 class="fw-bold text-warning">{{ stats.dossiers_actifs }}</h2>
+                    <p class="text-muted small">Dossiers médicaux actifs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Consultations -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
+                <div class="card-body">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-inline-block mb-3">
+                        <i class="bi bi-calendar-check-fill fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Consultations</h5>
+                    <h2 class="fw-bold text-info">{{ stats.consultations_semaine }}</h2>
+                    <p class="text-muted small">Cette semaine</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Actions Rapides</h5>
+                <div class="d-grid gap-3">
+                    <a href="{{ path('admin_user_add') }}" class="btn btn-light border rounded-3 p-3 text-start">
+                        <i class="bi bi-person-plus text-primary me-2"></i> Ajouter un nouvel utilisateur
+                    </a>
+                    <a href="{{ path('app_question_new') }}" class="btn btn-light border rounded-3 p-3 text-start">
+                        <i class="bi bi-patch-question text-success me-2"></i> Créer une nouvelle question
+                    </a>
+                    <a href="{{ path('admin_test_psy_scene_new') }}" class="btn btn-light border rounded-3 p-3 text-start">
+                        <i class="bi bi-controller text-warning me-2"></i> Ajouter une scène Espace Enfant
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Audit & Sécurité</h5>
+                <p class="text-muted small">Surveillez l'activité récente de la plateforme.</p>
+                <a href="{{ path('admin_logs') }}" class="btn btn-outline-secondary rounded-pill">
+                    <i class="bi bi-shield-check me-2"></i> Voir les logs de connexion
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

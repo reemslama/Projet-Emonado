@@ -44,6 +44,11 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $roles = method_exists($user, 'getRoles') ? $user->getRoles() : [];
 
         if (in_array('ROLE_PATIENT', $roles, true)) {
+            // Si le patient a déclaré avoir un ou plusieurs enfants → Espace Enfant
+            if (method_exists($user, 'isHasChild') && $user->isHasChild()) {
+                return new RedirectResponse($this->urlGenerator->generate('app_espace_enfant'));
+            }
+            // Sinon → espace patient normal
             return new RedirectResponse($this->urlGenerator->generate('patient_index'));
         }
 

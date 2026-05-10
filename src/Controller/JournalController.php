@@ -20,22 +20,25 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/journal')]
 class JournalController extends AbstractController
 {
-    private function assertPatientArea(): void
+    private function assertPatientArea(): ?Response
     {
         if (
             $this->isGranted('ROLE_ADMIN')
             || $this->isGranted('ROLE_PSYCHOLOGUE')
             || $this->isGranted('ROLE_PSY')
         ) {
-            throw $this->createAccessDeniedException('Espace patient uniquement.');
+            return $this->redirectToRoute('psychologue_journals');
         }
+        return null;
     }
 
     #[Route('/', name: 'app_journal_index', methods: ['GET'])]
     public function index(Request $request, JournalRepository $journalRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $this->assertPatientArea();
+        if ($redirect = $this->assertPatientArea()) {
+            return $redirect;
+        }
 
         $keyword = (string) $request->query->get('q', '');
         $sort = (string) $request->query->get('sort', 'recent');
@@ -68,7 +71,9 @@ class JournalController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $this->assertPatientArea();
+        if ($redirect = $this->assertPatientArea()) {
+            return $redirect;
+        }
 
         $journal = $journalRepository->find($id);
         if (!$journal) {
@@ -105,7 +110,9 @@ class JournalController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
-        $this->assertPatientArea();
+        if ($redirect = $this->assertPatientArea()) {
+            return $redirect;
+        }
 
         $journal = $journalRepository->find($id);
         if (!$journal) {

@@ -1,0 +1,55 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Nouvelle Scène Enfant{% endblock %}
+
+{% block header %}Ajouter une Scène{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-primary text-white p-4 rounded-top-4">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Informations de la Scène</h5>
+            </div>
+            <div class="card-body p-4">
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.numero) }}
+                        {{ form_widget(form.numero) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.type) }}
+                        {{ form_widget(form.type) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.titre) }}
+                        {{ form_widget(form.titre) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.imagePath) }}
+                        {{ form_widget(form.imagePath) }}
+                        <small class="text-muted">Nom du fichier dans le dossier assets/images.</small>
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.descriptionPsy) }}
+                        {{ form_widget(form.descriptionPsy) }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form_widget(form.actif) }}
+                        {{ form_label(form.actif) }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('admin_test_psy_scene_index') }}" class="btn btn-secondary rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-2"></i> Retour
+                        </a>
+                        <button class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-check-lg me-2"></i> Créer la scène
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

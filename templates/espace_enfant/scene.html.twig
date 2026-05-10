@@ -1,0 +1,356 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Aventure {{ scene.numero }} - EmoNado{% endblock %}
+
+{% block body %}
+<div class="scene-page py-4">
+    <div class="container">
+        <div class="progress mb-5 rounded-pill shadow-sm" style="height: 15px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                 role="progressbar" 
+                 style="width: {{ min(scene.numero * 10, 100) }}%">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="scene-card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
+                    <div class="row g-0">
+                        {% if scene.imagePath and scene.imagePath != '' %}
+                            <div class="col-md-6 position-relative">
+                                <img src="{{ asset(scene.imagePath) }}" class="img-fluid h-100 w-100 object-fit-cover" alt="{{ scene.titre }}" onerror="this.src='https://placehold.co/800x600?text=Illustration+Scene+'+{{ scene.numero }}">
+                                <div class="scene-number-badge position-absolute top-0 start-0 m-4">
+                                    <span class="badge rounded-pill bg-primary fs-5 px-4 py-2 shadow">Étape {{ scene.numero }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="{{ (scene.imagePath and scene.imagePath != '') ? 'col-md-6' : 'col-md-12' }} p-5 d-flex flex-column justify-content-center">
+                            {% if not (scene.imagePath and scene.imagePath != '') %}
+                                <div class="text-center mb-4">
+                                    <span class="badge rounded-pill bg-primary fs-5 px-4 py-2 shadow">Étape {{ scene.numero }}</span>
+                                </div>
+                            {% endif %}
+                            <h2 class="display-5 fw-bold text-dark mb-4 text-center">{{ scene.titre }}</h2>
+                            <p class="lead text-muted mb-5">{{ scene.descriptionPsy }}</p>
+
+                            {% if scene.soundPath %}
+                                <div class="audio-hint mb-4 p-3 rounded-4 bg-light d-flex align-items-center">
+                                    <i class="fas fa-volume-up text-primary me-3 fa-lg"></i>
+                                    <audio controls class="flex-grow-1">
+                                        <source src="{{ asset('uploads/sounds/' ~ scene.soundPath) }}" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                            {% endif %}
+
+                            <div class="game-container">
+                                {% if scene.type == 'MATCHING' %}
+                                    <div class="matching-grid row g-3">
+                                        {# Les paires sont générées en JS pour plus de flexibilité #}
+                                        <div id="matching-game" class="d-flex flex-wrap justify-content-center gap-3"></div>
+                                    </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            const rawResponses = [
+                                                {% for reponse in scene.reponses %}
+                                                    {
+                                                        id: {{ reponse.id }},
+                                                        label: "{{ reponse.label }}",
+                                                        image: "{{ reponse.imagePath ?: '' }}",
+                                                        emoji: "{{ reponse.emoji ?: '⭐' }}"
+                                                    },
+                                                {% endfor %}
+                                            ];
+                                            
+                                            // Filtrer pour n'avoir que 3 éléments uniques (pour faire 3 paires = 6 cartes)
+                                            const uniqueResponses = [];
+                                            const seen = new Set();
+                                            for (const r of rawResponses) {
+                                                const key = r.image || r.label;
+                                                if (!seen.has(key)) {
+                                                    seen.add(key);
+                                                    uniqueResponses.push(r);
+                                                }
+                                                if (uniqueResponses.length === 3) break;
+                                            }
+
+                                            // On double pour faire des paires (6 cartes au total)
+                                            let cards = [...uniqueResponses, ...uniqueResponses];
+                                            cards.sort(() => Math.random() - 0.5);
+
+                                            const container = document.getElementById('matching-game');
+                                            let flippedCards = [];
+                                            let matchedCount = 0;
+                                            let isPreviewing = true;
+
+                                            cards.forEach((cardData, index) => {
+                                                const card = document.createElement('div');
+                                                card.className = 'matching-card shadow-sm rounded-4 d-flex align-items-center justify-content-center bg-white flipped';
+                                                card.style.width = '140px';
+                                                card.style.height = '180px';
+                                                card.style.cursor = 'wait';
+                                                card.style.border = '3px solid #e2e8f0';
+                                                
+                                                let imageSrc = cardData.image;
+                                                if (imageSrc && imageSrc.startsWith('/')) {
+                                                    imageSrc = imageSrc.substring(1);
+                                                }
+
+                                                // Affichage initial (Preview)
+                                                card.innerHTML = cardData.image 
+                                                    ? `<img src="{{ asset('') }}${imageSrc}" style="width: 100px; height: 100px; object-fit: cover;" class="rounded-3">`
+                                                    : `<span class="fs-1">${cardData.emoji}</span>`;
+                                                
+                                                card.onclick = function() {
+                                                    if (isPreviewing) return;
+                                                    if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                                                        card.classList.add('flipped');
+                                                        card.innerHTML = cardData.image 
+                                                            ? `<img src="{{ asset('') }}${imageSrc}" style="width: 100px; height: 100px; object-fit: cover;" class="rounded-3">`
+                                                            : `<span class="fs-1">${cardData.emoji}</span>`;
+                                                        
+                                                        card.style.backgroundColor = 'white';
+                                                        card.style.border = '3px solid #0d6efd';
+                                                        
+                                                        flippedCards.push({el: card, data: cardData});
+
+                                                        if (flippedCards.length === 2) {
+                                                            if (flippedCards[0].data.image === flippedCards[1].data.image && flippedCards[0].data.label === flippedCards[1].data.label) {
+                                                                flippedCards.forEach(c => {
+                                                                    c.el.classList.add('matched');
+                                                                    c.el.style.border = '3px solid #198754';
+                                                                    c.el.style.backgroundColor = '#f0fdf4';
+                                                                });
+                                                                flippedCards = [];
+                                                                matchedCount++;
+                                                                if (matchedCount === uniqueResponses.length) {
+                                                                    setTimeout(() => {
+                                                                        window.location.href = "{{ path('app_espace_enfant_answer', {sceneId: scene.id, reponseId: scene.reponses[0].id}) }}";
+                                                                    }, 1000);
+                                                                }
+                                                            } else {
+                                                                setTimeout(() => {
+                                                                    flippedCards.forEach(c => {
+                                                                        c.el.classList.remove('flipped');
+                                                                        c.el.innerHTML = '<span class="fs-1 text-muted opacity-25">?</span>';
+                                                                        c.el.style.backgroundColor = '';
+                                                                        c.el.style.border = '';
+                                                                    });
+                                                                    flippedCards = [];
+                                                                }, 1000);
+                                                            }
+                                                        }
+                                                    }
+                                                };
+                                                container.appendChild(card);
+                                            });
+
+                                            // Après 2 secondes, on cache tout
+                                            setTimeout(() => {
+                                                document.querySelectorAll('.matching-card').forEach(card => {
+                                                    card.classList.remove('flipped');
+                                                    card.innerHTML = '<span class="fs-1 text-muted opacity-25">?</span>';
+                                                    card.style.backgroundColor = '#f8fafc';
+                                                    card.style.cursor = 'pointer';
+                                                    card.style.border = '';
+                                                });
+                                                isPreviewing = false;
+                                            }, 2000);
+                                        });
+                                    </script>
+                                {% elseif scene.type == 'PUZZLE' %}
+                                    <div class="puzzle-wrapper text-center">
+                                        <div class="row justify-content-center mb-4">
+                                            <div class="col-md-8">
+                                                <div id="puzzle-grid" class="d-flex flex-wrap justify-content-center gap-2 bg-light p-3 rounded-4 shadow-inner" style="width: 420px; margin: 0 auto;">
+                                                    {# Les pièces du puzzle (2x2) #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-4"><i class="fas fa-info-circle me-2"></i> Clique sur deux images pour les échanger !</p>
+                                        <div id="puzzle-success" class="d-none animate__animated animate__bounceIn">
+                                            <div class="alert alert-success rounded-pill fw-bold">
+                                                🎉 Super ! Tu as réussi le puzzle !
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            const puzzleImg = "{{ asset(scene.imagePath) }}";
+                                            const grid = document.getElementById('puzzle-grid');
+                                            
+                                            // État initial mélangé
+                                            let pieces = [0, 1, 2, 3];
+                                            pieces.sort(() => Math.random() - 0.5);
+                                            
+                                            let selectedPiece = null;
+
+                                            function renderPuzzle() {
+                                                grid.innerHTML = '';
+                                                pieces.forEach((pieceIdx, currentIdx) => {
+                                                    const piece = document.createElement('div');
+                                                    piece.className = 'puzzle-piece rounded-3 shadow-sm';
+                                                    piece.style.width = '190px';
+                                                    piece.style.height = '190px';
+                                                    piece.style.cursor = 'pointer';
+                                                    piece.style.backgroundImage = `url(${puzzleImg})`;
+                                                    piece.style.backgroundSize = '380px 380px';
+                                                    
+                                                    // Calculer la position du background pour cette pièce
+                                                    const row = Math.floor(pieceIdx / 2);
+                                                    const col = pieceIdx % 2;
+                                                    piece.style.backgroundPosition = `${-col * 190}px ${-row * 190}px`;
+                                                    
+                                                    if (selectedPiece === currentIdx) {
+                                                        piece.style.border = '5px solid #0d6efd';
+                                                        piece.style.transform = 'scale(0.95)';
+                                                    } else {
+                                                        piece.style.border = '3px solid white';
+                                                    }
+
+                                                    piece.onclick = () => {
+                                                        if (selectedPiece === null) {
+                                                            selectedPiece = currentIdx;
+                                                            renderPuzzle();
+                                                        } else {
+                                                            if (selectedPiece !== currentIdx) {
+                                                                // Échanger
+                                                                const temp = pieces[selectedPiece];
+                                                                pieces[selectedPiece] = pieces[currentIdx];
+                                                                pieces[currentIdx] = temp;
+                                                            }
+                                                            selectedPiece = null;
+                                                            renderPuzzle();
+                                                            checkPuzzleWin();
+                                                        }
+                                                    };
+                                                    grid.appendChild(piece);
+                                                });
+                                            }
+
+                                            function checkPuzzleWin() {
+                                                const isWin = pieces.every((val, index) => val === index);
+                                                if (isWin) {
+                                                    document.getElementById('puzzle-success').classList.remove('d-none');
+                                                    setTimeout(() => {
+                                                        window.location.href = "{{ path('app_espace_enfant_answer', {sceneId: scene.id, reponseId: scene.reponses[0].id}) }}";
+                                                    }, 1500);
+                                                }
+                                            }
+
+                                            renderPuzzle();
+                                        });
+                                    </script>
+                                {% elseif scene.type == 'EMOTION' %}
+                                    <div class="emotion-grid d-flex flex-wrap justify-content-center gap-4">
+                                        {% for reponse in scene.reponses %}
+                                            <a href="{{ path('app_espace_enfant_answer', {sceneId: scene.id, reponseId: reponse.id}) }}" 
+                                               class="emotion-option text-decoration-none text-center p-4 rounded-5 bg-light shadow-sm"
+                                               style="width: 180px; transition: all 0.3s ease;">
+                                                <div class="display-1 mb-3">{{ reponse.emoji ?: '😐' }}</div>
+                                                <div class="fw-bold fs-4 text-dark">{{ reponse.label }}</div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                    <style>
+                                        .emotion-option:hover {
+                                            transform: translateY(-10px);
+                                            background-color: #eff6ff !important;
+                                            box-shadow: 0 15px 30px rgba(13, 110, 253, 0.1) !important;
+                                        }
+                                    </style>
+                                {% elseif scene.type == 'COLOR' %}
+                                    <div class="color-grid d-flex flex-wrap justify-content-center gap-4">
+                                        {% for reponse in scene.reponses %}
+                                            <a href="{{ path('app_espace_enfant_answer', {sceneId: scene.id, reponseId: reponse.id}) }}" 
+                                               class="color-option text-decoration-none text-center">
+                                                <div class="color-circle shadow-sm rounded-circle mb-2" 
+                                                     style="background-color: {{ reponse.imagePath ?: '#94a3b8' }}; width: 100px; height: 100px; border: 5px solid white;">
+                                                </div>
+                                                <div class="fw-bold text-dark">{{ reponse.label }}</div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                    <style>
+                                        .color-option {
+                                            transition: transform 0.2s ease;
+                                        }
+                                        .color-option:hover {
+                                            transform: scale(1.15);
+                                        }
+                                        .color-circle {
+                                            transition: box-shadow 0.2s ease;
+                                        }
+                                        .color-option:hover .color-circle {
+                                            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+                                        }
+                                    </style>
+                                {% else %}
+                                    <div class="d-grid gap-3">
+                                        {% for reponse in scene.reponses %}
+                                            <a href="{{ path('app_espace_enfant_answer', {sceneId: scene.id, reponseId: reponse.id}) }}" 
+                                               class="btn btn-outline-primary btn-reponse text-start p-4 rounded-4 shadow-sm">
+                                                <div class="d-flex align-items-center">
+                                                    {% if reponse.imagePath and reponse.imagePath starts with '/' %}
+                                                        <img src="{{ asset(reponse.imagePath) }}" alt="{{ reponse.label }}" class="me-4 rounded-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    {% else %}
+                                                        <span class="fs-2 me-4">{{ reponse.emoji ?: '✨' }}</span>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-bold fs-5">{{ reponse.label }}</div>
+                                                        {% if reponse.etatDesc %}
+                                                            <div class="small opacity-75">{{ reponse.etatDesc }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <i class="fas fa-chevron-right ms-auto opacity-25"></i>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .scene-page {
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .scene-card {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-reponse {
+        border-width: 2px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-color: #e2e8f0;
+        color: #475569;
+    }
+
+    .btn-reponse:hover {
+        background: #f1f5f9;
+        border-color: #0d6efd;
+        color: #0d6efd;
+        transform: translateX(10px);
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    h2 {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    }
+
+    .letter-spacing-1 {
+        letter-spacing: 2px;
+    }
+</style>
+{% endblock %}

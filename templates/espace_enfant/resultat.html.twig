@@ -1,0 +1,129 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ton Profil Émotionnel - EmoNado{% endblock %}
+
+{% block body %}
+<div class="resultat-page py-5">
+    <div class="container">
+        <div class="card result-card border-0 shadow-lg rounded-5 overflow-hidden text-center p-5">
+            <div class="emoji-celebration mb-4">
+                <span class="display-1">⭐</span>
+            </div>
+            <h1 class="display-4 fw-bold text-primary mb-2">Bravo !</h1>
+            <p class="lead mb-5 text-muted">Tu as terminé toutes les étapes de ton aventure. Voici ce que tes réponses révèlent sur tes émotions d'aujourd'hui :</p>
+
+            <div class="row g-4 mb-5">
+                {# Joie #}
+                <div class="col-md-3">
+                    <div class="emotion-score-card p-4 rounded-5 shadow-sm bg-joy">
+                        <div class="fs-1 mb-2">😊</div>
+                        <h4 class="fw-bold">Joie</h4>
+                        <div class="display-5 fw-bold">{{ participation.scoreJoie }}</div>
+                        <div class="progress mt-3 rounded-pill bg-white bg-opacity-50" style="height: 10px;">
+                            <div class="progress-bar bg-joy-intense" style="width: {{ min(participation.scoreJoie * 10, 100) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Anxiété #}
+                <div class="col-md-3">
+                    <div class="emotion-score-card p-4 rounded-5 shadow-sm bg-anxiety">
+                        <div class="fs-1 mb-2">😰</div>
+                        <h4 class="fw-bold">Anxiété</h4>
+                        <div class="display-5 fw-bold">{{ participation.scoreAnxiete }}</div>
+                        <div class="progress mt-3 rounded-pill bg-white bg-opacity-50" style="height: 10px;">
+                            <div class="progress-bar bg-anxiety-intense" style="width: {{ min(participation.scoreAnxiete * 10, 100) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Colère #}
+                <div class="col-md-3">
+                    <div class="emotion-score-card p-4 rounded-5 shadow-sm bg-anger">
+                        <div class="fs-1 mb-2">😡</div>
+                        <h4 class="fw-bold">Colère</h4>
+                        <div class="display-5 fw-bold">{{ participation.scoreColere }}</div>
+                        <div class="progress mt-3 rounded-pill bg-white bg-opacity-50" style="height: 10px;">
+                            <div class="progress-bar bg-anger-intense" style="width: {{ min(participation.scoreColere * 10, 100) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Tristesse #}
+                <div class="col-md-3">
+                    <div class="emotion-score-card p-4 rounded-5 shadow-sm bg-sadness">
+                        <div class="fs-1 mb-2">😢</div>
+                        <h4 class="fw-bold">Tristesse</h4>
+                        <div class="display-5 fw-bold">{{ participation.scoreTristesse }}</div>
+                        <div class="progress mt-3 rounded-pill bg-white bg-opacity-50" style="height: 10px;">
+                            <div class="progress-bar bg-sadness-intense" style="width: {{ min(participation.scoreTristesse * 10, 100) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interpret-box p-4 rounded-4 bg-light mb-5 text-start">
+                <h5 class="fw-bold mb-3"><i class="fas fa-lightbulb text-warning me-2"></i> Le petit mot du psy :</h5>
+                <p class="mb-0">
+                    {% set maxScore = [participation.scoreJoie, participation.scoreAnxiete, participation.scoreColere, participation.scoreTristesse]|sort|last %}
+                    
+                    {% if participation.scoreJoie == maxScore %}
+                        C'est génial ! Tu rayonnes de bonheur aujourd'hui. Partage cette belle énergie autour de toi !
+                    {% elseif participation.scoreAnxiete == maxScore %}
+                        On dirait que tu es un peu inquiet en ce moment. N'hésite pas à respirer profondément et à parler de tes soucis à un adulte en qui tu as confiance.
+                    {% elseif participation.scoreColere == maxScore %}
+                        La colère est une émotion forte, comme un petit volcan. Prends le temps de te calmer, tout va s'arranger.
+                    {% else %}
+                        C'est normal de se sentir un peu triste parfois. C'est comme une petite pluie qui aide les fleurs à pousser. Ça passera bientôt.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="actions">
+                <a href="{{ path('app_espace_enfant') }}" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+                    Recommencer l'aventure <i class="fas fa-redo ms-2"></i>
+                </a>
+                <a href="{{ path('home') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-5 ms-3">
+                    Retour à l'accueil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .resultat-page {
+        min-height: 100vh;
+        background: #f1f5f9;
+    }
+
+    .result-card {
+        background: white;
+    }
+
+    .emotion-score-card {
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+
+    .emotion-score-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .bg-joy { background-color: #fef9c3; color: #854d0e; }
+    .bg-joy-intense { background-color: #fbbf24; }
+    
+    .bg-anxiety { background-color: #dbeafe; color: #1e40af; }
+    .bg-anxiety-intense { background-color: #3b82f6; }
+    
+    .bg-anger { background-color: #fee2e2; color: #991b1b; }
+    .bg-anger-intense { background-color: #ef4444; }
+    
+    .bg-sadness { background-color: #f3e8ff; color: #6b21a8; }
+    .bg-sadness-intense { background-color: #a855f7; }
+
+    h1 {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Gestion des Psychologues{% endblock %}
+
+{% block header %}Psychologues{% endblock %}
+
+{% block body %}
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-success text-white p-4 rounded-top-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge-fill me-2"></i> Liste des Psychologues</h5>
+            <a href="{{ path('admin_user_add') }}" class="btn btn-light rounded-pill btn-sm fw-bold">
+                <i class="bi bi-person-plus me-1"></i> Ajouter
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Email</th>
+                        <th>Spécialité</th>
+                        <th>Téléphone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for psy in psychologues %}
+                    <tr>
+                        <td class="fw-bold">{{ psy.nom }}</td>
+                        <td>{{ psy.prenom }}</td>
+                        <td>{{ psy.email }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ psy.specialite ?? 'Générale' }}</span></td>
+                        <td>{{ psy.telephone ?? 'N/A' }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ path('admin_user_edit', {id: psy.id}) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="{{ path('admin_user_delete', {id: psy.id}) }}" class="d-inline" onsubmit="return confirm('Supprimer ce psychologue ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ psy.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center py-4">Aucun psychologue trouvé.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

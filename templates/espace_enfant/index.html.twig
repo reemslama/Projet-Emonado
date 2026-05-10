@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Enfant - EmoNado{% endblock %}
+
+{% block body %}
+<div class="espace-enfant d-flex align-items-center justify-content-center">
+    <div class="card start-card border-0 shadow-lg rounded-5 p-5 text-center" style="max-width: 600px;">
+        <div class="emoji-header mb-4">
+            <span class="display-1">🌈</span>
+        </div>
+        <h1 class="display-4 fw-bold text-primary mb-3">Coucou !</h1>
+        <p class="lead mb-4">Bienvenue dans ton espace d'aventures. Es-tu prêt à explorer tes émotions à travers une série de petites histoires ?</p>
+        
+        <div class="features-list mb-5">
+            <div class="feature-item mb-3">
+                <i class="fas fa-check-circle text-success me-2"></i> Réponds honnêtement à chaque question
+            </div>
+            <div class="feature-item mb-3">
+                <i class="fas fa-check-circle text-success me-2"></i> Choisis ce que tu ressens vraiment
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-check-circle text-success me-2"></i> Découvre ton profil émotionnel à la fin
+            </div>
+        </div>
+
+        <a href="{{ path('app_espace_enfant_start') }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow-lg pulse-btn">
+            C'est parti ! <i class="fas fa-rocket ms-2"></i>
+        </a>
+    </div>
+</div>
+
+<style>
+    .espace-enfant {
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+    }
+
+    .start-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    h1 {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    }
+
+    .pulse-btn {
+        animation: pulse 2s infinite;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(13, 110, 253, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+    }
+</style>
+{% endblock %}
