@@ -1,0 +1,361 @@
+# 🧠 Emonado — Mental Health Management Platform
+
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?style=flat-square&logo=php&logoColor=white)
+![Symfony](https://img.shields.io/badge/Symfony-6.4-000000?style=flat-square&logo=symfony&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-MariaDB-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)
+
+---
+
+## 📋 Description
+
+**Emonado** is a comprehensive web-based mental health management platform that bridges the gap between patients and psychologists. It provides an integrated digital ecosystem where patients can track their mental well-being, book appointments, maintain personal journals, and benefit from AI-powered emotional analysis — while psychologists get powerful tools to manage consultations, monitor patient progress, and generate reports.
+
+### 🎯 Purpose & Goals
+
+- Digitise and streamline the psychologist–patient relationship
+- Empower patients with self-care tools: mood journals, adaptive tests, and chatbot support
+- Equip psychologists with dashboards, dossiers, PDF exports, and predictive insights
+- Leverage AI (Google Gemini, OpenAI, Groq) for emotional analysis and coaching suggestions
+- Provide administrators with full user, questionnaire, and audit-log management
+
+### 👥 Target Users
+
+| Role | Description |
+|------|-------------|
+| **Patient** | Books appointments, writes journals, completes psychological tests, chats with the AI assistant |
+| **Psychologue** | Manages consultations, reviews patient dossiers, prepares sessions, exports PDF reports |
+| **Admin** | Manages users, questionnaires, appointment types, and monitors system audit logs |
+
+### ✨ Main Features
+
+- 📅 **Appointment Management** — Patients book, psychologists confirm/cancel; interactive calendar view
+- 📓 **Mood Journal** — Rich journal entries with mood tagging, voice transcription, and music therapy recommendations
+- 🤖 **AI Chatbot** — Gemini-powered chatbot for patient support and mental health coaching
+- 📊 **Emotional Analysis** — AI-driven emotion recognition and insight reporting
+- 🧩 **Adaptive Psychological Tests** — Branching questionnaires that adjust to patient responses
+- 🎭 **Children's Space** — Illustrated story-based psychological scenes for child assessments
+- 🗂️ **Medical Dossiers** — Full patient records: consultations, prescriptions, documents
+- 📄 **PDF Reports** — Export dossiers, journal summaries, and consultation reports (via KnpSnappy/DomPDF)
+- 💬 **Real-time Messaging** — Patient–psychologist messaging with Mercure (SSE)
+- 📱 **SMS Reminders** — Appointment reminders sent via Mailjet SMS API
+- 🛡️ **Role-Based Access Control** — Separate interfaces and permissions for each role
+- 🔍 **Audit Logging** — Tracked login and action history for administrators
+
+---
+
+## 🛠️ Technologies Used
+
+### Backend
+| Technology | Version | Purpose |
+|---|---|---|
+| PHP | ≥ 8.1 | Server-side language |
+| Symfony | 6.4 | Full-stack web framework |
+| Doctrine ORM | ^2.15 | Database abstraction & migrations |
+| Symfony Security | 6.4 | Authentication & RBAC |
+| Symfony Messenger | 6.4 | Async message handling |
+| Symfony Mercure | ^0.4 | Real-time SSE push notifications |
+| Symfony Mailer | 6.4 | Email delivery (Gmail SMTP) |
+
+### AI & Integrations
+| Service | Purpose |
+|---|---|
+| Google Gemini API | AI chatbot and emotional analysis |
+| OpenAI API (gpt-4o-mini) | Supplementary emotion model |
+| Groq AI | Voice transcription |
+| Spotify API | Music therapy recommendations |
+| Mailjet SMS | Appointment reminder SMS |
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| Twig 3 | Server-side templating |
+| Bootstrap 5 | UI framework |
+| AdminLTE | Admin dashboard theme |
+| Stimulus / Hotwire Turbo | SPA-like interactions |
+| Symfony Asset Mapper | Frontend asset pipeline |
+| Font Awesome | Icons |
+
+### PDF Generation
+| Library | Purpose |
+|---|---|
+| KnpSnappy Bundle | wkhtmltopdf-based PDF generation |
+| DomPDF | Fallback PDF rendering |
+
+### Database & DevOps
+| Technology | Purpose |
+|---|---|
+| MySQL / MariaDB | Primary relational database |
+| Docker Compose | Containerised database setup |
+| PHPStan | Static analysis |
+| PHPUnit | Automated testing |
+| KnpPaginator | Paginated list views |
+| Tattali Calendar Bundle | Calendar UI component |
+
+---
+
+## ✅ Prerequisites
+
+Before running the project, ensure the following are installed on your machine:
+
+- **PHP** ≥ 8.1 with extensions: `ctype`, `iconv`, `mbstring`, `pdo_mysql`, `xml`, `intl`
+- **Composer** (latest stable)
+- **MySQL** or **MariaDB** (or Docker + Docker Compose for the containerised DB)
+- **Node.js** ≥ 18 & **npm** (for front-end assets, if needed)
+- **Symfony CLI** (optional but recommended)
+- **wkhtmltopdf** (required for PDF export) — [Download](https://wkhtmltopdf.org/downloads.html)
+
+---
+
+## 🚀 Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-org/emonado.git
+cd emonado
+```
+
+### 2. Install PHP Dependencies
+
+```bash
+composer install
+```
+
+### 3. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and fill in the required values:
+
+```env
+# Database
+DATABASE_URL="mysql://root:@127.0.0.1:3307/emonado_db?serverVersion=mariadb-10.4.32&charset=utf8mb4"
+
+# Mailer (Gmail SMTP)
+MAILER_DSN=gmail+smtp://your_email@gmail.com:your_app_password@default
+MAILER_FROM=your_email@gmail.com
+
+# AI APIs
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key
+GROQ_API_KEY=your_groq_api_key_here
+
+# SMS (Mailjet)
+MAILJET_API_KEY=your_mailjet_api_key
+MAILJET_SECRET_KEY=your_mailjet_secret_key
+
+# Spotify (Music Therapy)
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+
+# PDF (wkhtmltopdf path — adjust for your OS)
+WKHTMLTOPDF_PATH=C:/Progra~1/wkhtmltopdf/bin/wkhtmltopdf.exe  # Windows
+# WKHTMLTOPDF_PATH=/usr/local/bin/wkhtmltopdf                  # Linux/macOS
+```
+
+### 4. Start the Database
+
+**Option A — Docker (recommended):**
+```bash
+docker compose up -d
+```
+
+**Option B — Local MySQL/MariaDB:**
+Ensure your MySQL server is running and the credentials in `.env` match your local setup.
+
+### 5. Set Up the Database Schema
+
+```bash
+# Run migrations
+php bin/console doctrine:migrations:migrate
+
+# Or, for a fresh schema sync (development only)
+php bin/console doctrine:schema:update --force
+```
+
+### 6. Load Default Users (optional)
+
+```bash
+php bin/console app:create-default-users
+```
+
+This creates demo accounts for each role (admin, psychologue, patient).
+
+### 7. Install Frontend Assets
+
+```bash
+php bin/console importmap:install
+php bin/console assets:install
+```
+
+### 8. Start the Development Server
+
+```bash
+symfony server:start
+# or
+php -S 127.0.0.1:8080 -t public/
+```
+
+Then open your browser at: **http://127.0.0.1:8080**
+
+> **Windows users:** You can also double-click `start-server.bat` to launch the server automatically.
+
+---
+
+## 📖 Usage
+
+### Accessing the Application
+
+| URL | Role | Description |
+|-----|------|-------------|
+| `http://127.0.0.1:8080/` | Public | Landing / home page |
+| `http://127.0.0.1:8080/login` | All | User login |
+| `http://127.0.0.1:8080/register` | Public | Patient registration |
+| `http://127.0.0.1:8080/admin` | Admin | Admin dashboard |
+| `http://127.0.0.1:8080/psychologue` | Psychologue | Psychologist workspace |
+| `http://127.0.0.1:8080/patient` | Patient | Patient portal |
+
+### Typical Patient Workflow
+
+1. **Register** at `/register` and log in
+2. **Book an appointment** via `/rendez-vous/new` — choose a psychologist, date, and appointment type
+3. **Write journal entries** at `/journal` — log mood, thoughts, and receive AI-generated wellness advice
+4. **Complete a psychological test** via the adaptive questionnaire
+5. **Chat with the AI assistant** at `/patient/chatbot` for instant mental health support
+6. **View your medical dossier** at `/patient/dossier` to review consultations and prescriptions
+
+### Typical Psychologist Workflow
+
+1. **Log in** and navigate to the psychologist dashboard
+2. **Manage appointments** — confirm, reschedule, or cancel patient bookings via the calendar
+3. **Access patient dossiers** — view full consultation history, journal entries, and test results
+4. **Prepare sessions** — use AI-assisted pre-consultation summaries
+5. **Export PDF reports** — generate printable dossiers and consultation notes
+
+### Admin Workflow
+
+1. **Log in** at `/admin/login`
+2. **Manage users** — create, edit, or deactivate patient and psychologist accounts
+3. **Configure questionnaires** — add/edit adaptive test questions and answer branches
+4. **Manage appointment types** — define consultation categories
+5. **View audit logs** — monitor user activity and login history
+
+---
+
+## 🗂️ Project Structure
+
+```
+emonado/
+├── assets/                     # Frontend JS, CSS, images, Stimulus controllers
+│   ├── controllers/            # Stimulus JS controllers
+│   ├── images/                 # Static images (logo, background)
+│   └── styles/                 # Custom CSS
+├── bin/                        # Symfony console & PHPUnit executables
+├── config/                     # Symfony configuration
+│   ├── packages/               # Bundle config (doctrine, security, mailer…)
+│   └── routes/                 # Route definitions
+├── docker/                     # Docker setup for MySQL
+│   └── mysql/
+├── migrations/                 # Doctrine database migrations
+├── public/                     # Web root (index.php, assets, images)
+│   ├── assets/                 # Compiled/public assets
+│   ├── css/                    # AdminLTE, Bootstrap, custom CSS
+│   └── images/                 # Public images (logo, psy scene images)
+├── src/
+│   ├── Command/                # Custom Symfony Console commands
+│   │   ├── CreateDefaultUsersCommand.php
+│   │   └── SendRappelsSmsCommand.php
+│   ├── Controller/             # HTTP controllers (one per domain)
+│   │   ├── Admin/              # Admin-specific controllers
+│   │   ├── Api/                # REST API controllers
+│   │   ├── JournalController.php
+│   │   ├── RendezVousController.php
+│   │   ├── DossierMedicalController.php
+│   │   ├── AnalyseEmotionnelleController.php
+│   │   ├── ChatBotController.php
+│   │   ├── EspaceEnfantController.php
+│   │   └── …
+│   ├── Entity/                 # Doctrine ORM entities
+│   │   ├── User.php
+│   │   ├── RendezVous.php
+│   │   ├── Journal.php
+│   │   ├── DossierMedical.php
+│   │   ├── AnalyseEmotionnelle.php
+│   │   ├── TestPsyScene.php
+│   │   └── …
+│   ├── EventSubscriber/        # Doctrine & Security event listeners
+│   ├── Form/                   # Symfony Form types
+│   ├── Repository/             # Doctrine repositories
+│   └── Service/                # Business logic & external API services
+│       ├── GeminiService.php
+│       ├── EmotionAnalysisService.php
+│       ├── MusicTherapyService.php
+│       ├── MailjetSmsService.php
+│       ├── VoiceTranscriptionService.php
+│       └── …
+├── templates/                  # Twig HTML templates
+│   ├── base.html.twig
+│   ├── admin/
+│   ├── patient/
+│   ├── psychologue/
+│   ├── journal/
+│   ├── rendez_vous/
+│   ├── espace_enfant/
+│   └── …
+├── tests/                      # PHPUnit test suites
+├── .env.example                # Environment variable template
+├── compose.yaml                # Docker Compose (MySQL service)
+├── composer.json               # PHP dependencies
+└── phpunit.dist.xml            # PHPUnit configuration
+```
+
+---
+
+## 📸 Screenshots
+
+> _Screenshots to be added here once the application UI is captured._
+
+| Screen | Preview |
+|--------|---------|
+| Home / Landing Page | _[ screenshot ]_ |
+| Patient Dashboard | _[ screenshot ]_ |
+| Appointment Booking | _[ screenshot ]_ |
+| Mood Journal | _[ screenshot ]_ |
+| AI Chatbot | _[ screenshot ]_ |
+| Psychologist Dashboard | _[ screenshot ]_ |
+| Medical Dossier | _[ screenshot ]_ |
+| Admin Panel | _[ screenshot ]_ |
+| Children's Space | _[ screenshot ]_ |
+
+---
+
+## 🔑 Keywords
+
+`mental-health` · `symfony` · `php` · `psychologist` · `patient-management` · `ai-chatbot` · `gemini-api` · `emotional-analysis` · `appointment-booking` · `mood-journal` · `healthcare-web-app` · `pdf-generation`
+
+---
+
+## 👥 Authors
+
+| Name | Role / Module |
+|------|--------------|
+| **Eya Gobji** | Core development, full-stack |
+| **Narjes Saï** | Feature development |
+| **Nour Hajji** | Feature development |
+| **Rim Slama** | Feature development |
+| **Yassine Ben Houria** | Feature development |
+
+---
+
+## 📄 License
+
+This project is **proprietary** software. All rights reserved.  
+Unauthorised copying, distribution, or modification of this codebase, via any medium, is strictly prohibited without the explicit written permission of the authors.
+
+---
+
+> Built with ❤️ as part of an academic software engineering project (PI Dev).
