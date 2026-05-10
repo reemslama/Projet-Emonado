@@ -90,7 +90,7 @@ class TherapeuticCompanionService
     {
         $counts = [];
         foreach ($analyses as $a) {
-            $emotion = (string) ($a->getEmotionPrincipale() ?? 'neutre');
+            $emotion = (string) ($a->getEtatEmotionnel() ?? 'neutre');
             $counts[$emotion] = ($counts[$emotion] ?? 0) + 1;
         }
         arsort($counts);

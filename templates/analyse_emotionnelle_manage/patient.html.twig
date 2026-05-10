@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analyses pour {{ patient.prenom }} {{ patient.nom }}{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Analyses émotionnelles - {{ patient.prenom }} {{ patient.nom }}</h2>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <a href="{{ path('psychologue_journals') }}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Retour à la liste des patients
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-white shadow-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Humeur</th>
+                        <th>Contenu</th>
+                        <th>État émotionnel</th>
+                        <th>Niveau</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for journal in journals %}
+                        {% set analyse = analyses[journal.id] %}
+                        <tr>
+                            <td>{{ journal.dateCreation|date('d/m/Y') }}</td>
+                            <td class="fw-semibold text-capitalize">{{ journal.humeur }}</td>
+                            <td>
+                                <small>{{ journal.contenu|slice(0, 40) }}{{ journal.contenu|length > 40 ? '...' : '' }}</small>
+                            </td>
+                            <td>
+                                {% if analyse %}
+                                    <span class="badge bg-info-subtle text-info">{{ analyse.etatEmotionnel }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if analyse %}
+                                    <span class="badge bg-warning-subtle text-warning">{{ analyse.niveau }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if analyse %}
+                                    <span class="badge bg-success-subtle text-success">Analysé</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">En attente</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if analyse %}
+                                    <a href="{{ path('app_analyse_emotionnelle_manage_edit', {'analyseId': analyse.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </a>
+                                    <a href="{{ path('app_analyse_emotionnelle_show', {'id': analyse.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('app_analyse_emotionnelle_manage_delete', {'analyseId': analyse.id}) }}" style="display: inline;" onsubmit="return confirm('Retirer le conseil et le déclencheur que vous avez ajoutés ? Le journal du patient ne sera pas supprimé.');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ analyse.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Retirer conseil et déclencheur">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ path('app_analyse_emotionnelle_manage_add', {'journalId': journal.id}) }}" class="btn btn-sm btn-success" title="Ajouter une analyse">
+                                        <i class="fa-solid fa-plus"></i> Ajouter
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

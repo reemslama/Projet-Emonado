@@ -56,7 +56,7 @@ final class AnalyseEmotionnelleController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_analyse_emotionnelle_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_analyse_emotionnelle_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(
         AnalyseEmotionnelle $analyseEmotionnelle,
         CoachSuggestionService $coachSuggestionService
@@ -80,7 +80,7 @@ final class AnalyseEmotionnelleController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_analyse_emotionnelle_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_analyse_emotionnelle_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function edit(Request $request, AnalyseEmotionnelle $analyseEmotionnelle, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
@@ -110,7 +110,7 @@ final class AnalyseEmotionnelleController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_analyse_emotionnelle_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_analyse_emotionnelle_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function delete(Request $request, AnalyseEmotionnelle $analyseEmotionnelle, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
@@ -133,7 +133,7 @@ final class AnalyseEmotionnelleController extends AbstractController
         return $this->redirectToRoute('app_analyse_emotionnelle_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/from-journal/{id}', name: 'app_analyse_emotionnelle_from_journal', methods: ['POST'])]
+    #[Route('/from-journal/{id}', name: 'app_analyse_emotionnelle_from_journal', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function fromJournal(
         Journal $journal,
         EmotionAnalysisService $emotionAnalysisService,
@@ -174,8 +174,8 @@ final class AnalyseEmotionnelleController extends AbstractController
 
         $analyse
             ->setJournal($journal)
-            ->setEmotionPrincipale($result['emotionPrincipale'] ?? 'neutre')
-            ->setNiveauStress($result['niveauStress'] ?? 0)
+            ->setEtatEmotionnel($result['emotionPrincipale'] ?? 'neutre')
+            ->setNiveau($result['niveauStress'] ?? 'Modere')
             ->setScoreBienEtre($result['scoreBienEtre'] ?? 50)
             ->setResumeIA($result['resumeIA'] ?? 'Analyse non disponible.')
             ->markAnalyzedAt(new \DateTimeImmutable());

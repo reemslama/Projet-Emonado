@@ -43,7 +43,7 @@ class EmotionInsightService
         $sosCount = 0;
 
         foreach ($analyses as $a) {
-            $emotion = (string) ($a->getEmotionPrincipale() ?? 'neutre');
+            $emotion = (string) ($a->getEtatEmotionnel() ?? 'neutre');
             $emotionCounts[$emotion] = ($emotionCounts[$emotion] ?? 0) + 1;
             $stressTotal += (float) ($a->getNiveauStress() ?? 0);
             $wellBeingTotal += (float) ($a->getScoreBienEtre() ?? 0);

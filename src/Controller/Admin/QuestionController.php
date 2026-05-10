@@ -14,25 +14,50 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/question')]
 final class QuestionController extends AbstractController
 {
-    // Vérifier l'authentification avant chaque action
+    // Vérifier l'authentification admin avant chaque action.
+    // Accepte soit l'ancienne session admin, soit un utilisateur Symfony avec ROLE_ADMIN.
     private function checkAuth(SessionInterface $session): ?Response
     {
-        if (!$session->get('admin_authenticated')) {
-            return $this->redirectToRoute('admin_login');
+        if ($session->get('admin_authenticated')) {
+            return null;
         }
-        return null;
+
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // Synchroniser la session legacy pour éviter les redirections incohérentes.
+            $session->set('admin_authenticated', true);
+            if (!$session->has('admin_username') && $this->getUser() !== null) {
+                $session->set('admin_username', $this->getUser()->getUserIdentifier());
+            }
+
+            return null;
+        }
+
+        return $this->redirectToRoute('admin_login');
     }
 
     #[Route(name: 'app_question_index', methods: ['GET'])]
-    public function index(QuestionRepository $questionRepository, SessionInterface $session): Response
+    public function index(Request $request, QuestionRepository $questionRepository, SessionInterface $session): Response
     {
         if ($redirect = $this->checkAuth($session)) {
             return $redirect;
         }
 
+        $searchKeyword = trim((string) $request->query->get('search', ''));
+        $questions = $searchKeyword !== ''
+            ? $questionRepository->searchByKeyword($searchKeyword)
+            : $questionRepository->findBy([], ['ordre' => 'ASC']);
+
+        $categories = [
+            'stress' => ['name' => 'Stress', 'color' => 'danger', 'icon' => 'emoji-frown'],
+            'depression' => ['name' => 'Dépression', 'color' => 'primary', 'icon' => 'heart-pulse'],
+            'iq' => ['name' => 'QI', 'color' => 'warning', 'icon' => 'lightbulb'],
+        ];
+
         return $this->render('admin/question/index.html.twig', [
-            'questions' => $questionRepository->findAll(),
-            'admin_username' => $session->get('admin_username')
+            'questions' => $questions,
+            'categories' => $categories,
+            'searchKeyword' => $searchKeyword,
+            'admin_username' => $session->get('admin_username'),
         ]);
     }
 

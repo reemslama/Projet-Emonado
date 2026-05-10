@@ -223,7 +223,7 @@ class DossierMedicalController extends AbstractController
             foreach ($analyses as $a) {
                 $totalStress += $a->getNiveauStress();
                 $totalBienEtre += $a->getScoreBienEtre();
-                $e = $a->getEmotionPrincipale();
+                $e = $a->getEtatEmotionnel();
                 $emotions[$e] = ($emotions[$e] ?? 0) + 1;
             }
             $statsAnalyses['moyenne_stress'] = round($totalStress / \count($analyses), 1);
