@@ -36,6 +36,8 @@ final class PreConsultationService
         }
         $dossier = new DossierMedical();
         $dossier->setPatient($patient);
+        $dossier->assignCreator($patient);
+        $dossier->assignUpdater($patient);
         $this->em->persist($dossier);
         $this->em->flush();
 

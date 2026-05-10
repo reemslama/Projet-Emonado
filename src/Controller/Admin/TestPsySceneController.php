@@ -65,6 +65,19 @@ class TestPsySceneController extends AbstractController
     public function delete(Request $request, TestPsyScene $scene, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete'.$scene->getId(), $request->request->get('_token'))) {
+            // Supprimer d'abord les enregistrements dans test_psy_reponse_enfant liés aux réponses de cette scène
+            foreach ($scene->getReponses() as $reponse) {
+                $em->getConnection()->executeStatement(
+                    'DELETE FROM test_psy_reponse_enfant WHERE reponse_id = ? OR scene_id = ?',
+                    [$reponse->getId(), $scene->getId()]
+                );
+            }
+            // Supprimer aussi par scene_id au cas où (sécurité)
+            $em->getConnection()->executeStatement(
+                'DELETE FROM test_psy_reponse_enfant WHERE scene_id = ?',
+                [$scene->getId()]
+            );
+
             $em->remove($scene);
             $em->flush();
             $this->addFlash('success', 'Scène enfant supprimée avec succès !');

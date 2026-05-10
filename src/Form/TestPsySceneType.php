@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\TestPsyScene;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -51,6 +52,15 @@ class TestPsySceneType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
                 'row_attr' => ['class' => 'form-check mb-3']
+            ])
+            ->add('reponses', CollectionType::class, [
+                'label' => 'Réponses',
+                'entry_type' => TestPsyReponseType::class,
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'required' => false,
+                'prototype' => true,
             ]);
     }
 
