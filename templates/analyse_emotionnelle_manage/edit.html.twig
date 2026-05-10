@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% if isNew %}Nouvelle analyse{% else %}Modifier l'analyse{% endif %}{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">
+            {% if isNew %}Nouvelle analyse émotionnelle{% else %}Modifier l'analyse émotionnelle{% endif %}
+        </h2>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Journal du {{ journal.dateCreation|date('d/m/Y') }} - Humeur: {{ journal.humeur }}</h5>
+                <p class="card-text">{{ journal.contenu }}</p>
+            </div>
+        </div>
+
+        {{ form_start(form) }}
+            <div class="mb-3">
+                {{ form_label(form.etatEmotionnel) }}
+                {{ form_widget(form.etatEmotionnel) }}
+                {{ form_errors(form.etatEmotionnel) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.niveau) }}
+                {{ form_widget(form.niveau) }}
+                {{ form_errors(form.niveau) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.declencheur) }}
+                {{ form_widget(form.declencheur) }}
+                {{ form_errors(form.declencheur) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.conseil) }}
+                {{ form_widget(form.conseil) }}
+                {{ form_errors(form.conseil) }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Sauvegarder</button>
+            <a href="{{ path('app_analyse_emotionnelle_manage_patient', {'patientId': journal.user.id}) }}" class="btn btn-secondary">Annuler</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

@@ -8,9 +8,15 @@
             Analyse emotionnelle
         </h2>
         <div class="d-flex gap-2">
-            <a href="{{ path('app_analyse_emotionnelle_index') }}" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-list"></i> Toutes les analyses
-            </a>
+            {% if is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY') %}
+                <a href="{{ path('app_analyse_emotionnelle_manage_patient', {'patientId': analyse_emotionnelle.journal.user.id}) }}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Retour au travail
+                </a>
+            {% else %}
+                <a href="{{ path('app_analyse_emotionnelle_index') }}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Retour à l'analyse
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -20,10 +26,10 @@
                 <div class="card-body">
                     <h5 class="card-title mb-3">
                         <i class="fa-solid fa-face-smile text-warning me-2"></i>
-                        Emotion principale
+                        État émotionnel
                     </h5>
                     <p class="fs-4 fw-bold text-capitalize">
-                        {{ analyse_emotionnelle.emotionPrincipale|default('Non determinee') }}
+                        {{ analyse_emotionnelle.etatEmotionnel|default('Non déterminé') }}
                     </p>
                     <p class="text-muted mb-0">
                         Detectee le
@@ -38,15 +44,15 @@
                 <div class="card-body">
                     <h5 class="card-title mb-3">
                         <i class="fa-solid fa-heart-pulse text-danger me-2"></i>
-                        Niveau de stress
+                        Niveau
                     </h5>
                     <p class="mb-2">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">
-                            {{ analyse_emotionnelle.niveauStress }}/10
+                            {{ analyse_emotionnelle.niveau|default('Non déterminé') }}
                         </span>
                     </p>
                     <small class="text-muted">
-                        0 = aucun stress, 10 = stress tres eleve.
+                        Faible, Modéré ou Élevé.
                     </small>
                 </div>
             </div>
@@ -84,13 +90,42 @@
         <div class="card-body">
             <h5 class="card-title mb-3">
                 <i class="fa-solid fa-brain text-primary me-2"></i>
-                Synthese de l'IA
+                Analyse détaillée
             </h5>
-            <p class="mb-0">
-                {{ analyse_emotionnelle.resumeIA|default('Aucun resume IA disponible.') }}
-            </p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Déclencheur</h6>
+                    <p>{{ analyse_emotionnelle.declencheur|default('Non spécifié') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Conseil</h6>
+                    <p>{{ analyse_emotionnelle.conseil|default('Non spécifié') }}</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    {% if is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY') %}
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="fa-solid fa-sliders text-info me-2"></i>
+                Gestion de l'analyse
+            </h5>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_analyse_emotionnelle_manage_edit', {'analyseId': analyse_emotionnelle.id}) }}" class="btn btn-warning">
+                    <i class="fa-solid fa-pencil"></i> Modifier
+                </a>
+                <form method="post" action="{{ path('app_analyse_emotionnelle_manage_delete', {'analyseId': analyse_emotionnelle.id}) }}" style="display: inline;" onsubmit="return confirm('Retirer le conseil et le déclencheur que vous avez ajoutés ? Le journal du patient ne sera pas supprimé.');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ analyse_emotionnelle.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> Retirer conseil / déclencheur
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="card shadow-sm border-0 mt-4">
         <div class="card-body">

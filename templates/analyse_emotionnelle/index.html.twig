@@ -30,11 +30,11 @@
                 <tr>
                     <td>{{ analyse_emotionnelle.id }}</td>
                     <td class="fw-semibold text-capitalize">
-                        {{ analyse_emotionnelle.emotionPrincipale|default('—') }}
+                        {{ analyse_emotionnelle.etatEmotionnel|default('—') }}
                     </td>
                     <td>
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">
-                            {{ analyse_emotionnelle.niveauStress }}/10
+                            {{ analyse_emotionnelle.niveau|default('—') }}
                         </span>
                     </td>
                     <td>

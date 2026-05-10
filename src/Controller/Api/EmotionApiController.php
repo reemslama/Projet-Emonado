@@ -38,7 +38,7 @@ class EmotionApiController extends AbstractController
             'journalId' => $id,
             'analyse' => [
                 'id' => $analyse->getId(),
-                'emotionPrincipale' => $analyse->getEmotionPrincipale(),
+                'emotionPrincipale' => $analyse->getEtatEmotionnel(),
                 'niveauStress' => $analyse->getNiveauStress(),
                 'scoreBienEtre' => $analyse->getScoreBienEtre(),
                 'resumeIA' => $analyse->getResumeIA(),

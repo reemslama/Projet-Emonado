@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des analyses émotionnelles{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Gestion des analyses émotionnelles</h2>
+
+        <div class="row">
+            {% for patient in patients %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ patient.prenom }} {{ patient.nom }}</h5>
+                            <a href="{{ path('app_analyse_emotionnelle_manage_patient', {'patientId': patient.id}) }}" class="btn btn-primary">Gérer les analyses</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

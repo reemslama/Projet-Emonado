@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport des Journaux</title>
+    <style>
+        body { font-family: 'DejaVu Sans', sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .user-info { margin-bottom: 20px; }
+        .journal-entry { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .mood { font-weight: bold; color: #1f8b57; }
+        .date { font-size: 12px; color: #666; }
+        .content { margin-top: 10px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Rapport des Journaux</h1>
+        <p>Généré le {{ generatedAt|date('d/m/Y H:i') }}</p>
+    </div>
+
+    <div class="user-info">
+        <strong>Patient:</strong> {{ user.prenom }} {{ user.nom }}
+    </div>
+
+    {% for journal in journals %}
+    <div class="journal-entry">
+        <div class="mood">{% if journal.humeur == 'SOS' %}SOS{% elseif journal.humeur == 'en colere' %}En colère{% else %}{{ journal.humeur|capitalize }}{% endif %}</div>
+        <div class="date">{{ journal.dateCreation|date('d/m/Y H:i') }}</div>
+        <div class="content">{{ journal.contenu }}</div>
+        {% if journal.analysisEmotionnelle %}
+        <div><strong>Analyse:</strong> {{ journal.analysisEmotionnelle.etatEmotionnel }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if journals is empty %}
+    <p>Aucun journal trouvé.</p>
+    {% endif %}
+</body>
+</html>

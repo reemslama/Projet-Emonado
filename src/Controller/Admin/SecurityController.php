@@ -63,11 +63,11 @@ class SecurityController extends AbstractController
     #[Route('/admin/logout', name: 'admin_logout')]
     public function logout(SessionInterface $session): Response
     {
+        // Nettoyage de la session admin legacy.
         $session->remove('admin_authenticated');
         $session->remove('admin_username');
-        
-        $this->addFlash('success', 'Vous avez été déconnecté avec succès');
-        
-        return $this->redirectToRoute('app_choix');
+
+        // Déclenche le vrai logout Symfony (firewall `main`) pour invalider l'authentification.
+        return $this->redirectToRoute('app_logout');
     }
 }

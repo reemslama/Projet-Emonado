@@ -22,11 +22,7 @@ class JournalController extends AbstractController
 {
     private function assertPatientArea(): void
     {
-        if (
-            $this->isGranted('ROLE_ADMIN')
-            || $this->isGranted('ROLE_PSYCHOLOGUE')
-            || $this->isGranted('ROLE_PSY')
-        ) {
+        if ($this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException('Espace patient uniquement.');
         }
     }
@@ -47,12 +43,27 @@ class JournalController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $journals = $journalRepository->searchAndSortByUser($user, $keyword, $sort);
-        $stats = $journalRepository->countByHumeurForUser($user);
+        $isPsychologue = $this->isGranted('ROLE_PSYCHOLOGUE') || $this->isGranted('ROLE_PSY');
+
+        if ($isPsychologue) {
+            $journals = $journalRepository->searchAndSortAll($keyword, $sort);
+            $stats = $journalRepository->countByHumeurAll();
+        } else {
+            $journals = $journalRepository->searchAndSortByUser($user, $keyword, $sort);
+            $stats = $journalRepository->countByHumeurForUser($user);
+        }
+
+        $analysedCount = 0;
+        foreach ($journals as $journal) {
+            if ($journal->getAnalysisEmotionnelle() !== null) {
+                $analysedCount++;
+            }
+        }
 
         return $this->render('journal/index.html.twig', [
             'journals' => $journals,
             'stats' => $stats,
+            'analysedCount' => $analysedCount,
             'keyword' => $keyword,
             'sort' => $sort,
             'openAdviceId' => $openAdviceId,
@@ -128,7 +139,7 @@ class JournalController extends AbstractController
         $journal->setMusicPrescriptionData($musicPack);
         $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
         $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-        $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+        $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
         $this->addFlash('success', 'Prescription musicale IA générée.');
@@ -163,7 +174,7 @@ class JournalController extends AbstractController
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
             $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-            $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+            $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
             return $this->redirectToRoute('app_journal_index');
@@ -217,7 +228,7 @@ class JournalController extends AbstractController
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
             $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-            $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+            $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
             $this->addFlash('success', 'Journal vocal envoyé. Le psychologue a reçu une alerte.');
@@ -303,8 +314,16 @@ class JournalController extends AbstractController
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-        $stats = $journalRepository->countByHumeurForUser($user);
-        $insights = $this->buildClinicalInsights($journalRepository, $user);
+
+        $isPsychologue = $this->isGranted('ROLE_PSYCHOLOGUE') || $this->isGranted('ROLE_PSY');
+
+        if ($isPsychologue) {
+            $stats = $journalRepository->countByHumeurAll();
+            $insights = []; // Pour les psychologues, pas d'insights personnels
+        } else {
+            $stats = $journalRepository->countByHumeurForUser($user);
+            $insights = $this->buildClinicalInsights($journalRepository, $user);
+        }
 
         return $this->render('journal/stat.html.twig', [
             'stats' => $stats,
@@ -322,9 +341,18 @@ class JournalController extends AbstractController
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }
-        $stats = $journalRepository->countByHumeurForUser($user);
+
+        $isPsychologue = $this->isGranted('ROLE_PSYCHOLOGUE') || $this->isGranted('ROLE_PSY');
+
+        if ($isPsychologue) {
+            $stats = $journalRepository->countByHumeurAll();
+            $insights = [];
+        } else {
+            $stats = $journalRepository->countByHumeurForUser($user);
+            $insights = $this->buildClinicalInsights($journalRepository, $user);
+        }
+
         $total = ($stats['heureux'] ?? 0) + ($stats['calme'] ?? 0) + ($stats['SOS'] ?? 0) + ($stats['en colere'] ?? 0);
-        $insights = $this->buildClinicalInsights($journalRepository, $user);
 
         $rows = [
             ['label' => 'Heureux', 'key' => 'heureux', 'color' => '#1f9d55'],
@@ -369,6 +397,43 @@ class JournalController extends AbstractController
             [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename=\"statistiques_journal.pdf\"',
+            ]
+        );
+    }
+
+    #[Route('/pdf', name: 'app_journal_pdf', methods: ['GET'])]
+    public function journalPdf(JournalRepository $journalRepository): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        $this->assertPatientArea();
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $journals = $journalRepository->searchAndSortByUser($user, '', 'recent');
+
+        $html = $this->renderView('journal/journal_pdf.html.twig', [
+            'journals' => $journals,
+            'user' => $user,
+            'generatedAt' => new \DateTime(),
+        ]);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', false);
+        $options->setDefaultFont('DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return new Response(
+            $dompdf->output(),
+            200,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename=\"rapports_journaux_' . $user->getPrenom() . '_' . $user->getNom() . '.pdf\"',
             ]
         );
     }

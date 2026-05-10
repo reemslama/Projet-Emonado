@@ -17,8 +17,14 @@ class CoachSuggestionService
      */
     public function buildFromAnalyse(AnalyseEmotionnelle $analyse): array
     {
-        $emotion = (string) ($analyse->getEmotionPrincipale() ?? 'neutre');
-        $stress = (int) ($analyse->getNiveauStress() ?? 0);
+        $emotion = (string) ($analyse->getEtatEmotionnel() ?? 'neutre');
+        $niveau = $analyse->getNiveau();
+        $stress = match ($niveau) {
+            'Faible' => 3,
+            'Modere' => 5,
+            'Eleve' => 8,
+            default => 5,
+        };
         $wellBeing = (int) ($analyse->getScoreBienEtre() ?? 50);
 
         $reformulation = sprintf(

@@ -14,10 +14,22 @@ class AnalyseEmotionnelleType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('emotionPrincipale')
-            ->add('niveauStress')
-            ->add('scoreBienEtre')
-            ->add('resumeIA')
+            ->add('etatEmotionnel', null, [
+                'label' => 'État émotionnel',
+                'required' => false,
+            ])
+            ->add('niveau', null, [
+                'label' => 'Niveau',
+                'required' => false,
+            ])
+            ->add('declencheur', null, [
+                'label' => 'Déclencheur',
+                'required' => false,
+            ])
+            ->add('conseil', null, [
+                'label' => 'Conseil',
+                'required' => false,
+            ])
             ->add('dateAnalyse')
             ->add('journal', EntityType::class, [
                 'class' => Journal::class,
