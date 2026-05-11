@@ -38,6 +38,8 @@ class LoginAuditSubscriber implements EventSubscriberInterface
         $log->setEntityId($user->getId());
         $log->setDetails('Connexion réussie');
         $log->setUser($user);
+        $log->assignCreator($user);
+        $log->assignUpdater($user);
         $log->setIp($request ? $request->getClientIp() : null);
         $this->em->persist($log);
         $this->em->flush();

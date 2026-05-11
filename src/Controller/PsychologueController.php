@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Repository\JournalRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
 
 class PsychologueController extends AbstractController
 {
@@ -37,6 +41,77 @@ class PsychologueController extends AbstractController
             'patients' => $patients,
             'pendingVoiceCount' => $pendingVoiceCount,
         ]);
+    }
+
+    #[Route('/psychologue/journaux', name: 'psychologue_journals', methods: ['GET'])]
+    public function journals(Request $request, JournalRepository $journalRepository): Response
+    {
+        $this->assertPsyArea();
+
+        $keyword = (string) $request->query->get('q', '');
+        $sort = (string) $request->query->get('sort', 'recent');
+
+        return $this->render('psychologue/journals.html.twig', [
+            'journals' => $journalRepository->searchAndSortAll($keyword, $sort),
+            'keyword' => $keyword,
+            'sort' => $sort,
+        ]);
+    }
+
+    #[Route('/psychologue/vocaux', name: 'psychologue_voice_cases', methods: ['GET'])]
+    public function voiceCases(JournalRepository $journalRepository): Response
+    {
+        $this->assertPsyArea();
+
+        $now = new \DateTimeImmutable();
+        $rows = [];
+        foreach ($journalRepository->findPendingVoiceCases() as $case) {
+            $createdAt = $case->getDateCreation() ?? $now;
+            $minutes = max(0, (int) floor(($now->getTimestamp() - $createdAt->getTimestamp()) / 60));
+            $rows[] = [
+                'case' => $case,
+                'minutes' => $minutes,
+                'priority' => $minutes >= 120 ? 'haute' : ($minutes >= 30 ? 'moyenne' : 'normale'),
+            ];
+        }
+
+        return $this->render('psychologue/voice_cases.html.twig', [
+            'rows' => $rows,
+        ]);
+    }
+
+    #[Route('/psychologue/vocaux/{id}/conseil', name: 'psychologue_voice_case_advise', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function adviseVoiceCase(
+        Request $request,
+        int $id,
+        JournalRepository $journalRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $this->assertPsyArea();
+
+        $journal = $journalRepository->find($id);
+        if (!$journal || $journal->getInputMode() !== 'voice') {
+            $this->addFlash('error', 'Journal vocal introuvable.');
+            return $this->redirectToRoute('psychologue_voice_cases');
+        }
+
+        if (!$this->isCsrfTokenValid('advise_voice_case_' . $journal->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('psychologue_voice_cases');
+        }
+
+        $advice = trim((string) $request->request->get('patient_advice', ''));
+        if (mb_strlen($advice) < 15) {
+            $this->addFlash('error', 'Le conseil doit contenir au moins 15 caracteres.');
+            return $this->redirectToRoute('psychologue_voice_cases');
+        }
+
+        $journal->setPsychologueCaseDescription($advice);
+        $journal->markPsychologueReviewedAt(new \DateTimeImmutable());
+        $em->flush();
+
+        $this->addFlash('success', 'Conseil envoye au patient.');
+        return $this->redirectToRoute('psychologue_voice_cases');
     }
 
     #[Route('/psychologue/profil', name: 'psychologue_profil')]

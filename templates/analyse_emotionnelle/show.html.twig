@@ -8,8 +8,9 @@
             Analyse emotionnelle
         </h2>
         <div class="d-flex gap-2">
-            <a href="{{ path('app_analyse_emotionnelle_index') }}" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-list"></i> Toutes les analyses
+            {% set psy_context = app.request.query.get('from') == 'psy' or is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY') %}
+            <a href="{{ path(psy_context ? 'psychologue_journals' : 'app_analyse_emotionnelle_index') }}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-list"></i> {{ psy_context ? 'Retour aux journaux' : 'Toutes les analyses' }}
             </a>
         </div>
     </div>

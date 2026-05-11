@@ -21,9 +21,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    // 🔥 COMPAT JAVA → STRING (PAS JSON)
-    #[ORM\Column(length: 255)]
-    private ?string $role = null;
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
 
     #[ORM\Column]
     private ?string $password = null;
@@ -46,6 +45,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $specialite = null; // <-- Pour les psychologues
 
+    /**
+     * @var Collection<int, Journal>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Journal::class, orphanRemoval: true)]
+    private Collection $journals;
+
+    /**
+     * @var Collection<int, RendezVous>
+     */
+    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: RendezVous::class, orphanRemoval: true)]
+    private Collection $rendezVouses;
+
+    public function __construct()
+    {
+        $this->journals = new ArrayCollection();
+        $this->rendezVouses = new ArrayCollection();
+    }
+
     // ---------- SECURITY ----------
     public function getUserIdentifier(): string
     {
@@ -62,6 +79,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPassword(): ?string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
+
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+
+        return array_values(array_unique($roles));
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
 
     public function getNom(): ?string { return $this->nom; }
     public function setNom(?string $nom): self { $this->nom = $nom; return $this; }
@@ -80,4 +112,58 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getSpecialite(): ?string { return $this->specialite; }
     public function setSpecialite(?string $specialite): self { $this->specialite = $specialite; return $this; }
+
+    /**
+     * @return Collection<int, Journal>
+     */
+    public function getJournals(): Collection
+    {
+        return $this->journals;
+    }
+
+    public function addJournal(Journal $journal): self
+    {
+        if (!$this->journals->contains($journal)) {
+            $this->journals->add($journal);
+            $journal->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJournal(Journal $journal): self
+    {
+        if ($this->journals->removeElement($journal) && $journal->getUser() === $this) {
+            $journal->setUser(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RendezVous>
+     */
+    public function getRendezVouses(): Collection
+    {
+        return $this->rendezVouses;
+    }
+
+    public function addRendezVous(RendezVous $rendezVous): self
+    {
+        if (!$this->rendezVouses->contains($rendezVous)) {
+            $this->rendezVouses->add($rendezVous);
+            $rendezVous->setPatient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRendezVous(RendezVous $rendezVous): self
+    {
+        if ($this->rendezVouses->removeElement($rendezVous) && $rendezVous->getPatient() === $this) {
+            $rendezVous->setPatient(null);
+        }
+
+        return $this;
+    }
 }

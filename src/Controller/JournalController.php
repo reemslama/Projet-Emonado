@@ -87,7 +87,7 @@ class JournalController extends AbstractController
         }
 
         if ($journal->getPatientAdviceSeenAt() === null) {
-            $journal->setPatientAdviceSeenAt(new \DateTime());
+            $journal->markPatientAdviceSeenAt(new \DateTimeImmutable());
             $entityManager->flush();
         }
 
@@ -128,7 +128,7 @@ class JournalController extends AbstractController
         $journal->setMusicPrescriptionData($musicPack);
         $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
         $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-        $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+        $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
         $this->addFlash('success', 'Prescription musicale IA générée.');
@@ -163,7 +163,7 @@ class JournalController extends AbstractController
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
             $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-            $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+            $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
             return $this->redirectToRoute('app_journal_index');
@@ -217,7 +217,7 @@ class JournalController extends AbstractController
             $journal->setMusicPrescriptionData($musicPack);
             $journal->setMusicPrescriptionObjective($musicPack['objective'] ?? null);
             $journal->setMusicPrescriptionSource($musicPack['source'] ?? null);
-            $journal->setMusicPrescriptionGeneratedAt(new \DateTime());
+            $journal->markMusicPrescriptionGeneratedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
             $this->addFlash('success', 'Journal vocal envoyé. Le psychologue a reçu une alerte.');

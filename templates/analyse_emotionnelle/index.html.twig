@@ -7,7 +7,7 @@
         <h2 class="text-success fw-bold mb-0">
             Analyses émotionnelles
         </h2>
-        <a href="{{ path('app_journal_index') }}" class="btn btn-outline-secondary">
+        <a href="{{ path((is_granted('ROLE_PSYCHOLOGUE') or is_granted('ROLE_PSY')) ? 'psychologue_journals' : 'app_journal_index') }}" class="btn btn-outline-secondary">
             <i class="fa-solid fa-book-open"></i> Retour aux journaux
         </a>
     </div>

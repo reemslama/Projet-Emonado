@@ -28,10 +28,11 @@
         <form method="post" class="login-form">
 
             <div class="options">
-                <button type="submit" name="role" value="patient" class="option">Patient</button>
-                <button type="submit" name="role" value="psychologue" class="option">Psychologue</button>
-                <button type="submit" name="role" value="admin" class="option">Admin</button>
+                <button type="button" data-role="patient" class="option active">Patient</button>
+                <button type="button" data-role="psychologue" class="option">Psychologue</button>
+                <button type="button" data-role="admin" class="option">Admin</button>
             </div>
+            <input type="hidden" name="role" value="patient">
 
             <div class="mb-3">
                 <input type="email"
@@ -143,6 +144,11 @@ body {
     color: white;
 }
 
+.option.active {
+    background-color: #c5df43;
+    color: white;
+}
+
 .form-control {
     border-radius: 15px !important;
     padding: 12px !important;
@@ -230,4 +236,13 @@ body {
     }
 }
 </style>
+<script>
+document.querySelectorAll('.option[data-role]').forEach((button) => {
+    button.addEventListener('click', () => {
+        document.querySelector('input[name="role"]').value = button.dataset.role;
+        document.querySelectorAll('.option[data-role]').forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+    });
+});
+</script>
 {% endblock %}

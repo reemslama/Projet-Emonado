@@ -188,6 +188,7 @@ final class AnalyseEmotionnelleController extends AbstractController
 
             return $this->redirectToRoute('app_analyse_emotionnelle_show', [
                 'id' => $analyse->getId(),
+                'from' => $isPsyArea ? 'psy' : 'patient',
             ]);
         } catch (\Throwable $e) {
             $this->addFlash('error', 'Impossible d\'enregistrer l\'analyse emotionnelle pour le moment.');

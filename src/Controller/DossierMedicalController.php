@@ -470,7 +470,11 @@ class DossierMedicalController extends AbstractController
         $log->setEntityId($entityId);
         $log->setDetails($details);
         $currentUser = $this->getUser();
-        $log->setUser($currentUser instanceof User ? $currentUser : null);
+        if ($currentUser instanceof User) {
+            $log->setUser($currentUser);
+            $log->assignCreator($currentUser);
+            $log->assignUpdater($currentUser);
+        }
         $log->setIp($request->getClientIp());
         $em->persist($log);
         $em->flush();
