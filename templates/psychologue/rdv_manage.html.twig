@@ -43,12 +43,12 @@
                 <textarea class="form-control" rows="3" id="note-psy" placeholder="Ajoutez ici une note claire pour chaque rendez-vous accepté."></textarea>
             </div>
 
-            <div class="alert alert-success mb-3" style="border-radius: 16px;">
+            <div class="alert alert-success mb-3" style="border-radius: 16px;" id="payment-alert">
                 <div class="fw-semibold">Paiement et pré-évaluation clinique</div>
-                <div class="small text-muted">Paiement: aucun rendez-vous sélectionné</div>
-                <div class="small text-muted">Montant: -</div>
-                <div class="small text-muted">Score clinique: -</div>
-                <div class="small text-muted">Le formulaire patient apparaîtra ici après paiement.</div>
+                <div class="small" id="pay-status-text">Paiement: aucun rendez-vous sélectionné</div>
+                <div class="small" id="pay-amount-text">Montant: -</div>
+                <div class="small" id="pay-score-text">Score clinique: -</div>
+                <div class="small" id="pay-footer-text">Le formulaire patient apparaîtra ici après paiement.</div>
             </div>
 
             <div class="row g-2 align-items-center mb-2">
@@ -89,7 +89,11 @@
                                 data-patient-note="{{ (r.patient_note ?? '')|e('html_attr') }}"
                                 data-psy-note="{{ (r.psy_note ?? '')|e('html_attr') }}"
                                 data-statut="{{ r.statut }}"
-                                data-search="{{ (r.nom ?? '') ~ ' ' ~ (r.prenom ?? '') ~ ' ' ~ (r.type ?? '') ~ ' ' ~ dateStr ~ ' ' ~ timeStr ~ ' ' ~ r.statut }}"
+                                data-payment-status="{{ r.payment_status }}"
+                                data-payment-amount="{{ r.payment_amount }}"
+                                data-risk-score="{{ r.risk_score }}"
+                                data-has-questionnaire="{{ r.has_questionnaire ? '1' : '0' }}"
+                                data-search="{{ (r.nom ?? '') ~ ' ' ~ (r.prenom ?? '') ~ ' ' ~ (r.type ?? '') ~ ' ' ~ dateStr ~ ' ' ~ timeStr ~ ' ' ~ r.statut ~ ' ' ~ r.payment_status }}"
                                 style="cursor:pointer;"
                             >
                                 <td>{{ r.nom ?? '—' }}</td>
@@ -168,6 +172,38 @@
     btnAccept.disabled = !pending;
     btnReject.disabled = !pending;
     btnSave.disabled = false;
+
+    // Mise à jour de la section paiement
+    const payStatus = tr.getAttribute('data-payment-status') || 'none';
+    const payAmount = tr.getAttribute('data-payment-amount') || '-';
+    const riskScore = tr.getAttribute('data-risk-score') || '-';
+    const hasQuest = tr.getAttribute('data-has-questionnaire') === '1';
+
+    const payStatusText = document.getElementById('pay-status-text');
+    const payAmountText = document.getElementById('pay-amount-text');
+    const payScoreText = document.getElementById('pay-score-text');
+    const payFooterText = document.getElementById('pay-footer-text');
+    const alertBox = document.getElementById('payment-alert');
+
+    if (payStatus === 'none') {
+        payStatusText.innerText = "Paiement: non généré";
+        payAmountText.innerText = "Montant: -";
+        payScoreText.innerText = "Score clinique: -";
+        payFooterText.innerText = "En attente de l'acceptation du rendez-vous.";
+        alertBox.className = "alert alert-secondary mb-3";
+    } else {
+        payStatusText.innerText = "Paiement: " + payStatus;
+        payAmountText.innerText = "Montant: " + payAmount;
+        payScoreText.innerText = "Score clinique: " + riskScore;
+        
+        if (payStatus === 'paid') {
+            alertBox.className = "alert alert-success mb-3";
+            payFooterText.innerText = hasQuest ? "Formulaire complété." : "Paiement reçu. En attente du formulaire patient.";
+        } else {
+            alertBox.className = "alert alert-warning mb-3 text-dark";
+            payFooterText.innerText = "En attente de paiement. Le formulaire sera débloqué après paiement.";
+        }
+    }
   }
 
   if (table) {

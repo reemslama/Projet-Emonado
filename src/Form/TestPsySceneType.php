@@ -25,11 +25,13 @@ class TestPsySceneType extends AbstractType
             ->add('type', ChoiceType::class, [
                 'label' => 'Type de Jeu',
                 'choices' => [
+                    'Image (Standard)' => 'IMAGE',
+                    'Scénario (Histoire)' => 'SCENARIO',
+                    'Simple Question' => 'SIMPLE',
                     'Mémoire (Matching)' => 'MATCHING',
                     'Puzzle (2x2)' => 'PUZZLE',
                     'Choix Couleur' => 'COLOR',
                     'Choix Émotion' => 'EMOTION',
-                    'Simple Question' => 'SIMPLE',
                 ],
                 'attr' => ['class' => 'form-control']
             ])

@@ -274,11 +274,17 @@ class RendezVous
     public static function normalizeStatut(?string $raw): string
     {
         $s = mb_strtolower(trim((string) $raw));
-        if ($s === self::STATUT_ACCEPTE || str_contains($s, 'accept')) {
+        // Gère 'accepte', 'acceptee', 'accepted', 'accepté', etc.
+        if (str_contains($s, 'accept')) {
             return 'accepte';
         }
-        if ($s === self::STATUT_REJETE || str_contains($s, 'rejet')) {
+        // Gère 'rejete', 'rejetee', 'rejected', 'refuse', etc.
+        if (str_contains($s, 'rejet') || str_contains($s, 'refus')) {
             return 'rejete';
+        }
+        // Gère 'en attente', 'pending', etc.
+        if (str_contains($s, 'attent') || str_contains($s, 'pend')) {
+            return 'en_attente';
         }
 
         return 'en_attente';

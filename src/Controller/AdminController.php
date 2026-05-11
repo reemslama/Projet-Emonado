@@ -115,6 +115,45 @@ class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/questions/search', name: 'admin_questions_search', methods: ['GET'])]
+    public function questionsSearch(Request $request, QuestionRepository $questionRepo): Response
+    {
+        $search   = trim((string) $request->query->get('search', ''));
+        $category = (string) $request->query->get('categorie', 'all');
+        $sortBy   = (string) $request->query->get('sortBy', 'ordre');
+        $sortOrder = strtoupper((string) $request->query->get('sortOrder', 'ASC'));
+
+        // Sécurité sur le tri
+        if (!in_array($sortBy, ['id', 'texte', 'categorie', 'ordre'], true)) {
+            $sortBy = 'ordre';
+        }
+        if (!in_array($sortOrder, ['ASC', 'DESC'], true)) {
+            $sortOrder = 'ASC';
+        }
+
+        $qb = $questionRepo->createQueryBuilder('q');
+
+        if ($search !== '') {
+            $qb->andWhere('LOWER(q.texte) LIKE LOWER(:keyword) OR LOWER(q.categorie) LIKE LOWER(:keyword)')
+               ->setParameter('keyword', '%' . strtolower($search) . '%');
+        }
+
+        if ($category !== 'all') {
+            $qb->andWhere('q.categorie = :cat')
+               ->setParameter('cat', $category);
+        }
+
+        $questions = $qb->orderBy('q.' . $sortBy, $sortOrder)
+                        ->getQuery()
+                        ->getResult();
+
+        return $this->render('admin/_questions_list.html.twig', [
+            'questions'       => $questions,
+            'searchKeyword'   => $search,
+            'categorieFilter' => $category,
+        ]);
+    }
+
     #[Route('/admin/logs', name: 'admin_logs')]
     public function logs(AuditLogRepository $auditLogRepo): Response
     {

@@ -29,6 +29,7 @@ final class PsychologueRdvController extends AbstractController
     public function index(
         Request $request,
         RendezVousRepository $rdvRepo,
+        \Doctrine\ORM\EntityManagerInterface $em,
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_USER');
         $this->assertPsyArea();
@@ -54,12 +55,18 @@ final class PsychologueRdvController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // On charge les paiements et questionnaires associés pour l'affichage
         $view = [];
         foreach ($rdvs as $rdv) {
             $id = $rdv->getId();
             if ($id === null) {
                 continue;
             }
+
+            // Recherche du paiement
+            $payment = $em->getRepository(\App\Entity\ConsultationPayment::class)->findOneBy(['rendezVous' => $rdv]);
+            $questionnaire = $payment ? $em->getRepository(\App\Entity\ConsultationQuestionnaire::class)->findOneBy(['payment' => $payment]) : null;
+
             $full = trim((string) ($rdv->getNomPatient() ?? ''));
             $parts = $full !== '' ? preg_split('/\s+/u', $full, 2) : [];
             $nomRow = ($parts[0] ?? '') !== '' ? $parts[0] : '—';
@@ -74,6 +81,11 @@ final class PsychologueRdvController extends AbstractController
                 'statut' => RendezVous::normalizeStatut($rdv->getStatut()),
                 'patient_note' => $rdv->getNotesPatient(),
                 'psy_note' => $rdv->getNotesPsychologue(),
+                // Ajouts pour le dashboard
+                'payment_status' => $payment ? $payment->getStatus() : 'none',
+                'payment_amount' => $payment ? $payment->getMontant() . ' ' . $payment->getCurrency() : '-',
+                'risk_score' => $questionnaire ? $questionnaire->getRiskScore() : '-',
+                'has_questionnaire' => $questionnaire !== null,
             ];
         }
 
